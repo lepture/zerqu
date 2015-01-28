@@ -1,5 +1,11 @@
 # coding: utf-8
 
+# Gravatar settings
+GRAVATAR_URL = 'https://secure.gravatar.com/avatar/'
+GRAVATAR_PARAMETERS = {
+    's': '140'
+}
+
 # Security settings
 ZERQU_VERIFY_SESSION = True
 
