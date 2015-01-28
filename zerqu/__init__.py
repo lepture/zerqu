@@ -15,11 +15,8 @@ def create_flask(config=None):
         app.config.from_envvar('ZERQU_CONF')
 
     #: load app sepcified configuration
-    if config is not None:
-        if isinstance(config, dict):
-            app.config.update(config)
-        else:
-            app.config.from_pyfile(config)
+    if config is not None and isinstance(config, dict):
+        app.config.update(config)
 
     return app
 
