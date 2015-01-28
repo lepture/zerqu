@@ -47,6 +47,13 @@ class User(Base):
     def __str__(self):
         return self.username
 
+    def keys(self):
+        return (
+            'id', 'username', 'avatar_url', 'description',
+            'role', 'label', 'reputation', 'is_active',
+            'created_at', 'updated_at',
+        )
+
     @cached_property
     def is_active(self):
         return self.status > 0
@@ -156,7 +163,10 @@ class OAuthToken(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     last_used = Column(DateTime, default=datetime.datetime.utcnow)
 
-    @property
+    def keys(self):
+        return ('id', 'scopes', 'created_at', 'last_used')
+
+    @cached_property
     def scopes(self):
         if self.scope:
             return self.scope.split()
@@ -178,6 +188,12 @@ class AuthSession(Base):
 
     def __str__(self):
         return '%s / %s (%d)' % (self.browser, self.platform, self.user_id)
+
+    def keys(self):
+        return (
+            'id', 'platform', 'browser', 'ip', 'user',
+            'created_at', 'last_used',
+        )
 
     @cached_property
     def user(self):
