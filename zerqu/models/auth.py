@@ -10,7 +10,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime, Boolean, Text
 from sqlalchemy import SmallInteger, Integer
+from flask_oauthlib.provider import OAuth2Provider
+from flask_oauthlib.contrib.oauth2 import bind_sqlalchemy, bind_cache_grant
 from .base import db, Base
+
+__all__ = [
+    'oauth', 'bind_oauth',
+    'User', 'OAuthClient', 'OAuthToken', 'AuthSession'
+]
+
+oauth = OAuth2Provider()
 
 
 class User(Base):
@@ -80,7 +89,7 @@ class User(Base):
     def password(self, raw):
         self._password = generate_password_hash(raw)
 
-    def verify_password(self, raw):
+    def check_password(self, raw):
         return check_password_hash(self._password, raw)
 
     @property
@@ -208,6 +217,7 @@ class AuthSession(Base):
 
     @classmethod
     def login(cls, user, permanent=False):
+        request._zerqu_user = user
         ua = request.user_agent
         data = cls(
             user_id=user.id,
@@ -225,6 +235,8 @@ class AuthSession(Base):
     @classmethod
     def get_current_user(cls):
         """Get current authenticated user."""
+        if hasattr(request, '_zerqu_user'):
+            return request._zerqu_user
         session_id = session.get('id')
         if not session_id:
             return None
@@ -233,4 +245,19 @@ class AuthSession(Base):
             session.pop('id', None)
             session.pop('ts', None)
             return None
-        return User.query.get(data.user_id)
+        user = User.query.get(data.user_id)
+        request._zerqu_user = user
+        return user
+
+
+def bind_oauth(app):
+    # bind oauth getters and setters
+    oauth.init_app(app)
+    bind_sqlalchemy(
+        oauth,
+        db.session,
+        user=User,
+        client=OAuthClient,
+        token=OAuthToken,
+    )
+    bind_cache_grant(app, oauth, AuthSession.get_current_user)
