@@ -49,7 +49,8 @@ Response with::
                     "updated_at": "2014-12-31T18:50:06Z"
                 }
             }
-        }
+        },
+        "pagination": {}
     }
 
 

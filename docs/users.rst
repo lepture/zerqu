@@ -24,7 +24,8 @@ Response with::
             "reputation": 10,
             "created_at": "2014-12-31T14:40:52Z",
             "updated_at": "2014-12-31T18:50:06Z"
-        }]
+        }],
+        "pagination": {}
     }
 
 
