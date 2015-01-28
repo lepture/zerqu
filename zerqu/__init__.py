@@ -1,25 +1,5 @@
 # coding: utf-8
 
-import os
-from flask import Flask
-
-
-def create_flask(config=None):
-    app = Flask(__name__)
-
-    #: load default configuration
-    app.config.from_object('zerqu.settings')
-
-    #: load environment configuration
-    if 'ZERQU_CONF' in os.environ:
-        app.config.from_envvar('ZERQU_CONF')
-
-    #: load app sepcified configuration
-    if config is not None and isinstance(config, dict):
-        app.config.update(config)
-
-    return app
-
 
 def register_model(app):
     from .models import db
@@ -36,7 +16,8 @@ def register_blueprints(app):
 
 
 def create_app(config=None):
-    app = create_flask(config)
+    from .app import create_app
+    app = create_app(config)
     register_model(app)
     register_blueprints(app)
     return app

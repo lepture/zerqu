@@ -22,6 +22,9 @@ def account():
             return jsonify(status='ok')
         return jsonify(status='error')
 
+    if request.mimetype != 'application/json':
+        return jsonify(status='error')
+
     username = request.json.get('username')
     password = request.json.get('password')
     if not username or not password:
@@ -41,4 +44,4 @@ def account():
             error_description='Invalid username or password.'
         )
     AuthSession.login(user)
-    return jsonify(status='ok', data=user)
+    return jsonify(status='ok', data=user), 201

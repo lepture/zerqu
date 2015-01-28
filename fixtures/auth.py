@@ -4,6 +4,7 @@ from zerqu.models import db, User, OAuthClient
 
 users = [
     ('zerqu', 'hello@zerqu', None, 10),
+    ('test', 'test@zerqu', 'test-password', 1),
 ]
 clients = [
 ]
