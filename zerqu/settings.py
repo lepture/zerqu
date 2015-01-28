@@ -6,8 +6,16 @@ GRAVATAR_PARAMETERS = {
     's': '140'
 }
 
-# Security settings
+# ZERQU settings
 ZERQU_VERIFY_SESSION = True
+
+ZERQU_BROWSER_TEMPLATE = 'browser.html'
+ZERQU_BROWSER_STYLES = []
+ZERQU_BROWSER_SCRIPTS = []
+
+ZERQU_MOBILE_TEMPLATE = 'mobile.html'
+ZERQU_MOBILE_STYLES = []
+ZERQU_MOBILE_SCRIPTS = []
 
 # Available feature choices for a cafe
 ZERQU_CAFE_FEATURES = [
