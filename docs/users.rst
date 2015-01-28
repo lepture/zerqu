@@ -17,10 +17,10 @@ Response with::
             "id": 1,
             "username": "huashan",
             "avatar_url": "https://example.com/avatar/1.png",
-            "role": "admin",
-            "active": true,
+            "role": "staff",
+            "is_active": true,
             "url": "http://zerqu.com/",
-            "bio": "I am a mountain.",
+            "description": "I am a mountain.",
             "reputation": 10,
             "created_at": "2014-12-31T14:40:52Z",
             "updated_at": "2014-12-31T18:50:06Z"
