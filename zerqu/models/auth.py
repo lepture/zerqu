@@ -5,6 +5,7 @@ import datetime
 import hashlib
 from flask import request, session, current_app
 from werkzeug import url_encode
+from werkzeug.local import LocalProxy
 from werkzeug.utils import cached_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Column
@@ -233,21 +234,32 @@ class AuthSession(Base):
         return data
 
     @classmethod
+    def logout(cls):
+        sid = session.pop('id', None)
+        if not sid:
+            return False
+        data = cls.query.get(sid)
+        if not data:
+            return False
+        db.session.delete(data)
+        db.session.commit()
+        return True
+
+    @classmethod
     def get_current_user(cls):
         """Get current authenticated user."""
         if hasattr(request, '_zerqu_user'):
             return request._zerqu_user
-        session_id = session.get('id')
-        if not session_id:
+        sid = session.get('id')
+        if not sid:
             return None
-        data = cls.query.get(session_id)
+        data = cls.query.get(sid)
         if not data or not data.is_valid():
             session.pop('id', None)
             session.pop('ts', None)
             return None
-        user = User.query.get(data.user_id)
-        request._zerqu_user = user
-        return user
+        request._zerqu_user = data.user
+        return data.user
 
 
 def bind_oauth(app):
@@ -261,3 +273,12 @@ def bind_oauth(app):
         token=OAuthToken,
     )
     bind_cache_grant(app, oauth, AuthSession.get_current_user)
+
+
+def get_current_user():
+    if hasattr(request, 'oauth'):
+        return request.oauth.user
+    return AuthSession.get_current_user()
+
+
+current_user = LocalProxy(get_current_user)

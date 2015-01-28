@@ -30,8 +30,9 @@ def register_model(app):
 
 
 def register_blueprints(app):
-    from .handlers import oauth
+    from .handlers import front, oauth
     app.register_blueprint(oauth.bp, url_prefix='/oauth')
+    app.register_blueprint(front.bp, url_prefix='')
 
 
 def create_app(config=None):
