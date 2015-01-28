@@ -16,11 +16,10 @@ Response with::
         "data": [{
             "id": 1,
             "username": "huashan",
-            "screen_name": "Huashan Mountain",
             "avatar_url": "https://example.com/avatar/1.png",
             "role": "admin",
             "active": true,
-            "url": "http://doocer.com/",
+            "url": "http://zerqu.com/",
             "bio": "I am a mountain.",
             "reputation": 10,
             "created_at": "2014-12-31T14:40:52Z",
@@ -43,11 +42,10 @@ Response with::
         "data": {
             "id": 1,
             "username": "huashan",
-            "screen_name": "Huashan Mountain",
             "avatar_url": "https://example.com/avatar/1.png",
             "role": "admin",
             "active": true,
-            "url": "http://doocer.com/",
+            "url": "http://zerqu.com/",
             "bio": "I am a mountain.",
             "created_at": "2014-12-31T14:40:52Z",
             "updated_at": "2014-12-31T18:50:06Z"
@@ -74,7 +72,7 @@ Request with PATCH method::
 Request with these parameters::
 
     {
-        "screen_name": "Wu Yue"
+        "bio": "I am a river."
     }
 
 Change password
