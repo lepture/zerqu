@@ -16,7 +16,7 @@ def home():
 
 
 @bp.route('/session', methods=['POST', 'DELETE'])
-def account():
+def session():
     if request.method == 'DELETE':
         if AuthSession.logout():
             return jsonify(status='ok')
@@ -43,5 +43,18 @@ def account():
             error_code='login_failed',
             error_description='Invalid username or password.'
         )
-    AuthSession.login(user)
+    permanent = request.json.get('permanent', False)
+    AuthSession.login(user, permanent)
     return jsonify(status='ok', data=user), 201
+
+
+@bp.route('/t/<int:uid>')
+def topic(uid):
+    """Show one topic. This handler is designed for SEO."""
+    return render_template('topic.html')
+
+
+@bp.route('/c/<int:uid>')
+def cafe(uid):
+    """Show one cafe. This handler is designed for SEO."""
+    return render_template('cafe.html')
