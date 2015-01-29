@@ -1,6 +1,9 @@
 # coding: utf-8
 
+import datetime
+
 SITE_NAME = 'ZERQU'
+SITE_YEAR = datetime.date.today().year
 
 # Gravatar settings
 GRAVATAR_URL = 'https://secure.gravatar.com/avatar/'

@@ -8,11 +8,14 @@
 </head>
 <body>
   <div class="container">
+    <section class="banner">
+      <h1>{{ config.SITE_NAME }}</h1>
+    </section>
     <section class="client clearfix">
       {% if client.avatar_url %}
       <img class="avatar" src="{{ client.avatar_url }}" alt="{{ client.name }} avatar">
       {% else %}
-        <div class="avatar"></div>
+      <div class="avatar">{{ client.name|first }}</div>
       {% endif %}
       <div class="content-wrap">
         <div><strong>{{ client.name }}</strong> by {{ client.user }}</div>
@@ -22,13 +25,16 @@
       </div>
     </section>
     <section class="scopes">
-      <h4>Grant access to</h4>
+      <h4>Grant Permissions</h4>
       {% for key, desc in choices %}
-      <label>
+      <label data-scope="{{ key }}">
         <input type="checkbox" name="scope" value="{{ key }}" checked>
         {{ desc }}
       </label>
       {% endfor %}
+      {% if not choices %}
+      <div class="notice">This client only requires public permissions.</div>
+      {% endif %}
     </section>
     <section class="user">
       {% if user %}
@@ -37,7 +43,7 @@
         <div class="content-wrap">
           <div><strong id="user-name">{{ user.username }}</strong></div>
           <p id="user-description">{{ user.description|default('', True) }}</p>
-          <a id="change-account" href="#">Change</a>
+          <a id="change-account" href="#">Change account</a>
         </div>
       </div>
       {% else %}
@@ -46,7 +52,7 @@
         <div class="content-wrap">
           <div><strong id="user-name"></strong></div>
           <p id="user-description"></p>
-          <a id="change-account" href="#">Change</a>
+          <a id="change-account" href="#">Change account</a>
         </div>
       </div>
       {% endif %}
@@ -72,6 +78,9 @@
       <button class="approve" type="submit" name="confirm" value="yes">Approve</button>
       <button class="decline" type="submit" name="confirm" value="no">Decline</button>
     </form>
+    <footer>
+      Copyright &copy; {{ config.SITE_YEAR }} {{ config.SITE_NAME }}
+    </footer>
   </div>
   <script>{% include "oauth/http.js" %}</script>
 </body>

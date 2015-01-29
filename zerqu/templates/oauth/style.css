@@ -8,7 +8,7 @@ html, body {
   margin: 0 auto;
   padding: 40px 10px;
   color: #333;
-  font: normal normal 18px/1.2 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  font: normal normal 18px/1.5 'Helvetica Neue', Arial, Helvetica, sans-serif;
 }
 .hide {
   display: none;
@@ -20,6 +20,15 @@ html, body {
   margin-right: 16px;
   border-radius: 5px;
   border: 2px solid #ddd;
+  text-align: center;
+  line-height: 64px;
+}
+div.avatar {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 .content-wrap {
   overflow: hidden;
@@ -30,15 +39,33 @@ html, body {
 .content-wrap p {
   margin: 4px 0 6px;
 }
+.banner h1 {
+  margin: 0 0 30px;
+}
 .scopes {
   clear: both;
   padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid #ddd;
 }
 .scopes h4 {
   margin: 0 0 10px;
 }
 .scopes label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
   display: block;
+}
+.scopes label[data-scope="user:email"] {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+.scopes .info {
+  color: #F8B35C;
+  padding: 4px;
+  font-size: 14px;
 }
 button {
   border: none;
@@ -63,7 +90,7 @@ button.approve {
   clear: both;
 }
 .user {
-  margin: 20px 0;
+  margin: 30px 0;
   font-size: 14px;
   background: #f7f7f7;
   padding: 20px 18px;
@@ -92,4 +119,16 @@ button.approve {
 }
 #login-form .field-group {
   padding-bottom: 10px;
+}
+#change-account {
+  font-size: 13px;
+  color: #999;
+}
+footer {
+  padding-top: 14px;
+  margin-top: 40px;
+  border-top: 1px solid #eee;
+  color: #acacaa;
+  font-size: 13px;
+  text-align: center;
 }
