@@ -31,7 +31,7 @@ def authorize(*args, **kwargs):
     choices = filter_user_scopes(scopes)
     scopes.extend(dict(choices).keys())
     return render_template(
-        'oauth_authorize.html',
+        'oauth/authorize.html',
         form=form,
         user=current_user,
         client=req.client,

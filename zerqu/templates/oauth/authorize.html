@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>{{ config.SITE_NAME }}</title>
+  <style>{% include "oauth/style.css" %}</style>
+</head>
+<body>
+  <div class="container">
+    <section class="client clearfix">
+      {% if client.avatar_url %}
+      <img class="avatar" src="{{ client.avatar_url }}" alt="{{ client.name }} avatar">
+      {% else %}
+        <div class="avatar"></div>
+      {% endif %}
+      <div class="content-wrap">
+        <div><strong>{{ client.name }}</strong> by {{ client.user }}</div>
+        {% if client.description %}
+          <p>{{ client.description }}</p>
+        {% endif %}
+      </div>
+    </section>
+    <section class="scopes">
+      <h4>Grant access to</h4>
+      {% for key, desc in choices %}
+      <label>
+        <input type="checkbox" name="scope" value="{{ key }}" checked>
+        {{ desc }}
+      </label>
+      {% endfor %}
+    </section>
+    <section class="user">
+      {% if user %}
+      <div id="user-info" class="clearfix">
+        <img id="user-avatar" class="avatar" src="{{ user.avatar_url }}" alt="{{ user.username }} avatar">
+        <div class="content-wrap">
+          <div><strong id="user-name">{{ user.username }}</strong></div>
+          <p id="user-description">{{ user.description|default('', True) }}</p>
+          <a id="change-account" href="#">Change</a>
+        </div>
+      </div>
+      {% else %}
+      <div id="user-info" class="clearfix hide">
+        <img id="user-avatar" class="avatar">
+        <div class="content-wrap">
+          <div><strong id="user-name"></strong></div>
+          <p id="user-description"></p>
+          <a id="change-account" href="#">Change</a>
+        </div>
+      </div>
+      {% endif %}
+      <div id="login-form"{% if user %} class="hide"{% endif %}>
+        <div class="field-group">
+          <label for="username">Username or email</label>
+          <input id="username" type="text" name="username">
+        </div>
+        <div class="field-group">
+          <label for="password">Password</label>
+          <input id="password" type="password" name="password">
+        </div>
+        <button id="login-button">Login</button>
+        <button id="cancel-button"{% if not user %} class="hide"{% endif %}>Cancel</button>
+      </div>
+    </section>
+    <form id="confirm-form"{% if not user %} class="hide"{% endif %} method="post" action="{{ url_for('oauth.authorize') }}">
+      {{ form.csrf_token() }}
+      {% for key in parameters %}
+        <input type="hidden" name="{{ key }}" value="{{ parameters[key]|default('', True) }}">
+      {% endfor %}
+      <input type="hidden" name="scope" value="{{ scopes|join(' ') }}">
+      <button class="approve" type="submit" name="confirm" value="yes">Approve</button>
+      <button class="decline" type="submit" name="confirm" value="no">Decline</button>
+    </form>
+  </div>
+  <script>{% include "oauth/http.js" %}</script>
+</body>
+</html>
