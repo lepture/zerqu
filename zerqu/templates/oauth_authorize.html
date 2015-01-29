@@ -2,9 +2,150 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>{{ config.SITE_NAME }}</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      -webkit-font-smoothing: antialiased;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 40px 10px;
+      color: #333;
+      font: normal normal 18px/1.2 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
+    .hide {
+      display: none;
+    }
+    .avatar {
+      float: left;
+      width: 64px;
+      height: 64px;
+      margin-right: 16px;
+      border-radius: 5px;
+      border: 2px solid #ddd;
+    }
+    .client {
+      clear: both;
+    }
+    .client p {
+      margin: 4px 0 0;
+    }
+    .client .client-info {
+      overflow: hidden;
+      word-break: break-all;
+      color: #656566;
+      font-size: 14px;
+    }
+    .scopes {
+      clear: both;
+      padding-top: 20px;
+    }
+    .scopes h4 {
+      margin: 0 0 10px;
+    }
+    .scopes label {
+      display: block;
+    }
+    button {
+      border: none;
+      text-shadow: none;
+      font-weight: 600;
+      font-size: 16px;
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    button.cancel {
+      margin-left: 1em;
+      background-color: #F8B35C;
+    }
+    button.approve {
+      background-color: #54CDBA;
+    }
+    .user {
+      padding: 20px 0;
+    }
+    .login-form {
+      font-size: 14px;
+      background: #f7f7f7;
+      padding: 20px 18px;
+      border-radius: 5px;
+    }
+    .login-form label {
+      display: block;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .login-form input {
+      display: block;
+      margin-top: 4px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      width: 80%;
+      font-size: 16px;
+      padding: 8px 4px;
+    }
+    .login-form button {
+      font-size: 14px;
+      margin-top: 10px;
+      background-color: #7CC041;
+    }
+    .login-form .field-group {
+      padding-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
-  {{ client_id }}
+  <div class="container">
+    <section class="client">
+      {% if client.avatar_url %}
+      <img class="avatar" src="{{ client.avatar_url }}" alt="{{ client.name }} avatar">
+      {% else %}
+        <div class="avatar"></div>
+      {% endif %}
+      <div class="client-info">
+        <div><strong>{{ client.name }}</strong> by {{ client.user }}</div>
+        {% if client.description %}
+          <p>{{ client.description }}</p>
+        {% endif %}
+      </div>
+    </section>
+    <section class="scopes">
+      <h4>Grant access to</h4>
+      {% for key, desc in choices %}
+      <label>
+        <input type="checkbox" name="scope" value="{{ key }}" checked>
+        {{ desc }}
+      </label>
+      {% endfor %}
+    </section>
+    <section class="user">
+      <div class="login-form{% if user %} hide{% endif %}">
+        <div class="field-group">
+          <label for="username">Username or email</label>
+          <input id="username" type="text" name="username">
+        </div>
+        <div class="field-group">
+          <label for="password">Password</label>
+          <input id="password" type="password" name="password">
+        </div>
+        <button>Login</button>
+      </div>
+    </section>
+    <form class="confirm-form{% if not user %} hide{% endif %}" method="post" action="{{ url_for('oauth.authorize') }}">
+      {{ form.crsf_token }}
+      {% for key in parameters %}
+        <input type="hidden" name="{{ key }}" value="{{ parameters[key]|default('', True) }}">
+      {% endfor %}
+      <input type="hidden" name="scope" value="{{ scopes|join(' ') }}">
+      <button class="approve" type="submit" name="confirm" value="yes">Approve</button>
+      <button class="cancel" type="submit" name="confirm" value="no">Decline</button>
+    </form>
+  </div>
 </body>
 </html>

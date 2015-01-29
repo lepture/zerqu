@@ -11,11 +11,11 @@ PUBLIC_SCOPES = [
 
 #: scopes that user can choose to grant
 USER_SCOPES = [
-    ('user:email', 'Grant access to read your email address'),
-    ('user:write', 'Grant access to change your account information'),
-    ('user:topic', 'Grant access to create a topic'),
-    ('user:follow', 'Grant access to follow and unfollow other users'),
-    ('user:subscribe', 'Grant access to follow and unfollow a cafe'),
+    ('user:email', 'read your email address'),
+    ('user:write', 'change your account information'),
+    ('user:topic', 'create a topic under your name'),
+    ('user:follow', 'follow and unfollow other users'),
+    ('user:subscribe', 'follow and unfollow a cafe'),
 ]
 
 #: scopes that only available for confidential clients

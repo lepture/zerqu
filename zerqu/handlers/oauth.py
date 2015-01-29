@@ -1,7 +1,8 @@
 # coding: utf-8
 
 from flask import Blueprint
-from flask import request, render_template, jsonify
+from flask import request
+from flask import render_template, jsonify, redirect
 from flask_wtf import Form
 from wtforms.fields import HiddenField
 from ..scopes import filter_user_scopes
@@ -23,16 +24,20 @@ def authorize(*args, **kwargs):
     if current_user and form.validate_on_submit():
         confirm = request.form.get('confirm', 'no')
         return confirm == 'yes'
+    if request.method == 'POST' and not current_user:
+        return redirect(request.referrer)
     req = kwargs.pop('request')
     scopes = kwargs.pop('scopes')
     choices = filter_user_scopes(scopes)
+    scopes.extend(dict(choices).keys())
     return render_template(
         'oauth_authorize.html',
         form=form,
         user=current_user,
         client=req.client,
         scopes=scopes,
-        choices=choices, **kwargs
+        choices=choices,
+        parameters=kwargs,
     )
 
 
