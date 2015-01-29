@@ -1,5 +1,7 @@
 # coding: utf-8
 
+SITE_NAME = 'ZERQU'
+
 # Gravatar settings
 GRAVATAR_URL = 'https://secure.gravatar.com/avatar/'
 GRAVATAR_PARAMETERS = {

@@ -155,6 +155,10 @@ class OAuthClient(Base):
             return self.redirect_uris[0]
         return None
 
+    def validate_scopes(self, scopes):
+        #: TODO
+        return True
+
 
 class OAuthToken(Base):
     __tablename__ = 'zq_oauth_token'
