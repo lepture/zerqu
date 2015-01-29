@@ -21,11 +21,15 @@ class OAuthForm(Form):
 def authorize(*args, **kwargs):
     """Authorize handler for OAuth"""
     form = OAuthForm()
-    if current_user and form.validate_on_submit():
-        confirm = request.form.get('confirm', 'no')
-        return confirm == 'yes'
-    if request.method == 'POST' and not current_user:
+    if request.method == 'POST':
+        if not current_user:
+            return redirect(request.referrer)
+
+        if form.validate_on_submit():
+            confirm = request.form.get('confirm', 'no')
+            return confirm == 'yes'
         return redirect(request.referrer)
+
     req = kwargs.pop('request')
     scopes = kwargs.pop('scopes')
     choices = filter_user_scopes(scopes)

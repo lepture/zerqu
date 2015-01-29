@@ -7,6 +7,7 @@ from flask import request, session, current_app
 from werkzeug import url_encode
 from werkzeug.local import LocalProxy
 from werkzeug.utils import cached_property
+from werkzeug.security import gen_salt
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime, Boolean, Text
@@ -177,6 +178,16 @@ class OAuthToken(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     last_used = Column(DateTime, default=datetime.datetime.utcnow)
 
+    def __init__(self, access_token, token_type, scope, expires_in,
+                 refresh_token=None, **kwargs):
+        self.access_token = access_token
+        self.token_type = token_type
+        self.scope = self.scope
+        self.expires_in = expires_in
+        if refresh_token is None:
+            refresh_token = gen_salt(34)
+        self.refresh_token = refresh_token
+
     def keys(self):
         return ('id', 'scopes', 'created_at', 'last_used')
 
@@ -275,6 +286,7 @@ def bind_oauth(app):
         user=User,
         client=OAuthClient,
         token=OAuthToken,
+        current_user=AuthSession.get_current_user,
     )
     bind_cache_grant(app, oauth, AuthSession.get_current_user)
 
