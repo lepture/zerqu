@@ -7,8 +7,8 @@ db = SQLAlchemy()
 Base = db.Model
 
 
-def getitem(self, key):
-    return getattr(self, key)
+class Base(db.Model):
+    __abstract__ = True
 
-
-Base.__getitem__ = getitem
+    def __getitem__(self, key):
+        return getattr(self, key)
