@@ -233,7 +233,7 @@ class AuthSession(Base):
 
     @classmethod
     def login(cls, user, permanent=False):
-        request._zerqu_user = user
+        request._current_user = user
         ua = request.user_agent
         data = cls(
             user_id=user.id,
@@ -263,8 +263,6 @@ class AuthSession(Base):
     @classmethod
     def get_current_user(cls):
         """Get current authenticated user."""
-        if hasattr(request, '_zerqu_user'):
-            return request._zerqu_user
         sid = session.get('id')
         if not sid:
             return None
@@ -273,7 +271,6 @@ class AuthSession(Base):
             session.pop('id', None)
             session.pop('ts', None)
             return None
-        request._zerqu_user = data.user
         return data.user
 
 
@@ -292,9 +289,17 @@ def bind_oauth(app):
 
 
 def get_current_user():
+    if hasattr(request, '_current_user'):
+        return request._current_user
+
     if hasattr(request, 'oauth'):
-        return request.oauth.user
-    return AuthSession.get_current_user()
+        # OAuth current user
+        user = request.oauth.user
+    else:
+        user = AuthSession.get_current_user()
+
+    request._current_user = user
+    return user
 
 
 current_user = LocalProxy(get_current_user)
