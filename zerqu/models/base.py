@@ -4,22 +4,15 @@ from sqlalchemy.orm import Query
 from flask import current_app
 from werkzeug.local import LocalProxy
 from flask_sqlalchemy import SQLAlchemy
-from flask_oauthlib.contrib.cache import Cache as _Cache
 
 db = SQLAlchemy(session_options={'expire_on_commit': False})
-
-
-class CacheClient(_Cache):
-    def __init__(self, app, config_prefix='ZERQU', **kwargs):
-        super(CacheClient, self).__init__(app, config_prefix, **kwargs)
-        app.extensions[config_prefix.lower() + '_cache'] = self
 
 
 def use_cache(prefix='zerqu'):
     return current_app.extensions[prefix + '_cache']
 
 
-# default redis cache
+# default cache
 cache = LocalProxy(use_cache)
 
 

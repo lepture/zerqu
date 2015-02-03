@@ -2,12 +2,13 @@
 
 
 def register_model(app):
-    from .models import db, CacheClient
+    from .models import db
     from .models.auth import bind_oauth
+    from flask_oauthlib.contrib.cache import Cache
 
     db.init_app(app)
     bind_oauth(app)
-    CacheClient(app)
+    Cache(app, config_prefix='ZERQU')
 
 
 def register_blueprints(app):
