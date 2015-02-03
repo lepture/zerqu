@@ -21,7 +21,7 @@ cache = LocalProxy(use_cache)
 class CacheQuery(Query):
     def get(self, ident):
         mapper = self._only_full_mapper_zero('get')
-        key = 'db:get:%s:%s' % (mapper.mapped_table.name, str(ident))
+        key = mapper.class_.generate_cache_prefix('get') + str(ident)
         rv = cache.get(key)
         if rv:
             return rv
@@ -36,7 +36,7 @@ class CacheQuery(Query):
             return {}
 
         mapper = self._only_full_mapper_zero('get')
-        prefix = 'db:get:%s:' % mapper.mapped_table.name
+        prefix = mapper.class_.generate_cache_prefix('get')
         keys = {prefix + str(i) for i in idents}
         rv = cache.get_dict(*keys)
 
@@ -64,8 +64,8 @@ class CacheQuery(Query):
 
     def filter_first(self, **kwargs):
         mapper = self._only_mapper_zero()
-        key = '-'.join(['%s$%s' % (k, kwargs[k]) for k in kwargs])
-        key = 'db:ff:%s:%s' % (mapper.mapped_table.name, key)
+        prefix = mapper.class_.generate_cache_prefix('ff')
+        key = prefix + '-'.join(['%s$%s' % (k, kwargs[k]) for k in kwargs])
         rv = cache.get(key)
         if rv:
             return rv
@@ -97,6 +97,13 @@ class Base(db.Model):
         return getattr(self, key)
 
     @classmethod
+    def generate_cache_prefix(cls, name):
+        prefix = 'db:%s:%s' % (name, cls.__tablename__)
+        if hasattr(cls, '__cache_version__'):
+            return '%s|%s:' % (prefix, cls.__cache_version__)
+        return '%s:' % prefix
+
+    @classmethod
     def __declare_last__(cls):
         @event.listens_for(cls, 'after_insert')
         def receive_after_insert(mapper, conn, target):
@@ -105,7 +112,7 @@ class Base(db.Model):
                 return
             pk = pks[0]
             ident = getattr(target, pk.name)
-            key = 'db:get:%s:%s' % (mapper.mapped_table.name, str(ident))
+            key = target.generate_cache_prefix('get') + str(ident)
             cache.set(key, target, 600)
 
         @event.listens_for(cls, 'after_delete')
@@ -115,7 +122,7 @@ class Base(db.Model):
                 return
             pk = pks[0]
             ident = getattr(target, pk.name)
-            key = 'db:get:%s:%s' % (mapper.mapped_table.name, str(ident))
+            key = target.generate_cache_prefix('get') + str(ident)
             cache.delete(key)
 
 Base.cache = CacheProperty(db)
