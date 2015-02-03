@@ -136,7 +136,7 @@ class OAuthClient(Base):
 
     @property
     def user(self):
-        return User.query.get(self.user_id)
+        return User.cache.get(self.user_id)
 
     @property
     def default_scopes(self):
@@ -222,7 +222,7 @@ class AuthSession(Base):
 
     @cached_property
     def user(self):
-        return User.query.get(self.user_id)
+        return User.cache.get(self.user_id)
 
     def is_valid(self):
         """Verify current session is valid."""
@@ -266,7 +266,7 @@ class AuthSession(Base):
         sid = session.get('id')
         if not sid:
             return None
-        data = cls.query.get(sid)
+        data = cls.cache.get(sid)
         if not data or not data.is_valid():
             session.pop('id', None)
             session.pop('ts', None)
