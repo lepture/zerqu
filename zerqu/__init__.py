@@ -2,11 +2,12 @@
 
 
 def register_model(app):
-    from .models import db
+    from .models import db, RedisClient
     from .models.auth import bind_oauth
 
     db.init_app(app)
     bind_oauth(app)
+    RedisClient(app)
 
 
 def register_blueprints(app):
@@ -18,10 +19,7 @@ def register_blueprints(app):
 
 def create_app(config=None):
     from .app import create_app
-    from .libs.cache import RedisClient
     app = create_app(config)
-    # default redis cache
-    RedisClient(app)
     register_model(app)
     register_blueprints(app)
     return app

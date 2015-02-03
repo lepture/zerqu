@@ -8,8 +8,7 @@ from flask import request, json, session
 from werkzeug.exceptions import HTTPException
 from werkzeug._compat import text_type
 from functools import wraps
-from ..libs.cache import redis
-from ..models import AuthSession, OAuthClient
+from ..models import redis, AuthSession, OAuthClient
 from ..models.auth import oauth
 
 bp = Blueprint('api', __name__)
