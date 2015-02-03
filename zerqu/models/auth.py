@@ -9,12 +9,13 @@ from werkzeug.local import LocalProxy
 from werkzeug.utils import cached_property
 from werkzeug.security import gen_salt
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import event
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime, Boolean, Text
 from sqlalchemy import SmallInteger, Integer
 from flask_oauthlib.provider import OAuth2Provider
 from flask_oauthlib.contrib.oauth2 import bind_sqlalchemy, bind_cache_grant
-from .base import db, Base
+from .base import db, cache, Base, CACHE_TIMES
 
 __all__ = [
     'oauth', 'bind_oauth', 'current_user',
@@ -106,6 +107,16 @@ class User(Base):
     @avatar_url.setter
     def avatar_url(self, url):
         self._avatar_url = url
+
+
+@event.listens_for(User, 'after_update')
+def receive_user_after_update(mapper, conn, target):
+    prefix = target.generate_cache_prefix('ff')
+    to_cache = {
+        prefix + 'username$' + target.username: target,
+        prefix + 'email$' + target.email: target,
+    }
+    cache.set_many(to_cache, CACHE_TIMES['ff'])
 
 
 class OAuthClient(Base):

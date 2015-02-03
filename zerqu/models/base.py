@@ -7,6 +7,12 @@ from sqlalchemy.orm.exc import UnmappedClassError
 from werkzeug.local import LocalProxy
 from flask_sqlalchemy import SQLAlchemy
 
+CACHE_TIMES = {
+    'get': 600,
+    'ff': 300,
+}
+CACHE_MODEL_PREFIX = 'db'
+
 db = SQLAlchemy(session_options={'expire_on_commit': False})
 
 
@@ -28,7 +34,7 @@ class CacheQuery(Query):
         rv = super(CacheQuery, self).get(ident)
         if rv is None:
             return None
-        cache.set(key, rv, 600)
+        cache.set(key, rv, CACHE_TIMES['get'])
         return rv
 
     def get_dict(self, idents):
@@ -55,7 +61,7 @@ class CacheQuery(Query):
             to_cache[prefix + ident] = item
             rv[ident] = item
 
-        cache.set_many(to_cache, 600)
+        cache.set_many(to_cache, CACHE_TIMES['get'])
         return rv
 
     def get_many(self, idents):
@@ -73,7 +79,7 @@ class CacheQuery(Query):
         if rv is None:
             return None
         # it is hard to invalidate this cache, expires in 2 minutes
-        cache.set(key, rv, 120)
+        cache.set(key, rv, CACHE_TIMES['ff'])
         return rv
 
 
@@ -98,22 +104,22 @@ class Base(db.Model):
 
     @classmethod
     def generate_cache_prefix(cls, name):
-        prefix = 'db:%s:%s' % (name, cls.__tablename__)
+        prefix = '%s:%s:%s' % (CACHE_MODEL_PREFIX, name, cls.__tablename__)
         if hasattr(cls, '__cache_version__'):
             return '%s|%s:' % (prefix, cls.__cache_version__)
         return '%s:' % prefix
 
     @classmethod
     def __declare_last__(cls):
-        @event.listens_for(cls, 'after_insert')
-        def receive_after_insert(mapper, conn, target):
+        @event.listens_for(cls, 'after_update')
+        def receive_after_update(mapper, conn, target):
             pks = mapper.primary_key
             if len(pks) > 1:
                 return
             pk = pks[0]
             ident = getattr(target, pk.name)
             key = target.generate_cache_prefix('get') + str(ident)
-            cache.set(key, target, 600)
+            cache.set(key, target, CACHE_TIMES['get'])
 
         @event.listens_for(cls, 'after_delete')
         def receive_after_delete(mapper, conn, target):
