@@ -2,12 +2,12 @@
 
 
 def register_model(app):
-    from .models import db, RedisClient
+    from .models import db, CacheClient
     from .models.auth import bind_oauth
 
     db.init_app(app)
     bind_oauth(app)
-    RedisClient(app)
+    CacheClient(app)
 
 
 def register_blueprints(app):

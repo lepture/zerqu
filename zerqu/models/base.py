@@ -1,55 +1,53 @@
 # coding: utf-8
 
-from redis import Redis
 from sqlalchemy.orm import Query
-from flask import current_app, abort
+from flask import current_app
 from werkzeug.local import LocalProxy
 from flask_sqlalchemy import SQLAlchemy
+from flask_oauthlib.contrib.cache import Cache as _Cache
 
-db = SQLAlchemy()
-
-
-class RedisClient(Redis):
-    def __init__(self, prefix='ZERQU', app=None):
-        self.prefix = prefix
-        if app is not None:
-            self.init_app(app)
-
-    def init_app(self, app):
-        config = app.config
-        prefix = self.prefix.upper()
-        host = config.get(prefix + '_REDIS_HOST', 'localhost')
-        port = config.get(prefix + '_REDIS_PORT', 6379)
-        db = config.get(prefix + '_REDIS_DB', 0)
-        password = config.get(prefix + '_REDIS_PASSWORD', None)
-        super(RedisClient, self).__init__(
-            host=host, port=port, db=db, password=password
-        )
-        app.extensions[self.prefix.lower() + '_redis_cache'] = self
+db = SQLAlchemy(session_options={'expire_on_commit': False})
 
 
-def use_redis(prefix='zerqu'):
-    return current_app.extensions[prefix + '_redis_cache']
+class CacheClient(_Cache):
+    def __init__(self, app, config_prefix='ZERQU', **kwargs):
+        super(CacheClient, self).__init__(app, config_prefix, **kwargs)
+        app.extensions[config_prefix.lower() + '_cache'] = self
+
+
+def use_cache(prefix='zerqu'):
+    return current_app.extensions[prefix + '_cache']
 
 
 # default redis cache
-redis = LocalProxy(use_redis)
+cache = LocalProxy(use_cache)
 
 
 class CacheQuery(Query):
-    def get_from_cache(self, ident, abort_code=None):
+    def get(self, ident):
         mapper = self._only_full_mapper_zero('get')
-        key = 'sql:%s:%s' % (mapper.mapped_table.name, str(ident))
-        rv = redis.get(key)
+        key = 'db:get:%s:%s' % (mapper.mapped_table.name, str(ident))
+        rv = cache.get(key)
         if rv:
             return rv
-        rv = self.get(ident)
-        if rv is not None:
-            redis.set(key, rv, 600)
+        rv = super(CacheQuery, self).get(ident)
+        if rv is None:
+            return None
+        cache.set(key, rv, 600)
+        return rv
+
+    def filter_first(self, **kwargs):
+        mapper = self._only_mapper_zero()
+        key = '-'.join(['%s$%s' % (k, kwargs[k]) for k in kwargs])
+        key = 'db:first:%s:%s' % (mapper.mapped_table.name, key)
+        rv = cache.get(key)
+        if rv:
             return rv
-        if abort_code:
-            abort(abort_code)
-        return None
+        rv = self.filter_by(**kwargs).first()
+        if rv is None:
+            return None
+        cache.set(key, rv, 600)
+        return rv
 
 
 class Base(db.Model):

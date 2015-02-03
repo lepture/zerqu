@@ -28,9 +28,9 @@ def session():
             error_description='Username and password are required.'
         )
     if '@' in username:
-        user = User.query.filter_by(email=username).first()
+        user = User.query.filter_first(email=username)
     else:
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_first(username=username)
     if not user or not user.check_password(password):
         return jsonify(
             status='error',

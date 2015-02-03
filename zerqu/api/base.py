@@ -8,7 +8,7 @@ from flask import request, json, session
 from werkzeug.exceptions import HTTPException
 from werkzeug._compat import text_type
 from functools import wraps
-from ..models import redis, AuthSession, OAuthClient
+from ..models import cache, AuthSession, OAuthClient
 from ..models.auth import oauth
 
 bp = Blueprint('api', __name__)
@@ -60,15 +60,15 @@ def ratelimit(prefix=None, count=600, duration=300):
     logger.info('Ratelimit on %s' % prefix)
     count_key = '%s$c' % prefix
     reset_key = '%s$r' % prefix
-    remaining, resetting = redis.mget(count_key, reset_key)
+    remaining, resetting = cache.get_many(count_key, reset_key)
 
     if not remaining and not resetting:
         remaining = count - 1
         expires_at = duration + int(time.time())
-        with redis.pipeline() as pipe:
-            pipe.set(count_key, remaining, ex=duration, nx=True)
-            pipe.set(reset_key, expires_at, ex=duration, nx=True)
-            pipe.execute()
+        cache.set_many({
+            count_key: remaining,
+            reset_key: expires_at,
+        }, duration)
         expires = duration
     else:
         expires = int(resetting) - int(time.time())
@@ -81,7 +81,7 @@ def ratelimit(prefix=None, count=600, duration=300):
                 ) % expires
             )
         remaining = int(remaining) - 1
-        redis.set(count_key, remaining, ex=expires, xx=True)
+        cache.set(count_key, remaining, ex=expires)
     return remaining, expires
 
 

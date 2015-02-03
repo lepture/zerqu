@@ -10,6 +10,7 @@ def app(request):
     app = create_app({
         'SQLALCHEMY_DATABASE_URI': 'sqlite://',
         'OAUTH2_CACHE_TYPE': 'simple',
+        'ZERQU_CACHE_TYPE': 'simple',
         'SECRET_KEY': 'secret',
     })
     app.testing = True
