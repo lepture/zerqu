@@ -18,7 +18,10 @@ def register_blueprints(app):
 
 def create_app(config=None):
     from .app import create_app
+    from .libs.cache import RedisClient
     app = create_app(config)
+    # default redis cache
+    RedisClient(app)
     register_model(app)
     register_blueprints(app)
     return app
