@@ -17,7 +17,7 @@ from flask_oauthlib.contrib.oauth2 import bind_sqlalchemy, bind_cache_grant
 from .base import db, Base
 
 __all__ = [
-    'oauth', 'bind_oauth',
+    'oauth', 'bind_oauth', 'current_user',
     'User', 'OAuthClient', 'OAuthToken', 'AuthSession'
 ]
 
@@ -288,18 +288,12 @@ def bind_oauth(app):
     bind_cache_grant(app, oauth, AuthSession.get_current_user)
 
 
-def get_current_user():
+def _get_current_user():
     if hasattr(request, '_current_user'):
         return request._current_user
-
-    if hasattr(request, 'oauth'):
-        # OAuth current user
-        user = request.oauth.user
-    else:
-        user = AuthSession.get_current_user()
-
+    user = AuthSession.get_current_user()
     request._current_user = user
     return user
 
 
-current_user = LocalProxy(get_current_user)
+current_user = LocalProxy(_get_current_user)

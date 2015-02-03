@@ -3,3 +3,4 @@
 
 from .base import db, Base
 from .auth import User, OAuthClient, OAuthToken, AuthSession
+from .auth import current_user
