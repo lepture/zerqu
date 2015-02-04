@@ -183,8 +183,8 @@ class OAuthToken(Base):
     scope = Column(String(480), default='')
     expires_in = Column(Integer, default=3600)
 
-    client_id = Column(Integer, nullable=False)
-    user_id = Column(Integer, default=0)
+    client_id = Column(String(64), index=True)
+    user_id = Column(Integer, default=0, index=True)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     last_used = Column(DateTime, default=datetime.datetime.utcnow)
