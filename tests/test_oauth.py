@@ -108,3 +108,8 @@ def test_access_token(app):
         'code': code,
     })
     assert b'access_token' in rv.data
+
+
+def test_errors(client):
+    rv = client.get('/oauth/errors?error=foo')
+    assert b'foo' in rv.data
