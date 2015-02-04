@@ -14,7 +14,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime, Boolean, Text
 from sqlalchemy import SmallInteger, Integer
 from flask_oauthlib.provider import OAuth2Provider
-from flask_oauthlib.contrib.oauth2 import bind_sqlalchemy, bind_cache_grant
+from flask_oauthlib.contrib.oauth2 import TokenBinding, bind_cache_grant
 from .base import db, cache, Base, CACHE_TIMES
 
 __all__ = [
@@ -172,6 +172,20 @@ class OAuthClient(Base):
         return True
 
 
+@event.listens_for(OAuthClient, 'after_update')
+def receive_oauth_client_after_update(mapper, conn, target):
+    prefix = target.generate_cache_prefix('ff')
+    key = prefix + 'client_id$' + target.client_id
+    cache.set(key, target, CACHE_TIMES['ff'])
+
+
+@event.listens_for(OAuthClient, 'after_delete')
+def receive_oauth_client_after_delete(mapper, conn, target):
+    prefix = target.generate_cache_prefix('ff')
+    key = prefix + 'client_id$' + target.client_id
+    cache.delete(key)
+
+
 class OAuthToken(Base):
     __tablename__ = 'zq_oauth_token'
 
@@ -207,6 +221,26 @@ class OAuthToken(Base):
         if self.scope:
             return self.scope.split()
         return []
+
+
+@event.listens_for(OAuthToken, 'after_update')
+def receive_oauth_token_after_update(mapper, conn, target):
+    prefix = target.generate_cache_prefix('ff')
+    to_cache = {
+        prefix + 'access_token$' + target.access_token: target,
+        prefix + 'refresh_token$' + target.refresh_token: target,
+    }
+    cache.set_many(to_cache, CACHE_TIMES['ff'])
+
+
+@event.listens_for(OAuthToken, 'after_delete')
+def receive_oauth_token_after_delete(mapper, conn, target):
+    prefix = target.generate_cache_prefix('ff')
+    keys = [
+        prefix + 'access_token$' + target.access_token,
+        prefix + 'refresh_token$' + target.refresh_token,
+    ]
+    cache.delete_many(keys)
 
 
 class AuthSession(Base):
@@ -288,15 +322,34 @@ class AuthSession(Base):
 def bind_oauth(app):
     # bind oauth getters and setters
     oauth.init_app(app)
-    bind_sqlalchemy(
-        oauth,
-        db.session,
-        user=User,
-        client=OAuthClient,
-        token=OAuthToken,
-        current_user=AuthSession.get_current_user,
+
+    @oauth.usergetter
+    def oauth_user_getter(username, password, *args, **kwargs):
+        user = User.cache.filter_first(username=username)
+        if user and user.check_password(password):
+            return user
+        return None
+
+    @oauth.clientgetter
+    def oauth_client_getter(client_id):
+        return OAuthClient.cache.filter_first(client_id=client_id)
+
+    @oauth.tokengetter
+    def oauth_token_getter(access_token=None, refresh_token=None):
+        if access_token:
+            return OAuthToken.cache.filter_first(access_token=access_token)
+        if refresh_token:
+            return OAuthToken.cache.filter_first(refresh_token=refresh_token)
+
+    bind = TokenBinding(OAuthToken, db.session, AuthSession.get_current_user)
+    oauth.tokensetter(bind.set)
+
+    # use the same cache
+    bind_cache_grant(
+        app, oauth,
+        AuthSession.get_current_user,
+        config_prefix='ZERQU',
     )
-    bind_cache_grant(app, oauth, AuthSession.get_current_user)
 
 
 def _get_current_user():
