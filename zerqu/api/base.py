@@ -37,14 +37,14 @@ class APIException(HTTPException):
         return [('Content-Type', 'application/json')]
 
 
-def generate_limit_params(scopes):
+def generate_limit_params(login, scopes):
     user = AuthSession.get_current_user()
     if user:
         request._current_user = user
         return 'limit:sid:%s' % session.get('id'), 600, 300
 
     valid, req = oauth.verify_request(scopes)
-    if scopes and not valid:
+    if login and not valid:
         raise APIException(
             401,
             'authorization_required',
@@ -72,11 +72,11 @@ def generate_limit_params(scopes):
     return 'limit:ip:%s' % request.remote_addr, 3600, 3600
 
 
-def require_oauth(*scopes):
+def require_oauth(login=True, *scopes):
     def wrapper(f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            prefix, count, duration = generate_limit_params(scopes)
+            prefix, count, duration = generate_limit_params(login, scopes)
             remaining, expires = ratelimit(prefix, count, duration)
             if remaining <= 0 and expires:
                 raise APIException(

@@ -25,6 +25,6 @@ def create_user():
 
 
 @bp.route('/user')
-@require_oauth()
+@require_oauth(login=True)
 def current_authenticated_user():
     return jsonify(status='ok', data=current_user)
