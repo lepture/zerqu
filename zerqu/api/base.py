@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import logging
 from flask import Blueprint
 from flask import jsonify
 from flask import request, json, session
@@ -13,8 +12,6 @@ from ..libs.ratelimit import ratelimit
 from ..versions import VERSION, API_VERSION
 
 bp = Blueprint('api', __name__)
-
-logger = logging.getLogger('zerqu.api')
 
 
 class APIException(HTTPException):

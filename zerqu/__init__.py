@@ -13,6 +13,10 @@ def register_model(app):
 
 def register_blueprints(app):
     from .handlers import front, session, oauth
+
+    from .api import init_app
+    init_app(app)
+
     app.register_blueprint(oauth.bp, url_prefix='/oauth')
     app.register_blueprint(session.bp, url_prefix='/session')
     app.register_blueprint(front.bp, url_prefix='')
