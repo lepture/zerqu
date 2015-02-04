@@ -27,3 +27,8 @@ def app(request):
         ctx.pop()
 
     return app
+
+
+@pytest.fixture()
+def client(app):
+    return app.test_client()

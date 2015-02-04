@@ -14,14 +14,12 @@ auth_header = {
 }
 
 
-def test_create_user_forbidden(app):
-    client = app.test_client()
+def test_create_user_forbidden(client):
     rv = client.post('/api/user')
     assert rv.status_code == 403
 
 
-def test_create_user_success(app):
-    client = app.test_client()
+def test_create_user_success(client):
     rv = client.post('/api/user', data=json.dumps({
         'username': 'createuser',
         'email': 'createuser@gmail.com',
@@ -34,8 +32,7 @@ def test_create_user_success(app):
     assert data == json.loads(json.dumps(expected))
 
 
-def test_create_user_error_form(app):
-    client = app.test_client()
+def test_create_user_error_form(client):
     rv = client.post('/api/user', data=json.dumps({
         'username': 'createuser',
         'password': 'test-password',
@@ -43,7 +40,6 @@ def test_create_user_error_form(app):
     assert rv.status_code == 400
     assert b'error_form' in rv.data
 
-    client = app.test_client()
     rv = client.post('/api/user', data=json.dumps({
         'username': 'zerqu',
         'password': 'test-password',

@@ -3,8 +3,7 @@
 import json
 
 
-def test_session_login(app):
-    client = app.test_client()
+def test_session_login(client):
     rv = client.post('/session', data=json.dumps({
         'username': 'test',
         'password': 'test-password',
@@ -27,15 +26,14 @@ def test_session_login(app):
     assert data['status'] == 'ok'
 
 
-def test_session_logout(app):
-    rv = app.test_client().delete('/session')
+def test_session_logout(client):
+    rv = client.delete('/session')
     assert rv.status_code == 200
     data = json.loads(rv.data)
     assert data['status'] == 'error'
 
 
-def test_session_login_failed(app):
-    client = app.test_client()
+def test_session_login_failed(client):
     rv = client.post('/session', data={
         'username': 'test',
         'password': 'test-password',
