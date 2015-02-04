@@ -1,17 +1,19 @@
 # coding: utf-8
 
+from functools import wraps
 from flask import Blueprint
 from flask import jsonify
 from flask import request, json, session
 from werkzeug.exceptions import HTTPException
 from werkzeug._compat import text_type
-from functools import wraps
+from oauthlib.common import to_unicode
+from flask_oauthlib.utils import decode_base64
 from ..models import AuthSession, OAuthClient
 from ..models.auth import oauth
 from ..libs.ratelimit import ratelimit
 from ..versions import VERSION, API_VERSION
 
-bp = Blueprint('api', __name__)
+bp = Blueprint('api_base', __name__)
 
 
 class APIException(HTTPException):
@@ -91,7 +93,33 @@ def require_oauth(*scopes):
     return wrapper
 
 
-@bp.after_request
+def require_confidential(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get('Authorization', None)
+        error = APIException(
+            code=403,
+            error='confidential_only',
+            description='Only confidential clients are allowed'
+        )
+        if not auth:
+            raise error
+        try:
+            _, s = auth.split(' ')
+            client_id, client_secret = decode_base64(s).split(':')
+            client_id = to_unicode(client_id, 'utf-8')
+            client_secret = to_unicode(client_secret, 'utf-8')
+        except:
+            raise error
+        client = oauth._clientgetter(client_id)
+        if not client or client.client_secret != client_secret:
+            raise error
+        if not client.is_confidential:
+            raise error
+        return f(*args, **kwargs)
+    return decorated
+
+
 def ratelimit_hook(response):
     if hasattr(request, '_rate_remaining'):
         response.headers['X-Rate-Limit'] = str(request._rate_remaining)

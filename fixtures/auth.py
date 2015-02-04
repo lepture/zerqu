@@ -23,6 +23,7 @@ def run():
         name='iOS App',
         client_id='ios',
         client_secret='secret',
+        is_confidential=True,
         _redirect_uris='http://localhost/oauth',
     )
     db.session.add(client)
