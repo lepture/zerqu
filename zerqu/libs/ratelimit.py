@@ -27,5 +27,5 @@ def ratelimit(prefix, count=600, duration=300):
         if remaining <= 0 and expires:
             return remaining, expires
         remaining = int(remaining) - 1
-        cache.set(count_key, remaining, ex=expires)
+        cache.set(count_key, remaining, expires)
     return remaining, expires
