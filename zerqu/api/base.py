@@ -136,6 +136,38 @@ def ratelimit_hook(response):
     return response
 
 
+def int_or_raise(key, value=0, maxvalue=None):
+    try:
+        num = int(request.args.get(key, value))
+        if maxvalue is not None and num > maxvalue:
+            return maxvalue
+        return num
+    except ValueError:
+        raise APIException(
+            description='Require int type on %s parameter' % key
+        )
+
+
+def cursor_query(model):
+    """Return a cursor query on the given model. The model must has id as
+    the primary key.
+    """
+    before = int_or_raise('before')
+    after = int_or_raise('after')
+    if before and after:
+        desc = (
+            'Parameters conflict, before and after should not appear '
+            'at the same time.'
+        )
+        raise APIException(description=desc)
+
+    if before:
+        return model.query.filter(model.id < before)
+    if after:
+        return model.query.filter(model.id > after)
+    return model.query
+
+
 @bp.route('/')
 def index():
     return jsonify(status='ok', data=dict(
