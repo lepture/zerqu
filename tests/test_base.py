@@ -1,8 +1,10 @@
 # coding: utf-8
 
 from zerqu.versions import API_VERSION
+from ._base import TestCase
 
 
-def test_get_api_index(client):
-    rv = client.get('/api/')
-    assert API_VERSION in rv.data
+class TestAPI(TestCase):
+    def test_get_api_index(self):
+        rv = self.client.get('/api/')
+        assert API_VERSION in rv.data
