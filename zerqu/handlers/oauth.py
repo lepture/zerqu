@@ -6,7 +6,8 @@ from flask import render_template, jsonify, redirect
 from flask_wtf import Form
 from wtforms.fields import HiddenField
 from ..scopes import filter_user_scopes
-from ..models.auth import oauth, current_user
+from ..models import current_user
+from ..models.auth import oauth
 
 
 bp = Blueprint('oauth', __name__)

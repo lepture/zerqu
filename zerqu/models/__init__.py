@@ -2,5 +2,5 @@
 # flake8: noqa
 
 from .base import db, Base, cache
-from .auth import User, OAuthClient, OAuthToken, AuthSession
-from .auth import current_user
+from .user import current_user, User, AuthSession
+from .auth import oauth, OAuthClient, OAuthToken
