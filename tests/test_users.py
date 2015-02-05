@@ -78,3 +78,11 @@ class TestListUsers(TestCase):
         value = json.loads(rv.data)
         for item in value['data']:
             assert item['id'] != 1
+
+
+class TestViewUser(TestCase):
+    def test_not_found(self):
+        rv = self.client.get('/api/users/notfound')
+        assert rv.status_code == 404
+        assert b'not_found' in rv.data
+        assert b'notfound' in rv.data

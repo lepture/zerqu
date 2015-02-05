@@ -5,6 +5,7 @@ from flask import jsonify
 from werkzeug.datastructures import MultiDict
 from .base import require_oauth, require_confidential
 from .base import cursor_query, int_or_raise
+from .errors import NotFound
 from ..models import current_user, User
 from ..forms import RegisterForm
 
@@ -43,10 +44,16 @@ def view_current_user():
 @bp.route('/user', methods=['PATCH'])
 @require_oauth(True, 'user:write')
 def update_current_user():
-    return 'todo'
+    # fetch from database
+    user = User.query.get(current_user.id)
+    # TODO
+    return jsonify(status='ok', data=user)
 
 
 @bp.route('/users/<username>')
 @require_oauth(login=False)
 def view_user(username):
-    return 'todo'
+    user = User.cache.filter_first(username=username)
+    if not user:
+        raise NotFound('User "%s"' % username)
+    return jsonify(status='ok', data=user)

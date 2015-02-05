@@ -3,38 +3,16 @@
 from functools import wraps
 from flask import Blueprint
 from flask import jsonify
-from flask import request, json, session
-from werkzeug.exceptions import HTTPException
-from werkzeug._compat import text_type
+from flask import request, session
 from oauthlib.common import to_unicode
 from flask_oauthlib.utils import decode_base64
+from .errors import APIException
 from ..models import AuthSession, OAuthClient
 from ..models.auth import oauth
 from ..libs.ratelimit import ratelimit
 from ..versions import VERSION, API_VERSION
 
 bp = Blueprint('api_base', __name__)
-
-
-class APIException(HTTPException):
-    error_code = 'invalid_request'
-
-    def __init__(self, code=None, error=None, description=None, response=None):
-        if code is not None:
-            self.code = code
-        if error is not None:
-            self.error_code = error
-        super(APIException, self).__init__(description, response)
-
-    def get_body(self, environ=None):
-        return text_type(json.dumps(dict(
-            status='error',
-            error_code=self.error_code,
-            error_description=self.description,
-        )))
-
-    def get_headers(self, environ=None):
-        return [('Content-Type', 'application/json')]
 
 
 def generate_limit_params(login, scopes):
