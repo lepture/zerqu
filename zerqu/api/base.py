@@ -44,9 +44,9 @@ def generate_limit_params(login, scopes):
             raise APIException(
                 400,
                 'invalid_client',
-                'Client not found on client_id',
+                'Client of %s not found' % client_id,
             )
-        return 'limit:%d' % c.id
+        return 'limit:%d' % c.id, 600, 600
     return 'limit:ip:%s' % request.remote_addr, 3600, 3600
 
 
