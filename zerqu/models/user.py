@@ -12,7 +12,8 @@ from sqlalchemy import event
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer
-from .base import db, cache, Base, CACHE_TIMES
+from sqlalchemy.orm.attributes import get_history
+from .base import db, cache, Base
 
 __all__ = ['current_user', 'User', 'AuthSession']
 
@@ -103,12 +104,19 @@ class User(Base):
 
 @event.listens_for(User, 'after_update')
 def receive_user_after_update(mapper, conn, target):
+    if target not in db.session.dirty:
+        return
+
+    to_delete = []
+
     prefix = target.generate_cache_prefix('ff')
-    to_cache = {
-        prefix + 'username$' + target.username: target,
-        prefix + 'email$' + target.email: target,
-    }
-    cache.set_many(to_cache, CACHE_TIMES['ff'])
+    for key in ['username', 'email']:
+        state = get_history(target, key)
+        for value in state.deleted:
+            to_delete.append('%s%s$%s' % (prefix, key, value))
+
+    if to_delete:
+        cache.delete_many(*to_delete)
 
 
 class AuthSession(Base):

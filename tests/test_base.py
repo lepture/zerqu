@@ -23,12 +23,14 @@ class TestModel(TestCase):
         cached_user = User.cache.get(user.id)
         assert user != cached_user
         assert user.id == cached_user.id
+        assert User.cache.filter_first(username='hello') is not None
 
         # update cache
         user.username = 'jinja'
         db.session.add(user)
         db.session.commit()
         assert User.cache.get(user.id).username == 'jinja'
+        assert User.cache.filter_first(username='hello') is None
 
         # delete cache
         db.session.delete(user)
