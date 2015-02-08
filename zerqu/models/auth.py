@@ -7,7 +7,7 @@ from sqlalchemy import event
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime, Boolean, Text, Integer
 from flask_oauthlib.provider import OAuth2Provider
-from flask_oauthlib.contrib.oauth2 import TokenBinding, bind_cache_grant
+from flask_oauthlib.contrib.oauth2 import bind_cache_grant
 from .base import db, cache, Base, CACHE_TIMES
 from .user import User, AuthSession
 
@@ -125,7 +125,7 @@ class OAuthToken(Base):
 
     @property
     def expires(self):
-        return datetime.datetime.utcnow() + datetime.timedelta(seconds=self.expires_in)
+        return self.created_at + datetime.timedelta(seconds=self.expires_in)
 
 
 @event.listens_for(OAuthToken, 'after_update')
@@ -170,8 +170,28 @@ def bind_oauth(app):
         if refresh_token:
             return OAuthToken.cache.filter_first(refresh_token=refresh_token)
 
-    bind = TokenBinding(OAuthToken, db.session, AuthSession.get_current_user)
-    oauth.tokensetter(bind.set)
+    @oauth.tokensetter
+    def oauth_token_setter(token, req, *args, **kwargs):
+        if hasattr(req, 'user') and req.user:
+            user = req.user
+        elif self.current_user:
+            # for implicit token
+            user = AuthSession.get_current_user()
+
+        client = req.client
+        tokens = OAuthToken.query.filter_by(
+            client_id=client.client_id, user_id=user.id).all()
+        if tokens:
+            for tk in tokens:
+                db.session.delete(tk)
+            db.session.commit()
+
+        tok = OAuthToken(**token)
+        tok.user_id = user.id
+        tok.client_id = client.client_id
+        db.session.add(tok)
+        db.session.commit()
+        return tok
 
     # use the same cache
     bind_cache_grant(
