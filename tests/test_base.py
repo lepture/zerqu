@@ -2,13 +2,14 @@
 
 from zerqu.versions import API_VERSION
 from zerqu.models import db, User
+from flask_oauthlib.utils import to_bytes
 from ._base import TestCase
 
 
 class TestAPI(TestCase):
     def test_get_api_index(self):
         rv = self.client.get('/api/')
-        assert API_VERSION in rv.data
+        assert to_bytes(API_VERSION) in rv.data
 
 
 class TestModel(TestCase):
@@ -51,7 +52,7 @@ class TestModel(TestCase):
         assert len(missed.keys()) == 10
 
         cached = User.cache.get_dict(idents)
-        assert missed.keys().sort() == cached.keys().sort()
+        assert list(missed.keys()).sort() == list(cached.keys()).sort()
 
         missed_names = [o.username for o in missed.values()]
         cached_names = [o.username for o in User.cache.get_many(idents)]

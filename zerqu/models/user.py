@@ -13,6 +13,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer
 from sqlalchemy.orm.attributes import get_history
+from flask_oauthlib.utils import to_bytes
 from .base import db, cache, Base
 
 __all__ = ['current_user', 'User', 'AuthSession']
@@ -92,7 +93,7 @@ class User(Base):
     def avatar_url(self):
         if self._avatar_url:
             return self._avatar_url
-        md5email = hashlib.md5(self.email).hexdigest()
+        md5email = hashlib.md5(to_bytes(self.email)).hexdigest()
         params = current_app.config['GRAVATAR_PARAMETERS']
         url = current_app.config['GRAVATAR_URL']
         return '%s%s?%s' % (url, md5email, url_encode(params or {}))

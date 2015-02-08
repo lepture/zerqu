@@ -2,6 +2,7 @@
 
 from werkzeug import url_encode
 from zerqu.models import User, AuthSession, OAuthClient
+from flask_oauthlib.utils import to_bytes
 from ._base import TestCase
 
 
@@ -28,7 +29,7 @@ class TestOAuth(TestCase):
 
         rv = client.get('/oauth/authorize?client_id=ios&response_type=code')
         assert rv.status_code == 200
-        assert user.username in rv.data
+        assert to_bytes(user.username) in rv.data
 
         oauth_client = OAuthClient.query.first()
 

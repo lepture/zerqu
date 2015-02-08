@@ -3,15 +3,11 @@
 import base64
 from flask import json
 from zerqu.models import User
-from ._base import TestCase
+from ._base import TestCase, encode_base64
 
-
-def b64encode(text):
-    # TODO: compatible
-    return base64.b64encode(text)
 
 auth_header = {
-    'Authorization': 'Basic %s' % b64encode('ios:secret')
+    'Authorization': 'Basic %s' % encode_base64('ios:secret')
 }
 
 

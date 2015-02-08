@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import json
+from flask import json
 from ._base import TestCase
 
 
@@ -15,7 +15,7 @@ class TestSession(TestCase):
         assert data['status'] == 'ok'
 
         rv = self.client.post('/session', data=json.dumps({
-            'username': 'test@zerqu',
+            'username': 'test@gmail.com',
             'password': 'test-password',
         }), content_type='application/json')
         assert rv.status_code == 201
