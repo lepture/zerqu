@@ -41,7 +41,7 @@ class User(Base):
     _password = Column('password', String(100))
     description = Column(String(280))
 
-    status = Column('status', SmallInteger, default=0)
+    status = Column(SmallInteger, default=0)
     reputation = Column(Integer, default=0)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -76,7 +76,7 @@ class User(Base):
             return 'staff'
         if self.status == 2:
             return 'verified'
-        return 'user'
+        return None
 
     @property
     def password(self):

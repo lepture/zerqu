@@ -27,7 +27,13 @@ cache = LocalProxy(use_cache)
 class CacheQuery(Query):
     def get(self, ident):
         mapper = self._only_full_mapper_zero('get')
-        key = mapper.class_.generate_cache_prefix('get') + str(ident)
+
+        if isinstance(ident, (list, tuple)):
+            suffix = '-'.join(map(str, ident))
+        else:
+            suffix = str(ident)
+
+        key = mapper.class_.generate_cache_prefix('get') + suffix
         rv = cache.get(key)
         if rv:
             return rv
@@ -96,6 +102,15 @@ class CacheProperty(object):
             return None
 
 
+def _unique_suffix(target, primary_key):
+    return '-'.join(map(lambda k: str(getattr(target, k.name)), primary_key))
+
+
+def _unique_key(target, primary_key):
+    key = _unique_suffix(target, primary_key)
+    return target.generate_cache_prefix('get') + key
+
+
 class Base(db.Model):
     __abstract__ = True
 
@@ -113,22 +128,12 @@ class Base(db.Model):
     def __declare_last__(cls):
         @event.listens_for(cls, 'after_update')
         def receive_after_update(mapper, conn, target):
-            pks = mapper.primary_key
-            if len(pks) > 1:
-                return
-            pk = pks[0]
-            ident = getattr(target, pk.name)
-            key = target.generate_cache_prefix('get') + str(ident)
+            key = _unique_key(target, mapper.primary_key)
             cache.set(key, target, CACHE_TIMES['get'])
 
         @event.listens_for(cls, 'after_delete')
         def receive_after_delete(mapper, conn, target):
-            pks = mapper.primary_key
-            if len(pks) > 1:
-                return
-            pk = pks[0]
-            ident = getattr(target, pk.name)
-            key = target.generate_cache_prefix('get') + str(ident)
+            key = _unique_key(target, mapper.primary_key)
             cache.delete(key)
 
 Base.cache = CacheProperty(db)
