@@ -2,7 +2,7 @@
 
 import base64
 from flask import json
-from zerqu.models import User
+from zerqu.models import db, User, OAuthToken
 from ._base import TestCase, encode_base64
 
 
@@ -57,6 +57,24 @@ class TestCurrentUser(TestCase):
     def test_current_authenticated_user(self):
         rv = self.client.get('/api/user')
         assert rv.status_code == 401
+
+        # prepare token
+        token = OAuthToken(
+            access_token='current-user-access',
+            refresh_token='current-user-refresh',
+            token_type='Bearer',
+            scope='',
+            expires_in=3600,
+        )
+        token.user_id = 1
+        token.client_id = 'ios'
+        db.session.add(token)
+        db.session.commit()
+
+        rv = self.client.get('/api/user', headers={
+            'Authorization': 'Bearer current-user-access'
+        })
+        assert b'data' in rv.data
 
 
 class TestListUsers(TestCase):
