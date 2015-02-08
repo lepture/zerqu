@@ -22,7 +22,7 @@ def generate_limit_params(login, scopes):
         return 'limit:sid:%s' % session.get('id'), 600, 300
 
     valid, req = oauth.verify_request(scopes)
-    if login and not valid:
+    if login and (not valid or not req.user):
         raise APIException(
             401,
             'authorization_required',

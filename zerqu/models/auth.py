@@ -119,6 +119,14 @@ class OAuthToken(Base):
             return self.scope.split()
         return []
 
+    @cached_property
+    def user(self):
+        return User.cache.get(self.user_id)
+
+    @property
+    def expires(self):
+        return datetime.datetime.utcnow() + datetime.timedelta(seconds=self.expires_in)
+
 
 @event.listens_for(OAuthToken, 'after_update')
 def receive_oauth_token_after_update(mapper, conn, target):
