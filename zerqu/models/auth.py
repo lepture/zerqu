@@ -86,16 +86,14 @@ def receive_oauth_client_after_delete(mapper, conn, target):
 class OAuthToken(Base):
     __tablename__ = 'zq_oauth_token'
 
-    id = Column(Integer, primary_key=True)
+    client_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, default=0, primary_key=True)
 
     access_token = Column(String(34), unique=True, index=True)
     refresh_token = Column(String(34), unique=True, index=True)
     token_type = Column(String(10), default='Bearer')
     scope = Column(String(480), default='')
     expires_in = Column(Integer, default=3600)
-
-    client_id = Column(String(64), index=True)
-    user_id = Column(Integer, default=0, index=True)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     last_used = Column(DateTime, default=datetime.datetime.utcnow)
@@ -179,16 +177,14 @@ def bind_oauth(app):
             user = AuthSession.get_current_user()
 
         client = req.client
-        tokens = OAuthToken.query.filter_by(
-            client_id=client.client_id, user_id=user.id).all()
-        if tokens:
-            for tk in tokens:
-                db.session.delete(tk)
+        exist_token = OAuthToken.query.get((client.id, user.id))
+        if exist_token:
+            db.session.delete(exist_token)
             db.session.commit()
 
         tok = OAuthToken(**token)
         tok.user_id = user.id
-        tok.client_id = client.client_id
+        tok.client_id = client.id
         db.session.add(tok)
         db.session.commit()
         return tok

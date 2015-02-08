@@ -67,7 +67,7 @@ class TestCurrentUser(TestCase):
             expires_in=3600,
         )
         token.user_id = 1
-        token.client_id = 'ios'
+        token.client_id = 1
         db.session.add(token)
         db.session.commit()
 

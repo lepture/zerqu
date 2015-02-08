@@ -1,7 +1,8 @@
 # coding: utf-8
 
 from zerqu.versions import API_VERSION
-from zerqu.models import db, User
+from zerqu.models import db, User, OAuthToken
+from sqlalchemy.exc import IntegrityError
 from flask_oauthlib.utils import to_bytes
 from ._base import TestCase
 
@@ -57,3 +58,31 @@ class TestModel(TestCase):
         missed_names = [o.username for o in missed.values()]
         cached_names = [o.username for o in User.cache.get_many(idents)]
         assert missed_names.sort() == cached_names.sort()
+
+
+class TestOAuthTokenModel(TestCase):
+    def test_oauth_token(self):
+        tok = OAuthToken(
+            access_token='double',
+            token_type='Bearer',
+            scope='',
+            expires_in=3600,
+        )
+        tok.user_id = 1
+        tok.client_id = 2
+        db.session.add(tok)
+        db.session.commit()
+
+        assert OAuthToken.query.get((2, 1)) is not None
+        assert OAuthToken.query.get((1, 2)) is None
+
+        tok = OAuthToken(
+            access_token='double2',
+            token_type='Bearer',
+            scope='',
+            expires_in=3600,
+        )
+        tok.user_id = 1
+        tok.client_id = 2
+        db.session.add(tok)
+        self.assertRaises(IntegrityError, db.session.commit)
