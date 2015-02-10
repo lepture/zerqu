@@ -30,9 +30,9 @@ def generate_limit_params(login, scopes):
         )
 
     if valid:
+        request.oauth_client = req.access_token.client
         request._current_user = req.user
-        # TODO
-        key = 'limit:%s-%d' % (req.client_id, req.user.id)
+        key = 'limit:tok:%s' % req.access_token.access_token
         return key, 600, 600
 
     client_id = request.values.get('client_id')
@@ -46,7 +46,8 @@ def generate_limit_params(login, scopes):
                 'invalid_client',
                 'Client of %s not found' % client_id,
             )
-        return 'limit:%d' % c.id, 600, 600
+        request.oauth_client = c
+        return 'limit:client:%d' % c.id, 600, 600
     return 'limit:ip:%s' % request.remote_addr, 3600, 3600
 
 

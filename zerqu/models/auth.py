@@ -121,6 +121,10 @@ class OAuthToken(Base):
     def user(self):
         return User.cache.get(self.user_id)
 
+    @cached_property
+    def client(self):
+        return OAuthClient.cache.get(self.client_id)
+
     @property
     def expires(self):
         return self.created_at + datetime.timedelta(seconds=self.expires_in)
