@@ -7,9 +7,14 @@ from sqlalchemy.orm.exc import UnmappedClassError
 from werkzeug.local import LocalProxy
 from flask_sqlalchemy import SQLAlchemy
 
+__all__ = ['db', 'cache', 'use_cache', 'CACHE_TIMES', 'Base']
+
+ONE_DAY = 86400
 CACHE_TIMES = {
-    'get': 600,
+    'get': ONE_DAY,
+    'count': ONE_DAY,
     'ff': 300,
+    'fc': 300,
 }
 CACHE_MODEL_PREFIX = 'db'
 
@@ -88,6 +93,25 @@ class CacheQuery(Query):
         cache.set(key, rv, CACHE_TIMES['ff'])
         return rv
 
+    def filter_count(self, **kwargs):
+        mapper = self._only_mapper_zero()
+        if not kwargs:
+            key = mapper.class_.generate_cache_prefix('count')
+            rv = cache.get(key)
+            if rv is not None:
+                return rv
+            rv = self.count()
+            cache.set(key, rv, CACHE_TIMES['count'])
+            return rv
+        prefix = mapper.class_.generate_cache_prefix('fc')
+        key = prefix + '-'.join(['%s$%s' % (k, kwargs[k]) for k in kwargs])
+        rv = cache.get(key)
+        if rv:
+            return rv
+        rv = self.filter_by(**kwargs).count()
+        cache.set(key, rv, CACHE_TIMES['fc'])
+        return rv
+
 
 class CacheProperty(object):
     def __init__(self, sa):
@@ -126,6 +150,10 @@ class Base(db.Model):
 
     @classmethod
     def __declare_last__(cls):
+        @event.listens_for(cls, 'after_insert')
+        def receive_after_insert(mapper, conn, target):
+            cache.inc(target.generate_cache_prefix('count'))
+
         @event.listens_for(cls, 'after_update')
         def receive_after_update(mapper, conn, target):
             key = _unique_key(target, mapper.primary_key)
@@ -134,6 +162,6 @@ class Base(db.Model):
         @event.listens_for(cls, 'after_delete')
         def receive_after_delete(mapper, conn, target):
             key = _unique_key(target, mapper.primary_key)
-            cache.delete(key)
+            cache.delete_many(key, target.generate_cache_prefix('count'))
 
 Base.cache = CacheProperty(db)

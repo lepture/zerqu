@@ -172,8 +172,7 @@ def bind_oauth(app):
     def oauth_token_setter(token, req, *args, **kwargs):
         if hasattr(req, 'user') and req.user:
             user = req.user
-        elif self.current_user:
-            # for implicit token
+        else:
             user = AuthSession.get_current_user()
 
         client = req.client
