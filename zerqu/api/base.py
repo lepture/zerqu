@@ -1,21 +1,19 @@
 # coding: utf-8
 
 from functools import wraps
-from flask import Blueprint
-from flask import jsonify
 from flask import request, session
 from oauthlib.common import to_unicode
 from flask_oauthlib.utils import decode_base64
 from .errors import APIException
-from ..models import AuthSession, OAuthClient
+from ..models import db, AuthSession, OAuthClient, cache
 from ..models.auth import oauth
 from ..libs.ratelimit import ratelimit
-from ..versions import VERSION, API_VERSION
-
-bp = Blueprint('api_base', __name__)
 
 
 def generate_limit_params(login, scopes):
+    if scopes is None:
+        scopes = []
+
     user = AuthSession.get_current_user()
     if user:
         request._current_user = user
@@ -51,7 +49,7 @@ def generate_limit_params(login, scopes):
     return 'limit:ip:%s' % request.remote_addr, 3600, 3600
 
 
-def require_oauth(login=True, *scopes):
+def require_oauth(login=True, scopes=None, cache_time=None):
     def wrapper(f):
         @wraps(f)
         def decorated(*args, **kwargs):
@@ -67,6 +65,16 @@ def require_oauth(login=True, *scopes):
                 )
             request._rate_remaining = remaining
             request._rate_expires = expires
+
+            if not login and isinstance(cache_time, int):
+                # TODO
+                key = 'api:%s' % request.url
+                response = cache.get(key)
+                if response:
+                    return response
+                response = f(*args, **kwargs)
+                cache.set(key, response, cache_time)
+                return response
             return f(*args, **kwargs)
         return decorated
     return wrapper
@@ -127,12 +135,13 @@ def int_or_raise(key, value=0, maxvalue=None):
         )
 
 
-def cursor_query(model):
+def cursor_query(model, order_by='desc'):
     """Return a cursor query on the given model. The model must has id as
     the primary key.
     """
     before = int_or_raise('before')
     after = int_or_raise('after')
+    count = int_or_raise('count', 20, 100)
     if before and after:
         desc = (
             'Parameters conflict, before and after should not appear '
@@ -140,17 +149,14 @@ def cursor_query(model):
         )
         raise APIException(description=desc)
 
+    query = db.session.query(model.id)
     if before:
-        return model.query.filter(model.id < before)
-    if after:
-        return model.query.filter(model.id > after)
-    return model.query
+        query = query.filter(model.id < before)
+    elif after:
+        query = query.filter(model.id > after)
 
+    if order_by == 'desc':
+        query = query.order_by(model.id.desc())
 
-@bp.route('/')
-def index():
-    return jsonify(status='ok', data=dict(
-        system='zerqu',
-        version=VERSION,
-        api_version=API_VERSION,
-    ))
+    ids = [i for i, in query.limit(count)]
+    return model.cache.get_many(ids)

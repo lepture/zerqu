@@ -2,7 +2,7 @@
 
 
 from .base import ratelimit_hook
-from . import base, users
+from . import front, users
 
 
 def register_blueprint(app, bp):
@@ -11,5 +11,5 @@ def register_blueprint(app, bp):
 
 
 def init_app(app):
-    register_blueprint(app, base.bp)
+    register_blueprint(app, front.bp)
     register_blueprint(app, users.bp)

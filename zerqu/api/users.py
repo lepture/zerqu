@@ -4,7 +4,7 @@ from flask import Blueprint, request
 from flask import jsonify
 from werkzeug.datastructures import MultiDict
 from .base import require_oauth, require_confidential
-from .base import cursor_query, int_or_raise
+from .base import cursor_query
 from .errors import NotFound
 from ..models import current_user, User
 from ..forms import RegisterForm
@@ -27,11 +27,9 @@ def create_user():
 
 
 @bp.route('/users')
-@require_oauth(login=False)
+@require_oauth(login=False, cache_time=300)
 def list_users():
-    count = int_or_raise('count', 20, 100)
-    q = cursor_query(User)
-    data = q.order_by(User.id.desc()).limit(count).all()
+    data = cursor_query(User, 'desc')
     return jsonify(status='ok', data=data)
 
 
@@ -51,7 +49,7 @@ def update_current_user():
 
 
 @bp.route('/users/<username>')
-@require_oauth(login=False)
+@require_oauth(login=False, cache_time=600)
 def view_user(username):
     user = User.cache.filter_first(username=username)
     if not user:
