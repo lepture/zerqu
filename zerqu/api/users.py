@@ -6,7 +6,7 @@ from werkzeug.datastructures import MultiDict
 from .base import require_oauth, require_confidential
 from .base import cursor_query
 from .errors import NotFound
-from ..models import current_user, User
+from ..models import db, current_user, User
 from ..forms import RegisterForm
 
 bp = Blueprint('api_users', __name__)
@@ -40,11 +40,15 @@ def view_current_user():
 
 
 @bp.route('/user', methods=['PATCH'])
-@require_oauth(True, 'user:write')
+@require_oauth(login=True, scopes=['user:write'])
 def update_current_user():
-    # fetch from database
     user = User.query.get(current_user.id)
-    # TODO
+    description = request.json.get('description')
+    # TODO: use form to validate
+    if description:
+        user.description = description
+        db.session.add(user)
+        db.session.commit()
     return jsonify(status='ok', data=user)
 
 

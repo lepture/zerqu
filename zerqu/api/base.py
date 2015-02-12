@@ -67,8 +67,7 @@ def require_oauth(login=True, scopes=None, cache_time=None):
             request._rate_expires = expires
 
             if not login and isinstance(cache_time, int):
-                # TODO
-                key = 'api:%s' % request.url
+                key = 'api:%s' % request.full_path
                 response = cache.get(key)
                 if response:
                     return response
