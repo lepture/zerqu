@@ -43,8 +43,8 @@ def view_current_user():
 @require_oauth(login=True, scopes=['user:write'])
 def update_current_user():
     user = User.query.get(current_user.id)
-    description = request.json.get('description')
     # TODO: use form to validate
+    description = request.json.get('description')
     if description:
         user.description = description
         db.session.add(user)

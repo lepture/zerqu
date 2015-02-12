@@ -102,7 +102,7 @@ class OAuthToken(Base):
                  refresh_token=None, **kwargs):
         self.access_token = access_token
         self.token_type = token_type
-        self.scope = self.scope
+        self.scope = scope
         self.expires_in = expires_in
         if refresh_token is None:
             refresh_token = gen_salt(34)
@@ -111,7 +111,7 @@ class OAuthToken(Base):
     def keys(self):
         return ('id', 'scopes', 'created_at', 'last_used')
 
-    @cached_property
+    @property
     def scopes(self):
         if self.scope:
             return self.scope.split()

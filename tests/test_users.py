@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import base64
 from flask import json
 from zerqu.models import db, User, OAuthToken
 from ._base import TestCase, encode_base64
@@ -76,6 +75,40 @@ class TestCurrentUser(TestCase):
         })
         assert b'data' in rv.data
 
+    def test_update_current_user(self):
+        # prepare token
+        token = OAuthToken(
+            access_token='current-user-access',
+            refresh_token='current-user-refresh',
+            token_type='Bearer',
+            scope='',
+            expires_in=3600,
+        )
+        token.user_id = 1
+        token.client_id = 1
+        db.session.add(token)
+        db.session.commit()
+
+        rv = self.client.patch('/api/user', data=json.dumps({
+            'description': 'unique_description'
+        }), headers={
+            'Authorization': 'Bearer current-user-access',
+            'Content-Type': 'application/json',
+        })
+        assert rv.status_code == 401
+
+        token.scope = 'user:write'
+        db.session.add(token)
+        db.session.commit()
+
+        rv = self.client.patch('/api/user', data=json.dumps({
+            'description': 'unique_description'
+        }), headers={
+            'Authorization': 'Bearer current-user-access',
+            'Content-Type': 'application/json',
+        })
+        assert b'unique_description' in rv.data
+
 
 class TestListUsers(TestCase):
     def test_list_without_parameters(self):
@@ -100,3 +133,17 @@ class TestViewUser(TestCase):
         assert rv.status_code == 404
         assert b'not_found' in rv.data
         assert b'notfound' in rv.data
+
+    def test_found(self):
+        rv = self.client.get('/api/users/zerqu')
+        assert rv.status_code == 200
+
+        # change user information
+        user = User.query.filter_by(username='zerqu').first()
+        user.description = 'changed'
+        db.session.add(user)
+        db.session.commit()
+
+        cached = self.client.get('/api/users/zerqu')
+        assert cached.status_code == 200
+        assert rv.data == cached.data
