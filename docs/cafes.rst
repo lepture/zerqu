@@ -25,17 +25,17 @@ Response with::
             "background_url": "",
             "logo_url": "",
             "feature": "audio",
-            "active": true,
+            "is_active": true,
             "count": {
                 "topic": 20,
-                "users": 3100
+                "users": 31
             },
-            "creator": 1,
+            "user_id": 1,
             "created_at": "2014-12-31T14:40:52Z",
             "updated_at": "2014-12-31T18:50:06Z"
         }],
         "meta": {
-            "creator": {
+            "user_id": {
                 "1": {
                     "id": 1,
                     "username": "huashan",

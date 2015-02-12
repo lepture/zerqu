@@ -33,19 +33,19 @@ class Cafe(Base):
     id = Column(Integer, primary_key=True)
 
     # basic information
-    slug = Column(String(24), unique=True)
-    name = Column(String(30), unique=True)
+    slug = Column(String(24), nullable=False, unique=True)
+    name = Column(String(30), nullable=False, unique=True)
     description = Column(String(280))
 
     # front style
     logo_url = Column(String(260))
-    base_color = Column(40)
-    text_color = Column(40)
-    background_color = Column(40)
+    base_color = Column(String(40))
+    text_color = Column(String(40))
+    background_color = Column(String(40))
     background_url = Column(String(260))
 
     # available feature
-    feature = Column('feature', String(10))
+    feature = Column('feature', String(10), default='text')
     # defined above
     _permission = Column('permission', SmallInteger, default=0)
 
