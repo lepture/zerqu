@@ -22,12 +22,11 @@ ZERQU_MOBILE_TEMPLATE = 'mobile.html'
 ZERQU_MOBILE_STYLES = []
 ZERQU_MOBILE_SCRIPTS = []
 
+# render topic content use the given renderer, other choice is `text`
+# it can also be a module string for importing
+ZERQU_TEXT_RENDERER = 'markdown'
+
 # Available feature choices for a cafe
 ZERQU_CAFE_FEATURES = [
-    (0, 'text'),
-    (1, 'link'),
-    (2, 'image'),
-    (3, 'video'),
-    (4, 'audio'),
-    (5, 'gist'),
+    'text', 'link', 'image', 'video', 'audio', 'gist',
 ]

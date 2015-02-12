@@ -17,16 +17,18 @@ class Cafe(Base):
     STATUS = {
         0: 'closed',
         1: 'active',
-        2: 'verified',
+        6: 'verified',
         9: 'official',
     }
 
-    PERMISSION = {
-        0: 'public',
-        1: 'subscriber',
-        2: 'member',
-        9: 'private',
-    }
+    # everyone can read and write
+    PERMISSION_PUBLIC = 0
+    # everyone can read, only subscriber can write
+    PERMISSION_SUBSCRIBER = 3
+    # everyone can read, only member can write
+    PERMISSION_MEMBER = 6
+    # only member can read and write
+    PERMISSION_PRIVATE = 9
 
     id = Column(Integer, primary_key=True)
 
@@ -43,8 +45,9 @@ class Cafe(Base):
     background_url = Column(String(260))
 
     # available feature
-    _feature = Column('feature', SmallInteger, default=0)
-    _permission = Column('permission', default=0)
+    feature = Column('feature', String(10))
+    # defined above
+    _permission = Column('permission', SmallInteger, default=0)
 
     # meta data
     status = Column(SmallInteger, default=1)
@@ -83,16 +86,20 @@ class Cafe(Base):
 class CafeMember(Base):
     __tablename__ = 'zq_cafe_member'
 
-    STATUS = {
-        0: 'visitor',
-        1: 'subscriber',
-        2: 'member',
-        9: 'admin',
-    }
+    # not joined, but has topics or comments in this cafe
+    ROLE_VISITOR = 0
+    # asking for joining a private cafe
+    ROLE_APPLICANT = 1
+    # subscribed a cafe
+    ROLE_SUBSCRIBER = 2
+    # authorized member of a private cafe
+    ROLE_MEMBER = 3
+    # people who can change cafe descriptions
+    ROLE_ADMIN = 9
 
     cafe_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, primary_key=True)
-    status = Column(SmallInteger, default=0)
+    role = Column('role', SmallInteger, default=0)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
