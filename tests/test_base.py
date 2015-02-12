@@ -59,6 +59,20 @@ class TestModel(TestCase):
         cached_names = [o.username for o in User.cache.get_many(idents)]
         assert missed_names.sort() == cached_names.sort()
 
+    def test_filter_count(self):
+        b1 = User.cache.filter_count()
+        b2 = User.cache.filter_count(reputation=0)
+        for i in range(10):
+            user = User(username='foo-%d' % i, email='foo-%d@gmail.com' % i)
+            db.session.add(user)
+        db.session.commit()
+        a1 = User.cache.filter_count()
+        a2 = User.cache.filter_count(reputation=0)
+        # will auto clean cache
+        assert a1 > b1
+        # will not clean cache
+        assert a2 == b2
+
 
 class TestOAuthTokenModel(TestCase):
     def test_oauth_token(self):
