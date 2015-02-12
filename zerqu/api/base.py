@@ -5,8 +5,8 @@ from flask import request, session
 from oauthlib.common import to_unicode
 from flask_oauthlib.utils import decode_base64
 from .errors import APIException
-from ..models import db, AuthSession, OAuthClient, cache
-from ..models.auth import oauth
+from ..models import db, oauth, cache, current_user
+from ..models import AuthSession, OAuthClient
 from ..libs.ratelimit import ratelimit
 
 
@@ -66,8 +66,10 @@ def require_oauth(login=True, scopes=None, cache_time=None):
             request._rate_remaining = remaining
             request._rate_expires = expires
 
-            if not login and isinstance(cache_time, int):
+            if request.method == 'GET' and isinstance(cache_time, int):
                 key = 'api:%s' % request.full_path
+                if login:
+                    key = '%s:%d' % (key, current_user.id)
                 response = cache.get(key)
                 if response:
                     return response
