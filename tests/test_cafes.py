@@ -20,7 +20,7 @@ class CafeMixin(object):
             user_id = random.choice([1, 2])
             item = Cafe(
                 name=name, slug=name, user_id=user_id,
-                _permission=permission, status=status,
+                permission=permission, status=status,
             )
             db.session.add(item)
         db.session.commit()

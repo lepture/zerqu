@@ -45,9 +45,9 @@ class Cafe(Base):
     background_url = Column(String(260))
 
     # available feature
-    feature = Column('feature', String(10), default='text')
+    feature = Column(String(10), default='text')
     # defined above
-    _permission = Column('permission', SmallInteger, default=0)
+    permission = Column(SmallInteger, default=0)
 
     # meta data
     status = Column(SmallInteger, default=1)
