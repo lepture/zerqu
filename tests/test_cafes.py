@@ -2,7 +2,7 @@
 
 import random
 from flask import json
-from zerqu.models import db, Cafe
+from zerqu.models import db, Cafe, CafeMember
 from ._base import TestCase
 
 
@@ -48,3 +48,69 @@ class TestViewCafe(TestCase, CafeMixin):
         rv = self.client.get('/api/cafes/%s' % cafe.slug)
         value = json.loads(rv.data)
         assert 'user' in value['data']
+
+
+class TestCafeMembers(TestCase, CafeMixin):
+    def test_join_public_cafe(self):
+        item = Cafe(
+            name='hello', slug='hello', user_id=2,
+            permission=Cafe.PERMISSION_PUBLIC,
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        url = '/api/cafes/hello/users'
+        headers = self.get_authorized_header(scope='user:follow')
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 200
+
+        headers = self.get_authorized_header(scope='user:follow', user_id=2)
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 200
+
+    def test_visitor_join_cafe(self):
+        item = Cafe(
+            name='hello', slug='hello', user_id=2,
+            permission=Cafe.PERMISSION_PUBLIC,
+        )
+        db.session.add(item)
+        # create a visitor membership
+        db.session.add(CafeMember(cafe_id=1, user_id=1))
+        db.session.commit()
+
+        url = '/api/cafes/hello/users'
+        headers = self.get_authorized_header(scope='user:follow')
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 200
+
+    def test_join_secret_cafe(self):
+        item = Cafe(
+            name='secret', slug='secret', user_id=1,
+            permission=Cafe.PERMISSION_PRIVATE,
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        headers = self.get_authorized_header(scope='user:follow', user_id=2)
+        url = '/api/cafes/secret/users'
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 200
+
+        # already joined
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 200
+
+    def test_leave_cafe(self):
+        self.create_cafes(2)
+        cafe = Cafe.query.get(2)
+
+        url = '/api/cafes/%s/users' % cafe.slug
+        headers = self.get_authorized_header(scope='user:follow')
+        rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 404
+
+        item = CafeMember(cafe_id=2, user_id=1)
+        db.session.add(item)
+        db.session.commit()
+        rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 200

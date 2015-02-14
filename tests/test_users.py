@@ -57,22 +57,8 @@ class TestCurrentUser(TestCase):
         rv = self.client.get('/api/user')
         assert rv.status_code == 401
 
-        # prepare token
-        token = OAuthToken(
-            access_token='current-user-access',
-            refresh_token='current-user-refresh',
-            token_type='Bearer',
-            scope='',
-            expires_in=3600,
-        )
-        token.user_id = 1
-        token.client_id = 1
-        db.session.add(token)
-        db.session.commit()
-
-        rv = self.client.get('/api/user', headers={
-            'Authorization': 'Bearer current-user-access'
-        })
+        headers = self.get_authorized_header()
+        rv = self.client.get('/api/user', headers=headers)
         assert b'data' in rv.data
 
     def test_update_current_user(self):

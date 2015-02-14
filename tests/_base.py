@@ -2,8 +2,9 @@
 import base64
 import unittest
 from flask_oauthlib.utils import to_unicode, to_bytes
+from werkzeug.security import gen_salt
 from zerqu import create_app
-from zerqu.models import db, User, OAuthClient
+from zerqu.models import db, User, OAuthClient, OAuthToken
 
 
 def encode_base64(text):
@@ -55,3 +56,18 @@ class TestCase(unittest.TestCase):
         )
         db.session.add(client)
         db.session.commit()
+
+    def get_authorized_header(self, user_id=1, scope=''):
+        # prepare token
+        token = OAuthToken(
+            access_token=gen_salt(10),
+            refresh_token=gen_salt(10),
+            token_type='Bearer',
+            scope=scope,
+            expires_in=3600,
+        )
+        token.user_id = user_id
+        token.client_id = 1
+        db.session.add(token)
+        db.session.commit()
+        return {'Authorization': 'Bearer %s' % token.access_token}

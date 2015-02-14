@@ -33,3 +33,22 @@ class NotFound(APIException):
     def __init__(self, key, response=None):
         description = '%s not found' % key
         super(NotFound, self).__init__(None, None, description, response)
+
+
+def first_or_404(model, **kwargs):
+    data = model.cache.filter_first(**kwargs)
+    if data:
+        return data
+    key = model.__name__
+    if len(kwargs) == 1:
+        key = '%s "%s"' % (key, kwargs.values()[0])
+    raise NotFound(key)
+
+
+class Denied(APIException):
+    code = 403
+    error_code = 'permission_denied'
+
+    def __init__(self, key, response=None):
+        description = 'You have no permission in %s' % key
+        super(NotFound, self).__init__(None, None, description, response)
