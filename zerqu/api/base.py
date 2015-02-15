@@ -160,4 +160,11 @@ def cursor_query(model, order_by='desc'):
         query = query.order_by(model.id.desc())
 
     ids = [i for i, in query.limit(count)]
-    return model.cache.get_many(ids)
+    data = model.cache.get_many(ids)
+
+    cursor = {'key': 'id'}
+    if len(data) < count:
+        return data, cursor
+    cursor['before'] = data[-1].id
+    cursor['after'] = data[0].id
+    return data, cursor

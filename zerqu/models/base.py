@@ -53,6 +53,9 @@ class CacheQuery(Query):
             return {}
 
         mapper = self._only_full_mapper_zero('get')
+        if len(mapper.primary_key) != 1:
+            raise NotImplemented
+
         prefix = mapper.class_.generate_cache_prefix('get')
         keys = {prefix + str(i) for i in idents}
         rv = cache.get_dict(*keys)
@@ -75,8 +78,10 @@ class CacheQuery(Query):
         cache.set_many(to_cache, CACHE_TIMES['get'])
         return rv
 
-    def get_many(self, idents):
+    def get_many(self, idents, clean=True):
         d = self.get_dict(idents)
+        if clean:
+            return list(_itervalues(d, idents))
         return [d[str(k)] for k in idents]
 
     def filter_first(self, **kwargs):
@@ -126,15 +131,6 @@ class CacheProperty(object):
             return None
 
 
-def _unique_suffix(target, primary_key):
-    return '-'.join(map(lambda k: str(getattr(target, k.name)), primary_key))
-
-
-def _unique_key(target, primary_key):
-    key = _unique_suffix(target, primary_key)
-    return target.generate_cache_prefix('get') + key
-
-
 class Base(db.Model):
     __abstract__ = True
 
@@ -165,3 +161,19 @@ class Base(db.Model):
             cache.delete_many(key, target.generate_cache_prefix('count'))
 
 Base.cache = CacheProperty(db)
+
+
+def _unique_suffix(target, primary_key):
+    return '-'.join(map(lambda k: str(getattr(target, k.name)), primary_key))
+
+
+def _unique_key(target, primary_key):
+    key = _unique_suffix(target, primary_key)
+    return target.generate_cache_prefix('get') + key
+
+
+def _itervalues(data, idents):
+    for k in idents:
+        item = data[str(k)]
+        if item is not None:
+            yield item

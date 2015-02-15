@@ -27,13 +27,19 @@ class CafeMixin(object):
 
 
 class TestListCafes(TestCase, CafeMixin):
-    def test_list_without_parameters(self):
+    def test_list_cafes(self):
         self.create_cafes()
         rv = self.client.get('/api/cafes')
         assert rv.status_code == 200
         value = json.loads(rv.data)
         assert len(value['data']) == 20
         assert 'user_id' in value['meta']
+        assert 'before' in value['cursor']
+
+        rv = self.client.get('/api/cafes?count=40')
+        assert rv.status_code == 200
+        value = json.loads(rv.data)
+        assert 'before' not in value['cursor']
 
 
 class TestViewCafe(TestCase, CafeMixin):

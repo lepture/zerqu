@@ -6,7 +6,7 @@ from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth
 from .base import cursor_query
-from .errors import first_or_404, NotFound, APIException
+from .errors import first_or_404, NotFound, APIException, Denied
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember
 
@@ -16,10 +16,10 @@ bp = Blueprint('api_cafes', __name__)
 @bp.route('/cafes')
 @require_oauth(login=False, cache_time=300)
 def list_cafes():
-    data = cursor_query(Cafe, 'desc')
+    data, cursor = cursor_query(Cafe, 'desc')
     meta = {}
     meta['user_id'] = User.cache.get_dict({o.user_id for o in data})
-    return jsonify(status='ok', data=data, meta=meta)
+    return jsonify(status='ok', data=data, meta=meta, cursor=cursor)
 
 
 @bp.route('/cafes/<slug>')
@@ -75,3 +75,25 @@ def leave_cafe(slug):
     db.session.add(item)
     db.session.commit()
     return jsonify(status='ok')
+
+
+@bp.route('/cafes/<slug>/users')
+def list_cafe_users(slug):
+    cafe = first_or_404(Cafe, slug=slug)
+    if cafe.permission == cafe.PERMISSION_PRIVATE:
+        return list_private_cafe_users(cafe)
+    return list_public_cafe_users(cafe)
+
+
+@require_oauth(login=True, cache_time=300)
+def list_private_cafe_users(cafe):
+    ident = (cafe.id, current_user.id)
+    if cafe.user_id != current_user.id and not CafeMember.cache.get(ident):
+        raise Denied('cafe "%s"' % cafe.slug)
+
+
+@require_oauth(login=False, cache_time=300)
+def list_public_cafe_users(cafe):
+    q = CafeMember.query.filter_by(cafe_id=cafe.id)
+    q.order_by(CafeMember.user_id)
+    return q

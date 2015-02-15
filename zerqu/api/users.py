@@ -29,8 +29,8 @@ def create_user():
 @bp.route('/users')
 @require_oauth(login=False, cache_time=300)
 def list_users():
-    data = cursor_query(User, 'desc')
-    return jsonify(status='ok', data=data)
+    data, cursor = cursor_query(User, 'desc')
+    return jsonify(status='ok', data=data, cursor=cursor)
 
 
 @bp.route('/user')
