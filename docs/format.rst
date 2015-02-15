@@ -71,11 +71,11 @@ Meta data is an additional information for data response. For example::
         "data": [
             {
                 "id": 1,
-                "user": 1
+                "user_id": 1
             }
         ],
         "meta": {
-            "user": {
+            "user_id": {
                 "1": {
                     "username": "zerqu"
                 }
@@ -83,7 +83,7 @@ Meta data is an additional information for data response. For example::
         }
     }
 
-In this example, the **user** in data is an ID, you can use the ID to get
+In this example, the **user_id** in data is an ID, you can use the ID to get
 the full information of the user in **meta** section.
 
 Pagination
@@ -105,4 +105,24 @@ data. In this case, you can fetch the next page::
         }
     }
 
-An array data response will always return with a **pagination**.
+Request pagination with parameters **page**. For example::
+
+    GET /api/resource?page=2
+
+Cursor
+------
+
+Cursor is another efficient to fetch data. When a single array data response
+can not hold all the data::
+
+    {
+        "status": "ok",
+        "data": [],
+        "cursor": {
+            "key": "id",
+            "before": 1,
+            "after": 30
+        }
+    }
+
+An array data response will always return with a **pagination** or **cursor**.

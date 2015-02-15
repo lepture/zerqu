@@ -13,3 +13,13 @@ begin with **/api/**. For example, in :doc:`cafes`, a request looks like::
 But it actually means::
 
     GET /api/cafes
+
+.. toctree::
+   :maxdepth: 2
+
+   auth
+   format
+   users
+   cafes
+   topics
+   sessions
