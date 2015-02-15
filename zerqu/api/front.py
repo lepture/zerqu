@@ -7,7 +7,7 @@ from ..versions import VERSION, API_VERSION
 bp = Blueprint('api_base', __name__)
 
 
-@bp.route('/')
+@bp.route('')
 def index():
     return jsonify(status='ok', data=dict(
         system='zerqu',

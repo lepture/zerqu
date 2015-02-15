@@ -13,7 +13,7 @@ from ..models import User, Cafe, CafeMember
 bp = Blueprint('api_cafes', __name__)
 
 
-@bp.route('/cafes')
+@bp.route('')
 @require_oauth(login=False, cache_time=300)
 def list_cafes():
     data, cursor = cursor_query(Cafe, 'desc')
@@ -22,7 +22,7 @@ def list_cafes():
     return jsonify(status='ok', data=data, meta=meta, cursor=cursor)
 
 
-@bp.route('/cafes/<slug>')
+@bp.route('/<slug>')
 @require_oauth(login=False, cache_time=300)
 def view_cafe(slug):
     cafe = first_or_404(Cafe, slug=slug)
@@ -31,7 +31,7 @@ def view_cafe(slug):
     return jsonify(status='ok', data=data)
 
 
-@bp.route('/cafes/<slug>/users', methods=['POST'])
+@bp.route('/<slug>/users', methods=['POST'])
 @require_oauth(login=True, scopes=['user:follow'])
 def join_cafe(slug):
     cafe = first_or_404(Cafe, slug=slug)
@@ -61,7 +61,7 @@ def join_cafe(slug):
     return jsonify(status='ok')
 
 
-@bp.route('/cafes/<slug>/users', methods=['DELETE'])
+@bp.route('/<slug>/users', methods=['DELETE'])
 @require_oauth(login=True, scopes=['user:follow'])
 def leave_cafe(slug):
     cafe = first_or_404(Cafe, slug=slug)
@@ -77,7 +77,7 @@ def leave_cafe(slug):
     return jsonify(status='ok')
 
 
-@bp.route('/cafes/<slug>/users')
+@bp.route('/<slug>/users')
 def list_cafe_users(slug):
     cafe = first_or_404(Cafe, slug=slug)
     if cafe.permission == cafe.PERMISSION_PRIVATE:
