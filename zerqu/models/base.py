@@ -1,9 +1,12 @@
 # coding: utf-8
 
-from flask import current_app
+from flask import current_app, json
 from sqlalchemy import event
 from sqlalchemy.orm import Query, class_mapper
 from sqlalchemy.orm.exc import UnmappedClassError
+from sqlalchemy.types import TypeDecorator, TEXT
+from sqlalchemy.ext.mutable import Mutable
+from sqlalchemy.dialects.postgresql import JSON as _JSON
 from werkzeug.local import LocalProxy
 from flask_sqlalchemy import SQLAlchemy
 
@@ -161,6 +164,62 @@ class Base(db.Model):
             cache.delete_many(key, target.generate_cache_prefix('count'))
 
 Base.cache = CacheProperty(db)
+
+
+class MutableDict(Mutable, dict):
+    @classmethod
+    def coerce(cls, key, value):
+        "Convert plain dictionaries to MutableDict."
+        if not isinstance(value, MutableDict):
+            if isinstance(value, dict):
+                return MutableDict(value)
+
+            # this call will raise ValueError
+            return Mutable.coerce(key, value)
+        else:
+            return value
+
+    def __setitem__(self, key, value):
+        "Detect dictionary set events and emit change events."
+        dict.__setitem__(self, key, value)
+        self.changed()
+
+    def __delitem__(self, key):
+        "Detect dictionary del events and emit change events."
+        dict.__delitem__(self, key)
+        self.changed()
+
+    def __getstate__(self):
+        return dict(self)
+
+    def __setstate__(self, state):
+        self.update(state)
+
+
+class JSON(TypeDecorator):
+    "Represents an immutable structure as a json-encoded string."
+    impl = TEXT
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(_JSON())
+        return dialect.type_descriptor(TEXT())
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name == 'postgresql':
+            return value
+        return json.dumps(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name == 'postgresql':
+            return value
+        return json.loads(value)
+
+MutableDict.associate_with(JSON)
 
 
 def _unique_suffix(target, primary_key):

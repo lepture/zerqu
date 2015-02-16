@@ -6,9 +6,9 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer
 from .user import User
-from .base import Base
+from .base import Base, JSON
 
-__all__ = ['Cafe']
+__all__ = ['Cafe', 'CafeMember']
 
 
 class Cafe(Base):
@@ -37,12 +37,14 @@ class Cafe(Base):
     name = Column(String(30), nullable=False, unique=True)
     description = Column(String(280))
 
-    # front style
-    logo_url = Column(String(260))
-    base_color = Column(String(40))
-    text_color = Column(String(40))
-    background_color = Column(String(40))
-    background_url = Column(String(260))
+    # logo_url, base_color, text_color, background_color, background_url
+    style = Column(JSON, default={
+        'logo_url': None,
+        'base_color': None,
+        'text_color': None,
+        'background_color': None,
+        'background_url': None,
+    })
 
     # available feature
     feature = Column(String(10), default='text')
@@ -63,7 +65,7 @@ class Cafe(Base):
 
     def keys(self):
         return (
-            'id', 'slug', 'name', 'logo_url', 'description',
+            'id', 'slug', 'name', 'style', 'description',
             'label', 'user_id', 'is_active', 'created_at', 'updated_at',
         )
 
