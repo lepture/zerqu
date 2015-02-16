@@ -92,11 +92,11 @@ class TestCafeMembers(TestCase, CafeMixin):
         db.session.commit()
 
         url = '/api/cafes/hello/users'
-        headers = self.get_authorized_header(scope='user:follow')
+        headers = self.get_authorized_header(scope='user:subscribe')
         rv = self.client.post(url, headers=headers)
         assert rv.status_code == 200
 
-        headers = self.get_authorized_header(scope='user:follow', user_id=2)
+        headers = self.get_authorized_header(scope='user:subscribe', user_id=2)
         rv = self.client.post(url, headers=headers)
         assert rv.status_code == 200
 
@@ -111,7 +111,7 @@ class TestCafeMembers(TestCase, CafeMixin):
         db.session.commit()
 
         url = '/api/cafes/hello/users'
-        headers = self.get_authorized_header(scope='user:follow')
+        headers = self.get_authorized_header(scope='user:subscribe')
         rv = self.client.post(url, headers=headers)
         assert rv.status_code == 200
 
@@ -123,7 +123,7 @@ class TestCafeMembers(TestCase, CafeMixin):
         db.session.add(item)
         db.session.commit()
 
-        headers = self.get_authorized_header(scope='user:follow', user_id=2)
+        headers = self.get_authorized_header(scope='user:subscribe', user_id=2)
         url = '/api/cafes/secret/users'
         rv = self.client.post(url, headers=headers)
         assert rv.status_code == 200
@@ -137,7 +137,7 @@ class TestCafeMembers(TestCase, CafeMixin):
         cafe = Cafe.query.get(2)
 
         url = '/api/cafes/%s/users' % cafe.slug
-        headers = self.get_authorized_header(scope='user:follow')
+        headers = self.get_authorized_header(scope='user:subscribe')
         rv = self.client.delete(url, headers=headers)
         assert rv.status_code == 404
 

@@ -55,7 +55,7 @@ def view_cafe(slug):
 
 
 @bp.route('/<slug>/users', methods=['POST'])
-@require_oauth(login=True, scopes=['user:follow'])
+@require_oauth(login=True, scopes=['user:subscribe'])
 def join_cafe(slug):
     cafe = first_or_404(Cafe, slug=slug)
     ident = (cafe.id, current_user.id)
@@ -85,7 +85,7 @@ def join_cafe(slug):
 
 
 @bp.route('/<slug>/users', methods=['DELETE'])
-@require_oauth(login=True, scopes=['user:follow'])
+@require_oauth(login=True, scopes=['user:subscribe'])
 def leave_cafe(slug):
     cafe = first_or_404(Cafe, slug=slug)
     ident = (cafe.id, current_user.id)
