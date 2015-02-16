@@ -5,7 +5,7 @@ from flask import request, jsonify
 from werkzeug.datastructures import MultiDict
 from .base import require_oauth, require_confidential
 from .base import cursor_query
-from .errors import NotFound
+from .errors import first_or_404
 from ..models import User
 from ..forms import RegisterForm
 
@@ -36,7 +36,5 @@ def list_users():
 @bp.route('/<username>')
 @require_oauth(login=False, cache_time=600)
 def view_user(username):
-    user = User.cache.filter_first(username=username)
-    if not user:
-        raise NotFound('User "%s"' % username)
+    user = first_or_404(User, username=username)
     return jsonify(status='ok', data=user)
