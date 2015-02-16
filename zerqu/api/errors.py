@@ -51,4 +51,4 @@ class Denied(APIException):
 
     def __init__(self, key, response=None):
         description = 'You have no permission in %s' % key
-        super(NotFound, self).__init__(None, None, description, response)
+        super(Denied, self).__init__(None, None, description, response)

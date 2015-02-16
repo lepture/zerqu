@@ -2,7 +2,7 @@
 
 import random
 from flask import json
-from zerqu.models import db, Cafe, CafeMember
+from zerqu.models import db, User, Cafe, CafeMember
 from ._base import TestCase
 
 
@@ -57,6 +57,32 @@ class TestViewCafe(TestCase, CafeMixin):
 
 
 class TestCafeMembers(TestCase, CafeMixin):
+
+    def create_membership(self, permission, total):
+        item = Cafe(
+            name='hello', slug='hello', user_id=2,
+            permission=permission
+        )
+        db.session.add(item)
+        db.session.commit()
+        total = 60
+
+        for i in range(total):
+            username = 'demo-%d' % i
+            user = User(username=username, email='%s@gmail.com' % username)
+            db.session.add(user)
+            db.session.commit()
+            member = CafeMember(cafe_id=item.id, user_id=user.id)
+            member.role = random.choice([
+                CafeMember.ROLE_VISITOR,
+                CafeMember.ROLE_APPLICANT,
+                CafeMember.ROLE_SUBSCRIBER,
+                CafeMember.ROLE_MEMBER,
+                CafeMember.ROLE_ADMIN,
+            ])
+            db.session.add(member)
+        db.session.commit()
+
     def test_join_public_cafe(self):
         item = Cafe(
             name='hello', slug='hello', user_id=2,
@@ -119,4 +145,51 @@ class TestCafeMembers(TestCase, CafeMixin):
         db.session.add(item)
         db.session.commit()
         rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 200
+
+    def test_list_public_cafe_users(self):
+        total = 60
+        self.create_membership(Cafe.PERMISSION_PUBLIC, total)
+
+        url = '/api/cafes/hello/users'
+        rv = self.client.get(url)
+        assert rv.status_code == 200
+
+        value = json.loads(rv.data)
+        assert 'pagination' in value
+        assert value['pagination']['total'] == total
+        assert value['pagination']['next'] == 2
+        assert value['pagination']['prev'] is None
+
+        url = '/api/cafes/hello/users?page=3'
+        rv = self.client.get(url)
+        value = json.loads(rv.data)
+        assert value['pagination']['prev'] == 2
+
+        rv = self.client.get('/api/cafes/hello/users?page=-1')
+        assert rv.status_code == 400
+        rv = self.client.get('/api/cafes/hello/users?page=10')
+        assert rv.status_code == 400
+        rv = self.client.get('/api/cafes/hello/users?perpage=1')
+        assert rv.status_code == 400
+
+    def test_list_private_cafe_users(self):
+        total = 60
+        self.create_membership(Cafe.PERMISSION_PRIVATE, total)
+
+        url = '/api/cafes/hello/users'
+        rv = self.client.get(url)
+        assert rv.status_code == 401
+
+        headers = self.get_authorized_header(user_id=1)
+        rv = self.client.get(url, headers=headers)
+        assert rv.status_code == 403
+
+        headers = self.get_authorized_header(user_id=2)
+        rv = self.client.get(url, headers=headers)
+        assert rv.status_code == 200
+
+        item = CafeMember.query.filter_by(role=CafeMember.ROLE_MEMBER).first()
+        headers = self.get_authorized_header(user_id=item.user_id)
+        rv = self.client.get(url, headers=headers)
         assert rv.status_code == 200

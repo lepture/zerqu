@@ -173,18 +173,23 @@ def cursor_query(model, order_by='desc'):
 def pagination(total):
     page = int_or_raise('page', 1)
     if page < 1:
-        raise APIException('page should be larger than 1')
+        raise APIException(description='page should be larger than 1')
 
     perpage = int_or_raise('perpage', 20, 100)
     if perpage < 10:
-        raise APIException('perpage should be larger than 10')
+        raise APIException(description='perpage should be larger than 10')
 
     pages = int((total - 1) / perpage) + 1
+    if page > pages:
+        raise APIException(
+            description='page should be smaller than total pages'
+        )
 
     rv = {
         'total': total,
         'pages': pages,
         'page': page,
+        'perpage': perpage,
         'prev': None,
         'next': None,
     }

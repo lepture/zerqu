@@ -114,12 +114,14 @@ def list_cafe_users(cafe):
     items = q.order_by(CafeMember.user_id).offset(offset).limit(perpage).all()
     user_ids = [o.user_id for o in items]
     users = User.cache.get_dict(user_ids)
-    data = list(items, users)
+    data = list(_itermembers(items, users))
     return jsonify(status='ok', data=data, pagination=pagi)
 
 
 def _itermembers(items, users):
     for o in items:
-        rv = dict(o)
-        rv['user'] = users[o.user_id]
-        yield rv
+        key = str(o.user_id)
+        if key in users:
+            rv = dict(o)
+            rv['user'] = users[key]
+            yield rv
