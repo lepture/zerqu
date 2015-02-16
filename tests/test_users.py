@@ -95,6 +95,11 @@ class TestCurrentUser(TestCase):
         })
         assert b'unique_description' in rv.data
 
+    def test_current_user_email(self):
+        headers = self.get_authorized_header(scope='user:email')
+        rv = self.client.get('/api/user/email', headers=headers)
+        assert b'email' in rv.data
+
 
 class TestListUsers(TestCase):
     def test_list_without_parameters(self):

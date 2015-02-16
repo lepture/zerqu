@@ -25,3 +25,9 @@ def update_current_user():
         db.session.add(user)
         db.session.commit()
     return jsonify(status='ok', data=user)
+
+
+@bp.route('/email')
+@require_oauth(login=True, scopes=['user:email'])
+def view_current_user_email():
+    return jsonify(status='ok', data={'email': current_user.email})

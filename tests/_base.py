@@ -70,4 +70,7 @@ class TestCase(unittest.TestCase):
         token.client_id = 1
         db.session.add(token)
         db.session.commit()
-        return {'Authorization': 'Bearer %s' % token.access_token}
+        return {
+            'Authorization': 'Bearer %s' % token.access_token,
+            'Content-Type': 'application/json',
+        }
