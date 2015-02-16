@@ -1,16 +1,39 @@
 # coding: utf-8
 
 import datetime
+from functools import wraps
 from flask import Blueprint
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth
-from .base import cursor_query
+from .base import cursor_query, pagination
 from .errors import first_or_404, NotFound, APIException, Denied
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember
 
 bp = Blueprint('api_cafes', __name__)
+
+
+def check_cafe_permission(cafe):
+    if cafe.permission != cafe.PERMISSION_PRIVATE:
+        return True
+    if cafe.user_id == current_user.id:
+        return True
+    ident = (cafe.id, current_user.id)
+    data = CafeMember.cache.get(ident)
+    if data and data.role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN):
+        return data
+    raise Denied('cafe "%s"' % cafe.slug)
+
+
+def protect_cafe(f):
+    @wraps(f)
+    def decorated(slug):
+        cafe = first_or_404(Cafe, slug=slug)
+        if cafe.permission == cafe.PERMISSION_PRIVATE:
+            return require_oauth(login=True, cache_time=300)(f)(cafe)
+        return require_oauth(login=False, cache_time=600)(f)(cafe)
+    return decorated
 
 
 @bp.route('')
@@ -78,22 +101,25 @@ def leave_cafe(slug):
 
 
 @bp.route('/<slug>/users')
-def list_cafe_users(slug):
-    cafe = first_or_404(Cafe, slug=slug)
-    if cafe.permission == cafe.PERMISSION_PRIVATE:
-        return list_private_cafe_users(cafe)
-    return list_public_cafe_users(cafe)
+@protect_cafe
+def list_cafe_users(cafe):
+    check_cafe_permission(cafe)
 
+    total = CafeMember.cache.filter_count(cafe_id=cafe.id)
+    pagi = pagination(total)
+    perpage = pagi['perpage']
+    offset = (pagi['page'] - 1) * perpage
 
-@require_oauth(login=True, cache_time=300)
-def list_private_cafe_users(cafe):
-    ident = (cafe.id, current_user.id)
-    if cafe.user_id != current_user.id and not CafeMember.cache.get(ident):
-        raise Denied('cafe "%s"' % cafe.slug)
-
-
-@require_oauth(login=False, cache_time=300)
-def list_public_cafe_users(cafe):
     q = CafeMember.query.filter_by(cafe_id=cafe.id)
-    q.order_by(CafeMember.user_id)
-    return q
+    items = q.order_by(CafeMember.user_id).offset(offset).limit(perpage).all()
+    user_ids = [o.user_id for o in items]
+    users = User.cache.get_dict(user_ids)
+    data = list(items, users)
+    return jsonify(status='ok', data=data, pagination=pagi)
+
+
+def _itermembers(items, users):
+    for o in items:
+        rv = dict(o)
+        rv['user'] = users[o.user_id]
+        yield rv

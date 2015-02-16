@@ -168,3 +168,29 @@ def cursor_query(model, order_by='desc'):
     cursor['before'] = data[-1].id
     cursor['after'] = data[0].id
     return data, cursor
+
+
+def pagination(total):
+    page = int_or_raise('page', 1)
+    if page < 1:
+        raise APIException('page should be larger than 1')
+
+    perpage = int_or_raise('perpage', 20, 100)
+    if perpage < 10:
+        raise APIException('perpage should be larger than 10')
+
+    pages = int((total - 1) / perpage) + 1
+
+    rv = {
+        'total': total,
+        'pages': pages,
+        'page': page,
+        'prev': None,
+        'next': None,
+    }
+
+    if page > 1:
+        rv['prev'] = page - 1
+    if page < pages:
+        rv['next'] = page + 1
+    return rv
