@@ -6,7 +6,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer, Text
 from .user import User
-from .base import Base, JSON
+from .base import cache, Base, JSON
 
 
 class Topic(Base):
@@ -65,3 +65,27 @@ class Comment(Base):
             'id', 'topic_id', 'user_id', 'content',
             'created_at', 'updated_at',
         )
+
+
+class TopicLike(Base):
+    __tablename__ = 'zq_topic_like'
+
+    topic_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    @classmethod
+    def topic_like_counts(cls, topic_ids):
+        prefix = cls.generate_cache_prefix('fc') + 'topic_id$'
+        rv = cache.get_dict(*[prefix + str(i) for i in topic_ids])
+
+        missed = {i for i in topic_ids if rv[prefix + str(i)] is None}
+        rv = {k.lstrip(prefix): rv[k] for k in rv}
+
+        if not missed:
+            return rv
+
+        for tid in missed:
+            rv[str(tid)] = cls.cache.filter_count(topic_id=tid)
+
+        return rv
