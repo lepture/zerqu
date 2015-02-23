@@ -9,14 +9,12 @@ from .base import require_oauth
 from .base import cursor_query, pagination
 from .errors import first_or_404, NotFound, APIException, Denied
 from ..models import db, current_user
-from ..models import User, Cafe, CafeMember
+from ..models import User, Cafe, CafeMember, Topic, Comment, TopicLike
 
 bp = Blueprint('api_cafes', __name__)
 
 
 def check_cafe_permission(cafe):
-    if cafe.permission != cafe.PERMISSION_PRIVATE:
-        return True
     if cafe.user_id == current_user.id:
         return True
     ident = (cafe.id, current_user.id)
@@ -30,8 +28,12 @@ def protect_cafe(f):
     @wraps(f)
     def decorated(slug):
         cafe = first_or_404(Cafe, slug=slug)
-        if cafe.permission == cafe.PERMISSION_PRIVATE:
-            return require_oauth(login=True, cache_time=300)(f)(cafe)
+        if cafe.permission == Cafe.PERMISSION_PRIVATE:
+            @wraps(f)
+            def wrapped():
+                check_cafe_permission(cafe)
+                return f(cafe)
+            return require_oauth(login=True, cache_time=300)(wrapped)()
         return require_oauth(login=False, cache_time=600)(f)(cafe)
     return decorated
 
@@ -103,8 +105,6 @@ def leave_cafe(slug):
 @bp.route('/<slug>/users')
 @protect_cafe
 def list_cafe_users(cafe):
-    check_cafe_permission(cafe)
-
     total = CafeMember.cache.filter_count(cafe_id=cafe.id)
     pagi = pagination(total)
     perpage = pagi['perpage']
@@ -125,3 +125,25 @@ def _itermembers(items, users):
             rv = dict(o)
             rv['user'] = users[key]
             yield rv
+
+
+@bp.route('/<slug>/topics')
+@protect_cafe
+def list_cafe_topics(cafe):
+    data, cursor = cursor_query(Topic, 'desc', cafe_id=cafe.id)
+    meta = {}
+    meta['user_id'] = User.cache.get_dict({o.user_id for o in data})
+
+    tids = {o.id for o in data}
+    likes = TopicLike.topic_like_counts(tids)
+    comments = Comment.topic_comment_counts(tids)
+
+    rv = []
+
+    for o in data:
+        item = dict(o)
+        item['like_count'] = likes.get(o.id, 0)
+        item['comment_count'] = comments.get(o.id, 0)
+        rv.append(item)
+
+    return jsonify(status='ok', data=rv, meta=meta, cursor=cursor)

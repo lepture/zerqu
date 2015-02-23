@@ -2,7 +2,7 @@
 
 import random
 from flask import json
-from zerqu.models import db, User, Cafe, CafeMember
+from zerqu.models import db, User, Cafe, CafeMember, Topic
 from ._base import TestCase
 
 
@@ -193,3 +193,28 @@ class TestCafeMembers(TestCase, CafeMixin):
         headers = self.get_authorized_header(user_id=item.user_id)
         rv = self.client.get(url, headers=headers)
         assert rv.status_code == 200
+
+
+class TestCafeTopics(TestCase):
+    def test_list_cafe_topics(self):
+        item = Cafe(
+            name='hello', slug='hello', user_id=1,
+            permission=Cafe.PERMISSION_PUBLIC
+        )
+        db.session.add(item)
+        db.session.commit()
+
+        user_ids = [o.id for o in User.query.all()]
+
+        for i in range(60):
+            t = Topic(
+                cafe_id=item.id,
+                user_id=random.choice(user_ids),
+                title='test',
+            )
+            db.session.add(t)
+
+        db.session.commit()
+
+        rv = self.client.get('/api/cafes/hello/topics')
+        print rv.data
