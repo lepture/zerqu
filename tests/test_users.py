@@ -12,7 +12,10 @@ auth_header = {
 
 class TestCreateUser(TestCase):
     def test_create_user_forbidden(self):
-        rv = self.client.post('/api/users')
+        rv = self.client.post('/api/users', headers={
+            'X-API-Version': '1',
+            'Accept': 'application/vnd.tristram+json; version=2',
+        })
         assert rv.status_code == 403
 
     def test_create_user_success(self):
