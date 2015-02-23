@@ -2,7 +2,7 @@
 
 
 import re
-from .base import ratelimit_hook
+from .base import headers_hook
 from . import front, user, users, cafes
 
 VERSION_URL = re.compile(r'^/api/\d/')
@@ -37,7 +37,7 @@ class ApiVersionMiddleware(object):
 
 
 def register_blueprint(app, bp, name=''):
-    bp.after_request(ratelimit_hook)
+    bp.after_request(headers_hook)
     url_prefix = '/api/1/' + name
     app.register_blueprint(bp, url_prefix=url_prefix)
 

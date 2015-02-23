@@ -41,7 +41,7 @@ def first_or_404(model, **kwargs):
         return data
     key = model.__name__
     if len(kwargs) == 1:
-        key = '%s "%s"' % (key, kwargs.values()[0])
+        key = '%s "%s"' % (key, list(kwargs.values())[0])
     raise NotFound(key)
 
 

@@ -108,14 +108,16 @@ def require_confidential(f):
     return decorated
 
 
-def ratelimit_hook(response):
+def headers_hook(response):
     if hasattr(request, '_rate_remaining'):
         response.headers['X-Rate-Limit'] = str(request._rate_remaining)
     if hasattr(request, '_rate_expires'):
         response.headers['X-Rate-Expires'] = str(request._rate_expires)
 
     # javascript can request API
-    response.headers['Access-Control-Allow-Origin'] = '*'
+    if request.method == 'GET':
+        response.headers['Access-Control-Allow-Origin'] = '*'
+
     # api not available in iframe
     response.headers['X-Frame-Options'] = 'deny'
     # security protection

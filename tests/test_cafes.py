@@ -15,7 +15,7 @@ class CafeMixin(object):
                 Cafe.PERMISSION_MEMBER,
                 Cafe.PERMISSION_PRIVATE,
             ])
-            status = random.choice(Cafe.STATUS.keys())
+            status = random.choice(list(Cafe.STATUS.keys()))
             name = '%s-%d' % (random.choice(['foo', 'bar']), i)
             user_id = random.choice([1, 2])
             item = Cafe(
