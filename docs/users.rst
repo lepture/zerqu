@@ -12,7 +12,6 @@ Request with GET method::
 Response with::
 
     {
-        "status": "ok",
         "data": [{
             "id": 1,
             "username": "huashan",
@@ -39,18 +38,15 @@ Request with GET method::
 Response with::
 
     {
-        "status": "ok",
-        "data": {
-            "id": 1,
-            "username": "huashan",
-            "avatar_url": "https://example.com/avatar/1.png",
-            "role": "admin",
-            "active": true,
-            "url": "http://zerqu.com/",
-            "bio": "I am a mountain.",
-            "created_at": "2014-12-31T14:40:52Z",
-            "updated_at": "2014-12-31T18:50:06Z"
-        }
+        "id": 1,
+        "username": "huashan",
+        "avatar_url": "https://example.com/avatar/1.png",
+        "role": "admin",
+        "active": true,
+        "url": "http://zerqu.com/",
+        "bio": "I am a mountain.",
+        "created_at": "2014-12-31T14:40:52Z",
+        "updated_at": "2014-12-31T18:50:06Z"
     }
 
 Get authenticated user

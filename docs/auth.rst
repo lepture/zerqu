@@ -19,12 +19,9 @@ Create new session with POST::
 If username and password matched, server will create a session cookie::
 
     {
-        "status": "ok",
-        "data": {
-            "id": 1,
-            "username": "your_username",
-            "..": "...."
-        }
+        "id": 1,
+        "username": "your_username",
+        "..": "...."
     }
 
 Logout via Ajax
@@ -37,7 +34,6 @@ Logout with DELETE request::
 Server will delete and destroy the session cookie, response with::
 
     {
-        "status": "ok",
         "redirect_uri": "/"
     }
 

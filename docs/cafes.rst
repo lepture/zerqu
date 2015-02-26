@@ -14,7 +14,6 @@ Request with GET method::
 Response with::
 
     {
-        "status": "ok",
         "data": [{
             "slug": "support",
             "name": "Tech Support",
@@ -34,7 +33,7 @@ Response with::
             "created_at": "2014-12-31T14:40:52Z",
             "updated_at": "2014-12-31T18:50:06Z"
         }],
-        "meta": {
+        "reference": {
             "user_id": {
                 "1": {
                     "id": 1,
@@ -64,7 +63,6 @@ Request with GET method::
 Response with::
 
     {
-        "status": "ok",
         "data": {
             "slug": "support",
             "name": "Tech Support",
@@ -80,13 +78,13 @@ Response with::
                 "topic": 20,
                 "users": 3100
             },
-            "creator": {
+            "user": {
                 "id": 1,
-                "username": "huashan",
+                "username": "lepture",
                 "avatar_url": "https://example.com/avatar/1.png",
                 "role": "admin",
                 "active": true,
-                "url": "http://doocer.com/",
+                "url": "http://lepture.com/",
                 "bio": "I am a mountain.",
                 "reputation": 10,
                 "created_at": "2014-12-31T14:40:52Z",

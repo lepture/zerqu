@@ -1,53 +1,33 @@
 Response Format
 ===============
 
-API response will be in **application/json** format. Every response will have
-a **status** and **data** section::
-
-    {
-        "status": "ok",
-        "data": {}
-    }
+API response will be in **application/json** format.
 
 
-Status
-------
-
-A status indicates if the response is correct. Here is a success response::
-
-    {
-        "status": "ok"
-    }
+Error Response
+--------------
 
 An error response will have an **error_code** and **error_description**::
 
     {
-        "status": "error",
         "error_code": "invalid_token",
         "error_description": "Token is expired"
     }
 
-Data
-----
+Success Response
+----------------
 
-The **data** section contains the actual data you want. It may be an array or
-a hash. If you requests a list of things, it is an array . If you request a
-single item, it is a hash map.
-
-A hash map data looks like::
+A success response for a single entity is a hash map, for example::
 
     {
-        "status": "ok",
-        "data": {
-            "id": 1,
-            "key": "value"
-        }
+        "id": 1,
+        "key": "value"
     }
 
-An array data response looks like::
+Response for a list of entities will be wrapped in **data** section
+of the hash map::
 
     {
-        "status": "ok",
         "data": [
             {
                 "id": 1,
@@ -61,20 +41,19 @@ An array data response looks like::
     }
 
 
-Meta
-----
+Reference
+---------
 
-Meta data is an additional information for data response. For example::
+Reference data is an additional information for data response. For example::
 
     {
-        "status": "ok",
         "data": [
             {
                 "id": 1,
                 "user_id": 1
             }
         ],
-        "meta": {
+        "reference": {
             "user_id": {
                 "1": {
                     "username": "zerqu"
@@ -84,7 +63,8 @@ Meta data is an additional information for data response. For example::
     }
 
 In this example, the **user_id** in data is an ID, you can use the ID to get
-the full information of the user in **meta** section.
+the full information of the user in **reference** section.
+
 
 Pagination
 ----------
@@ -93,7 +73,6 @@ Pagination is useful when a single array data response can not hold all the
 data. In this case, you can fetch the next page::
 
     {
-        "status": "ok",
         "data": [],
         "pagination": {
             "total": 121,
@@ -116,7 +95,6 @@ Cursor is another efficient to fetch data. When a single array data response
 can not hold all the data::
 
     {
-        "status": "ok",
         "data": [],
         "cursor": {
             "key": "id",
