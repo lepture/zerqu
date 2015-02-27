@@ -22,17 +22,10 @@ __all__ = ['current_user', 'User', 'AuthSession']
 class User(Base):
     __tablename__ = 'zq_user'
 
-    STATUS = {
-        0: 'inactive',
-        1: 'active',
-        2: 'verified',
-        8: 'staff',
-        9: 'admin',
-        10: 'super',
-    }
     ROLE_SUPER = 10
     ROLE_ADMIN = 9
     ROLE_STAFF = 8
+    ROLE_VERIFIED = 2
 
     id = Column(Integer, primary_key=True)
     username = Column(String(24), unique=True)
@@ -56,7 +49,7 @@ class User(Base):
     def keys(self):
         return (
             'id', 'username', 'avatar_url', 'description',
-            'role', 'label', 'reputation', 'is_active',
+            'label', 'reputation', 'is_active',
             'created_at', 'updated_at',
         )
 
@@ -65,16 +58,10 @@ class User(Base):
         return self.status > 0
 
     @cached_property
-    def role(self):
-        if self.label == 'staff':
-            return 'staff'
-        return 'user'
-
-    @cached_property
     def label(self):
-        if self.status >= 8:
+        if self.status >= self.ROLE_STAFF:
             return 'staff'
-        if self.status == 2:
+        if self.status == self.ROLE_ADMIN:
             return 'verified'
         return None
 

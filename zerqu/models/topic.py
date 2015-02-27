@@ -4,7 +4,7 @@ import datetime
 from werkzeug.utils import cached_property
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime
-from sqlalchemy import SmallInteger, Integer, Text
+from sqlalchemy import SmallInteger, Integer, Text, Boolean
 from .user import User
 from .base import cache, Base, JSON
 
@@ -53,6 +53,27 @@ class Topic(Base):
         return User.cache.get(self.user_id)
 
 
+class TopicLike(Base):
+    __tablename__ = 'zq_topic_like'
+
+    topic_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    @classmethod
+    def topic_like_counts(cls, topic_ids):
+        return topic_ref_counts(cls, topic_ids)
+
+
+class TopicVote(Base):
+    __tablename__ = 'zq_topic_vote'
+
+    topic_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    upvote = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
 class Comment(Base):
     __tablename__ = 'zq_comment'
 
@@ -82,16 +103,13 @@ class Comment(Base):
         return topic_ref_counts(cls, topic_ids)
 
 
-class TopicLike(Base):
-    __tablename__ = 'zq_topic_like'
+class CommentVote(Base):
+    __tablename__ = 'zq_comment_vote'
 
-    topic_id = Column(Integer, primary_key=True)
+    comment_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, primary_key=True)
+    upvote = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-
-    @classmethod
-    def topic_like_counts(cls, topic_ids):
-        return topic_ref_counts(cls, topic_ids)
 
 
 def topic_ref_counts(cls, topic_ids):
