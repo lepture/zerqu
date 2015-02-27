@@ -11,7 +11,7 @@ bp = Blueprint('api_user', __name__)
 @bp.route('')
 @require_oauth(login=True)
 def view_current_user():
-    return jsonify(status='ok', data=current_user)
+    return jsonify(current_user)
 
 
 @bp.route('', methods=['PATCH'])
@@ -24,10 +24,10 @@ def update_current_user():
         user.description = description
         db.session.add(user)
         db.session.commit()
-    return jsonify(status='ok', data=user)
+    return jsonify(user)
 
 
 @bp.route('/email')
 @require_oauth(login=True, scopes=['user:email'])
 def view_current_user_email():
-    return jsonify(status='ok', data={'email': current_user.email})
+    return jsonify(email=current_user.email)

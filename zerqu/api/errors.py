@@ -17,7 +17,6 @@ class APIException(HTTPException):
 
     def get_body(self, environ=None):
         return text_type(json.dumps(dict(
-            status='error',
             error_code=self.error_code,
             error_description=self.description,
         )))

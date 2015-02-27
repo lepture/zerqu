@@ -9,8 +9,4 @@ bp = Blueprint('api_base', __name__)
 
 @bp.route('')
 def index():
-    return jsonify(status='ok', data=dict(
-        system='zerqu',
-        version=VERSION,
-        api_version=API_VERSION,
-    ))
+    return jsonify(system='zerqu', version=VERSION, api_version=API_VERSION)

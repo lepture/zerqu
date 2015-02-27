@@ -42,9 +42,8 @@ def protect_cafe(f):
 @require_oauth(login=False, cache_time=300)
 def list_cafes():
     data, cursor = cursor_query(Cafe, 'desc')
-    meta = {}
-    meta['user_id'] = User.cache.get_dict({o.user_id for o in data})
-    return jsonify(status='ok', data=data, meta=meta, cursor=cursor)
+    reference = {'user_id': User.cache.get_dict({o.user_id for o in data})}
+    return jsonify(data=data, reference=reference, cursor=cursor)
 
 
 @bp.route('/<slug>')
@@ -53,7 +52,7 @@ def view_cafe(slug):
     cafe = first_or_404(Cafe, slug=slug)
     data = dict(cafe)
     data['user'] = cafe.user
-    return jsonify(status='ok', data=data)
+    return jsonify(data)
 
 
 @bp.route('/<slug>/users', methods=['POST'])
@@ -64,7 +63,7 @@ def join_cafe(slug):
 
     item = CafeMember.query.get(ident)
     if item and item.role != CafeMember.ROLE_VISITOR:
-        return jsonify(status='ok')
+        return '', 204
 
     if item:
         item.created_at = datetime.datetime.utcnow()
@@ -83,7 +82,7 @@ def join_cafe(slug):
         db.session.commit()
     except IntegrityError:
         raise APIException(error_code='duplicate_request')
-    return jsonify(status='ok')
+    return '', 204
 
 
 @bp.route('/<slug>/users', methods=['DELETE'])
@@ -99,7 +98,7 @@ def leave_cafe(slug):
     item.role = CafeMember.ROLE_VISITOR
     db.session.add(item)
     db.session.commit()
-    return jsonify(status='ok')
+    return '', 204
 
 
 @bp.route('/<slug>/users')
@@ -115,7 +114,7 @@ def list_cafe_users(cafe):
     user_ids = [o.user_id for o in items]
     users = User.cache.get_dict(user_ids)
     data = list(_itermembers(items, users))
-    return jsonify(status='ok', data=data, pagination=pagi)
+    return jsonify(data=data, pagination=pagi)
 
 
 def _itermembers(items, users):
@@ -131,8 +130,7 @@ def _itermembers(items, users):
 @protect_cafe
 def list_cafe_topics(cafe):
     data, cursor = cursor_query(Topic, 'desc', cafe_id=cafe.id)
-    meta = {}
-    meta['user_id'] = User.cache.get_dict({o.user_id for o in data})
+    reference = {'user_id': User.cache.get_dict({o.user_id for o in data})}
 
     tids = {o.id for o in data}
     likes = TopicLike.topic_like_counts(tids)
@@ -146,4 +144,4 @@ def list_cafe_topics(cafe):
         item['comment_count'] = comments.get(o.id, 0)
         rv.append(item)
 
-    return jsonify(status='ok', data=rv, meta=meta, cursor=cursor)
+    return jsonify(data=rv, reference=reference, cursor=cursor)

@@ -33,7 +33,7 @@ class TestListCafes(TestCase, CafeMixin):
         assert rv.status_code == 200
         value = json.loads(rv.data)
         assert len(value['data']) == 20
-        assert 'user_id' in value['meta']
+        assert 'user_id' in value['reference']
         assert 'before' in value['cursor']
 
         rv = self.client.get('/api/cafes?count=40')
@@ -53,7 +53,7 @@ class TestViewCafe(TestCase, CafeMixin):
 
         rv = self.client.get('/api/cafes/%s' % cafe.slug)
         value = json.loads(rv.data)
-        assert 'user' in value['data']
+        assert 'user' in value
 
 
 class TestCafeMembers(TestCase, CafeMixin):
@@ -94,11 +94,11 @@ class TestCafeMembers(TestCase, CafeMixin):
         url = '/api/cafes/hello/users'
         headers = self.get_authorized_header(scope='user:subscribe')
         rv = self.client.post(url, headers=headers)
-        assert rv.status_code == 200
+        assert rv.status_code == 204
 
         headers = self.get_authorized_header(scope='user:subscribe', user_id=2)
         rv = self.client.post(url, headers=headers)
-        assert rv.status_code == 200
+        assert rv.status_code == 204
 
     def test_visitor_join_cafe(self):
         item = Cafe(
@@ -113,7 +113,7 @@ class TestCafeMembers(TestCase, CafeMixin):
         url = '/api/cafes/hello/users'
         headers = self.get_authorized_header(scope='user:subscribe')
         rv = self.client.post(url, headers=headers)
-        assert rv.status_code == 200
+        assert rv.status_code == 204
 
     def test_join_secret_cafe(self):
         item = Cafe(
@@ -126,11 +126,11 @@ class TestCafeMembers(TestCase, CafeMixin):
         headers = self.get_authorized_header(scope='user:subscribe', user_id=2)
         url = '/api/cafes/secret/users'
         rv = self.client.post(url, headers=headers)
-        assert rv.status_code == 200
+        assert rv.status_code == 204
 
         # already joined
         rv = self.client.post(url, headers=headers)
-        assert rv.status_code == 200
+        assert rv.status_code == 204
 
     def test_leave_cafe(self):
         self.create_cafes(2)
@@ -145,7 +145,7 @@ class TestCafeMembers(TestCase, CafeMixin):
         db.session.add(item)
         db.session.commit()
         rv = self.client.delete(url, headers=headers)
-        assert rv.status_code == 200
+        assert rv.status_code == 204
 
     def test_list_public_cafe_users(self):
         total = 60

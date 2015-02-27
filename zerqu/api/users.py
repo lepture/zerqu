@@ -18,23 +18,22 @@ def create_user():
     form = RegisterForm(MultiDict(request.json), csrf_enabled=False)
     if not form.validate():
         return jsonify(
-            status='error',
             error_code='error_form',
             error_form=form.errors,
         ), 400
     user = form.create_user()
-    return jsonify(status='ok', data=user), 201
+    return jsonify(user), 201
 
 
 @bp.route('')
 @require_oauth(login=False, cache_time=300)
 def list_users():
     data, cursor = cursor_query(User, 'desc')
-    return jsonify(status='ok', data=data, cursor=cursor)
+    return jsonify(data=data, cursor=cursor)
 
 
 @bp.route('/<username>')
 @require_oauth(login=False, cache_time=600)
 def view_user(username):
     user = first_or_404(User, username=username)
-    return jsonify(status='ok', data=user)
+    return jsonify(user)

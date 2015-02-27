@@ -27,8 +27,7 @@ class TestCreateUser(TestCase):
         assert rv.status_code == 201
         data = json.loads(rv.data)
         user = User.cache.filter_first(username='createuser')
-        expected = {'status': 'ok', 'data': dict(user)}
-        assert data == json.loads(json.dumps(expected))
+        assert data == json.loads(json.dumps(dict(user)))
 
         # can't register with the same email address
         rv = self.client.post('/api/users', data=json.dumps({
@@ -62,7 +61,7 @@ class TestCurrentUser(TestCase):
 
         headers = self.get_authorized_header()
         rv = self.client.get('/api/user', headers=headers)
-        assert b'data' in rv.data
+        assert b'username' in rv.data
 
     def test_update_current_user(self):
         # prepare token
