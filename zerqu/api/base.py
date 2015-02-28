@@ -59,13 +59,16 @@ def require_oauth(login=True, scopes=None, cache_time=None):
                         'Rate limit exceeded, retry in %is'
                     ) % expires
                 )
+
             request._rate_remaining = remaining
             request._rate_expires = expires
 
-            if request.method == 'GET' and isinstance(cache_time, int):
+            # don't cache when user is logged in
+            if current_user:
+                return f(*args, **kwargs)
+
+            if request.method == 'GET' and cache_time is not None:
                 key = 'api:%s' % request.full_path
-                if login:
-                    key = '%s:%d' % (key, current_user.id)
                 response = cache.get(key)
                 if response:
                     return response
@@ -203,4 +206,12 @@ def first_or_404(model, **kwargs):
     key = model.__name__
     if len(kwargs) == 1:
         key = '%s "%s"' % (key, list(kwargs.values())[0])
+    raise NotFound(key)
+
+
+def get_or_404(model, ident):
+    data = model.cache.get(ident)
+    if data:
+        return data
+    key = '%s "%r"' % (model.__name__, ident)
     raise NotFound(key)
