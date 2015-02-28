@@ -33,7 +33,7 @@ class Cafe(Base):
     id = Column(Integer, primary_key=True)
 
     # basic information
-    slug = Column(String(24), nullable=False, unique=True)
+    slug = Column(String(24), nullable=False, unique=True, index=True)
     name = Column(String(30), nullable=False, unique=True)
     description = Column(String(280))
 
