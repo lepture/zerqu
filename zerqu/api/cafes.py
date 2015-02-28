@@ -6,8 +6,8 @@ from flask import Blueprint
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth
-from .base import cursor_query, pagination
-from .errors import first_or_404, NotFound, APIException, Denied
+from .base import cursor_query, pagination, first_or_404
+from .errors import NotFound, APIException, Denied
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic, Comment, TopicLike
 
