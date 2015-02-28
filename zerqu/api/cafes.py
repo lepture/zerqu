@@ -2,12 +2,12 @@
 
 import datetime
 from functools import wraps
-from flask import Blueprint
+from flask import Blueprint, current_app
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth
 from .base import cursor_query, pagination, first_or_404
-from .errors import NotFound, APIException, Denied
+from .errors import NotFound, APIException, Denied, InvalidAccount
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic, Comment, TopicLike
 
@@ -33,7 +33,7 @@ def protect_cafe(f):
             def wrapped():
                 check_cafe_permission(cafe)
                 return f(cafe)
-            return require_oauth(login=True, cache_time=300)(wrapped)()
+            return require_oauth(login=True)(wrapped)()
         return require_oauth(login=False, cache_time=600)(f)(cafe)
     return decorated
 
@@ -46,12 +46,37 @@ def list_cafes():
     return jsonify(data=data, reference=reference, cursor=cursor)
 
 
+@bp.route('', methods=['POST'])
+@require_oauth(login=True)
+def create_cafe():
+    role = current_app.config.get('ZERQU_CAFE_CREATOR_ROLE')
+    if current_user.role < role:
+        raise Denied('creating cafe')
+    # TODO
+    return 'todo'
+
+
 @bp.route('/<slug>')
 @require_oauth(login=False, cache_time=300)
 def view_cafe(slug):
     cafe = first_or_404(Cafe, slug=slug)
     data = dict(cafe)
     data['user'] = cafe.user
+    return jsonify(data)
+
+
+@bp.route('/<slug>', methods=['POST'])
+@require_oauth(login=True)
+def update_cafe(slug):
+    cafe = first_or_404(Cafe, slug=slug)
+
+    if cafe.user_id != current_user.id:
+        ident = (cafe.id, current_user.id)
+        data = CafeMember.cache.get(ident)
+        if not data or data.role != CafeMember.ROLE_ADMIN:
+            raise Denied('cafe "%s"' % cafe.slug)
+
+    # TODO
     return jsonify(data)
 
 
@@ -113,17 +138,16 @@ def list_cafe_users(cafe):
     items = q.order_by(CafeMember.user_id).offset(offset).limit(perpage).all()
     user_ids = [o.user_id for o in items]
     users = User.cache.get_dict(user_ids)
-    data = list(_itermembers(items, users))
-    return jsonify(data=data, pagination=pagi)
 
-
-def _itermembers(items, users):
-    for o in items:
-        key = str(o.user_id)
+    data = []
+    for item in items:
+        key = str(item.user_id)
         if key in users:
-            rv = dict(o)
-            rv['user'] = users[key]
-            yield rv
+            rv = dict(item)
+            rv['user'] = dict(users[key])
+            data.append(rv)
+
+    return jsonify(data=data, pagination=pagi)
 
 
 @bp.route('/<slug>/topics')
@@ -145,3 +169,12 @@ def list_cafe_topics(cafe):
         rv.append(item)
 
     return jsonify(data=rv, reference=reference, cursor=cursor)
+
+
+@bp.route('/<slug>/topics', methods=['POST'])
+@protect_cafe
+def create_cafe_topic(cafe):
+    if not current_user.is_active:
+        raise InvalidAccount('Your account is not active')
+    # TODO
+    return 'todo'

@@ -33,3 +33,4 @@ ZERQU_TEXT_RENDERER = 'markdown'
 ZERQU_CAFE_FEATURES = [
     'text', 'link', 'image', 'video', 'audio', 'gist',
 ]
+ZERQU_CAFE_CREATOR_ROLE = 4

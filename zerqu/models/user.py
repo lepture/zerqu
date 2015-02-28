@@ -22,10 +22,11 @@ __all__ = ['current_user', 'User', 'AuthSession']
 class User(Base):
     __tablename__ = 'zq_user'
 
-    ROLE_SUPER = 10
-    ROLE_ADMIN = 9
-    ROLE_STAFF = 8
-    ROLE_VERIFIED = 2
+    ROLE_SUPER = 9
+    ROLE_ADMIN = 8
+    ROLE_STAFF = 7
+    ROLE_VERIFIED = 4
+    ROLE_SPAMMER = -9
 
     id = Column(Integer, primary_key=True)
     username = Column(String(24), unique=True)
@@ -61,8 +62,10 @@ class User(Base):
     def label(self):
         if self.status >= self.ROLE_STAFF:
             return 'staff'
-        if self.status == self.ROLE_ADMIN:
+        if self.status == self.ROLE_VERIFIED:
             return 'verified'
+        if self.status == self.ROLE_SPAMMER:
+            return 'spammer'
         return None
 
     @property

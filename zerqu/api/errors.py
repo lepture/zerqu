@@ -49,15 +49,24 @@ class NotFound(APIException):
     code = 404
     error_code = 'not_found'
 
-    def __init__(self, key, response=None):
+    def __init__(self, key):
         description = '%s not found' % key
-        super(NotFound, self).__init__(None, None, description, response)
+        super(NotFound, self).__init__(description=description)
 
 
 class Denied(APIException):
     code = 403
     error_code = 'permission_denied'
 
-    def __init__(self, key, response=None):
+    def __init__(self, key):
         description = 'You have no permission in %s' % key
-        super(Denied, self).__init__(None, None, description, response)
+        super(Denied, self).__init__(description=description)
+
+
+class InvalidAccount(Denied):
+    error_code = 'invalid_account'
+
+    def __init__(self, description=None):
+        if description is None:
+            description = 'Your account is invalid'
+        super(Denied, self).__init__(description=description)
