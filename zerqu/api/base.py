@@ -4,7 +4,7 @@ from functools import wraps
 from flask import request, session
 from oauthlib.common import to_unicode
 from flask_oauthlib.utils import decode_base64
-from .errors import APIException, NotFound
+from .errors import APIException, NotFound, NotAuth, NotConfidential
 from ..models import db, oauth, cache, current_user
 from ..models import AuthSession, OAuthClient
 from ..libs.ratelimit import ratelimit
@@ -21,11 +21,7 @@ def generate_limit_params(login, scopes):
 
     valid, req = oauth.verify_request(scopes)
     if login and (not valid or not req.user):
-        raise APIException(
-            401,
-            'authorization_required',
-            'Authorization is required'
-        )
+        raise NotAuth()
 
     if valid:
         request.oauth_client = req.access_token.client
@@ -85,25 +81,20 @@ def require_confidential(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         auth = request.headers.get('Authorization', None)
-        error = APIException(
-            code=403,
-            error='confidential_only',
-            description='Only confidential clients are allowed'
-        )
         if not auth:
-            raise error
+            raise NotConfidential()
         try:
             _, s = auth.split(' ')
             client_id, client_secret = decode_base64(s).split(':')
             client_id = to_unicode(client_id, 'utf-8')
             client_secret = to_unicode(client_secret, 'utf-8')
         except:
-            raise error
+            raise NotConfidential()
         client = oauth._clientgetter(client_id)
         if not client or client.client_secret != client_secret:
-            raise error
+            raise NotConfidential()
         if not client.is_confidential:
-            raise error
+            raise NotConfidential()
         return f(*args, **kwargs)
     return decorated
 

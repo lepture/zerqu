@@ -25,6 +25,26 @@ class APIException(HTTPException):
         return [('Content-Type', 'application/json')]
 
 
+class NotAuth(APIException):
+    code = 401
+    error_code = 'authorization_required'
+
+    def __init__(self, description=None):
+        if description is None:
+            description = 'Authorization is required'
+        super(NotAuth, self).__init__(description=description)
+
+
+class NotConfidential(APIException):
+    code = 403
+    error_code = 'confidential_only'
+
+    def __init__(self, description=None):
+        if description is None:
+            description = 'Only confidential clients are allowed'
+        super(NotConfidential, self).__init__(description=description)
+
+
 class NotFound(APIException):
     code = 404
     error_code = 'not_found'
