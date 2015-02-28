@@ -52,9 +52,34 @@ Response with::
 Get authenticated user
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Request with GET method::
+Request with GET method:
 
-    GET /user
+.. sourcecode:: http
+
+    GET /api/user HTTP/1.1
+    Host: example.com
+    Accept: application/vnd.zerqu+json; version=1
+    Authorization: Bearer QNPh7UPkfaKwcpr1fKAzvA72q9Os7y
+
+Response with:
+
+.. sourcecode:: http
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+
+    {
+      "id": 1,
+      "username": "zerqu",
+      "description": null,
+      "avatar_url": "https://example.com/avatar/zerqu",
+      "is_active": true,
+      "label": "staff",
+      "reputation": 10,
+      "created_at": "2015-02-27T09:24:23Z",
+      "updated_at": "2015-02-27T09:24:23Z"
+    }
+
 
 Response is the same as getting a single user.
 

@@ -5,6 +5,9 @@ import datetime
 SITE_NAME = 'ZERQU'
 SITE_YEAR = datetime.date.today().year
 
+ZERQU_CACHE_TYPE = 'simple'
+OAUTH2_CACHE_TYPE = 'simple'
+
 # Gravatar settings
 GRAVATAR_URL = 'https://secure.gravatar.com/avatar/'
 GRAVATAR_PARAMETERS = {
