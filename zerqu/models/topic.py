@@ -13,9 +13,9 @@ class Topic(Base):
     __tablename__ = 'zq_topic'
 
     STATUS = {
-        0: 'close',
-        1: 'open',
-        9: 'feature',
+        0: 'closed',
+        3: 'featured',
+        6: 'promoted',
     }
 
     id = Column(Integer, primary_key=True)
@@ -40,7 +40,7 @@ class Topic(Base):
 
     def keys(self):
         return (
-            'id', 'title', 'link', 'content', 'info', 'label',
+            'id', 'title', 'link', 'info', 'label',
             'cafe_id', 'user_id', 'created_at', 'updated_at',
         )
 

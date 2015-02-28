@@ -47,7 +47,7 @@ class Cafe(Base):
     })
 
     # available feature
-    feature = Column(String(10), default='text')
+    feature_type = Column(String(10), default='text')
     # defined above
     permission = Column(SmallInteger, default=0)
 
@@ -65,7 +65,7 @@ class Cafe(Base):
 
     def keys(self):
         return (
-            'id', 'slug', 'name', 'style', 'description',
+            'id', 'slug', 'name', 'style', 'description', 'feature_type',
             'label', 'user_id', 'is_active', 'created_at', 'updated_at',
         )
 

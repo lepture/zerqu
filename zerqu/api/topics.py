@@ -1,11 +1,11 @@
 # coding: utf-8
 
 from flask import Blueprint
-from flask import jsonify
-from .base import require_oauth
+from flask import request, jsonify
+from .base import require_oauth, get_or_404
 from .errors import APIException, NotFound
-from ..models import db, current_user
-from ..models import Topic, TopicLike
+from ..models import db, current_user, int_or_raise
+from ..models import Cafe, Topic, TopicLike, Comment
 
 bp = Blueprint('api_topics', __name__)
 
@@ -13,8 +13,28 @@ bp = Blueprint('api_topics', __name__)
 @bp.route('/<int:tid>')
 @require_oauth(login=False, cache_time=600)
 def view_topic(tid):
-    topic = Topic.cache.get(tid)
-    return jsonify(topic)
+    topic = get_or_404(Topic, tid)
+
+    data = dict(topic)
+
+    cafe = Cafe.cache.get(topic.cafe_id)
+
+    data['cafe'] = dict(cafe)
+    data['feature_type'] = cafe.feature
+
+    # TODO: render content
+    data['content'] = topic.content
+    data['user'] = dict(topic.user)
+    data['like_count'] = TopicLike.cache.filter_count(topid_id=tid)
+    data['comment_count'] = Comment.cache.filter_count(topid_id=tid)
+
+    if current_user:
+        if TopicLike.cache.get((tid, current_user.id)):
+            data['liked_by_me'] = True
+        else:
+            data['liked_by_me'] = False
+
+    return jsonify(data)
 
 
 @bp.route('/<int:tid>', methods=['POST'])
