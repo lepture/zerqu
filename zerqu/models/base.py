@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from flask import current_app, json
-from sqlalchemy import event
+from sqlalchemy import event, func
 from sqlalchemy.orm import Query, class_mapper
 from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.types import TypeDecorator, TEXT
@@ -103,20 +103,24 @@ class CacheQuery(Query):
 
     def filter_count(self, **kwargs):
         mapper = self._only_mapper_zero()
+        model = mapper.class_
         if not kwargs:
-            key = mapper.class_.generate_cache_prefix('count')
+            key = model.generate_cache_prefix('count')
             rv = cache.get(key)
             if rv is not None:
                 return rv
-            rv = self.count()
+            q = self.select_from(model).with_entities(func.count(1))
+            rv = q.scalar()
             cache.set(key, rv, CACHE_TIMES['count'])
             return rv
-        prefix = mapper.class_.generate_cache_prefix('fc')
+
+        prefix = model.generate_cache_prefix('fc')
         key = prefix + '-'.join(['%s$%s' % (k, kwargs[k]) for k in kwargs])
         rv = cache.get(key)
         if rv:
             return rv
-        rv = self.filter_by(**kwargs).count()
+        q = self.select_from(model).with_entities(func.count(1))
+        rv = q.filter_by(**kwargs).scalar()
         cache.set(key, rv, CACHE_TIMES['fc'])
         return rv
 
