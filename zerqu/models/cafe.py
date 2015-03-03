@@ -14,7 +14,7 @@ __all__ = ['Cafe', 'CafeMember']
 class Cafe(Base):
     __tablename__ = 'zq_cafe'
 
-    STATUS = {
+    STATUSES = {
         0: 'closed',
         1: 'active',
         6: 'verified',
@@ -79,7 +79,7 @@ class Cafe(Base):
 
     @cached_property
     def label(self):
-        label = self.STATUS.get(self.status)
+        label = self.STATUSES.get(self.status)
         if label == 'active':
             return None
         return label

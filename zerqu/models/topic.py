@@ -12,7 +12,7 @@ from .base import cache, Base, JSON
 class Topic(Base):
     __tablename__ = 'zq_topic'
 
-    STATUS = {
+    STATUSES = {
         0: 'closed',
         3: 'featured',
         6: 'promoted',
@@ -46,7 +46,7 @@ class Topic(Base):
 
     @property
     def label(self):
-        return self.STATUS.get(self.status)
+        return self.STATUSES.get(self.status)
 
     @cached_property
     def user(self):
