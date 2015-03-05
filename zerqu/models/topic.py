@@ -69,6 +69,33 @@ class TopicLike(Base):
         return topic_ref_current_user(cls, user_id, topic_ids)
 
 
+class TopicRead(Base):
+    __tablename__ = 'zq_topic_read'
+
+    topic_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    # reading status
+    _percent = Column('percent', SmallInteger, default=0)
+
+    @property
+    def percent(self):
+        return '%d%%' % self._percent
+
+    @percent.setter
+    def percent(self, num):
+        if 0 < num <= 100:
+            self._percent = num
+
+    @classmethod
+    def topics_read_counts(cls, topic_ids):
+        return topic_ref_counts(cls, topic_ids)
+
+    @classmethod
+    def topics_read_by_user(cls, user_id, topic_ids):
+        return topic_ref_current_user(cls, user_id, topic_ids)
+
+
 class Comment(Base):
     __tablename__ = 'zq_comment'
 

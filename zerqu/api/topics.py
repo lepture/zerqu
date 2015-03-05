@@ -5,7 +5,7 @@ from flask import request, jsonify
 from .base import require_oauth, get_or_404
 from .errors import APIException, NotFound
 from ..models import db, current_user
-from ..models import Cafe, Topic, TopicLike, Comment
+from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 
 bp = Blueprint('api_topics', __name__)
 
@@ -26,20 +26,29 @@ def statuses():
     rv = {}
     likes = TopicLike.topics_like_counts(tids)
     comments = Comment.topics_comment_counts(tids)
+    reading = TopicRead.topics_read_counts(tids)
+
     for tid in tids:
         tid = str(tid)
         rv[tid] = {
             'like_count': likes.get(tid, 0),
             'comment_count': comments.get(tid, 0),
+            'read_count': reading.get(tid, 0),
         }
+
     if not current_user:
         return jsonify(rv)
 
     liked = TopicLike.topics_liked_by_user(current_user.id, tids)
-    for tid in liked:
+    reads = TopicRead.topics_read_by_user(current_user.id, tids)
+    for tid in tids:
+        tid = str(tid)
         item = liked.get(tid)
         if item:
             rv[tid]['liked_by_me'] = item.created_at
+        item = reads.get(tid)
+        if item:
+            rv[tid]['read_by_me'] = item.percent
 
     return jsonify(rv)
 

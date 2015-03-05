@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from flask import json
-from zerqu.models import db, TopicLike
+from zerqu.models import db, TopicLike, TopicRead
 from ._base import TestCase
 
 
@@ -57,9 +57,14 @@ class TestTopicsStatuses(TestCase):
         assert data['1']['like_count'] == 9
         assert data['2']['like_count'] == 8
 
-    def test_liked_statuses(self):
+    def test_user_statuses(self):
         db.session.add(TopicLike(topic_id=1, user_id=2))
         db.session.add(TopicLike(topic_id=2, user_id=1))
+
+        read = TopicRead(topic_id=1, user_id=2)
+        read.percent = 12
+        db.session.add(read)
+        db.session.commit()
         headers = self.get_authorized_header(user_id=2)
         rv = self.client.get(
             '/api/topics/statuses?topics=1,2',
@@ -67,4 +72,5 @@ class TestTopicsStatuses(TestCase):
         )
         data = json.loads(rv.data)
         assert 'liked_by_me' in data['1']
+        assert 'read_by_me' not in data['2']
         assert 'liked_by_me' not in data['2']
