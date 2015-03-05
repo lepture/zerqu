@@ -217,4 +217,4 @@ class TestCafeTopics(TestCase):
         db.session.commit()
 
         rv = self.client.get('/api/cafes/hello/topics')
-        print rv.data
+        assert b'data' in rv.data
