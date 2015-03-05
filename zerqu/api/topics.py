@@ -4,10 +4,44 @@ from flask import Blueprint
 from flask import request, jsonify
 from .base import require_oauth, get_or_404
 from .errors import APIException, NotFound
-from ..models import db, current_user, int_or_raise
+from ..models import db, current_user
 from ..models import Cafe, Topic, TopicLike, Comment
 
 bp = Blueprint('api_topics', __name__)
+
+
+@bp.route('/statuses')
+@require_oauth(login=False)
+def statuses():
+    id_list = request.args.get('topics')
+    if not id_list:
+        raise APIException(description='Require parameter "topics" missing')
+    try:
+        tids = map(int, id_list.split(','))
+    except ValueError:
+        raise APIException(
+            description='Require int type on "topics" parameter'
+        )
+
+    rv = {}
+    likes = TopicLike.topics_like_counts(tids)
+    comments = Comment.topics_comment_counts(tids)
+    for tid in tids:
+        tid = str(tid)
+        rv[tid] = {
+            'like_count': likes.get(tid, 0),
+            'comment_count': comments.get(tid, 0),
+        }
+    if not current_user:
+        return jsonify(rv)
+
+    liked = TopicLike.topics_liked_by_user(current_user.id, tids)
+    for tid in liked:
+        item = liked.get(tid)
+        if item:
+            rv[tid]['liked_by_me'] = item.created_at
+
+    return jsonify(rv)
 
 
 @bp.route('/<int:tid>')

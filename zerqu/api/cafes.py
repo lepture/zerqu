@@ -155,20 +155,7 @@ def list_cafe_users(cafe):
 def list_cafe_topics(cafe):
     data, cursor = cursor_query(Topic, 'desc', cafe_id=cafe.id)
     reference = {'user_id': User.cache.get_dict({o.user_id for o in data})}
-
-    tids = {o.id for o in data}
-    likes = TopicLike.topic_like_counts(tids)
-    comments = Comment.topic_comment_counts(tids)
-
-    rv = []
-
-    for o in data:
-        item = dict(o)
-        item['like_count'] = likes.get(o.id, 0)
-        item['comment_count'] = comments.get(o.id, 0)
-        rv.append(item)
-
-    return jsonify(data=rv, reference=reference, cursor=cursor)
+    return jsonify(data=data, reference=reference, cursor=cursor)
 
 
 @bp.route('/<slug>/topics', methods=['POST'])

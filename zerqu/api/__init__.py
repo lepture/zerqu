@@ -3,7 +3,7 @@
 
 import re
 from .base import headers_hook
-from . import front, user, users, cafes
+from . import front, user, users, cafes, topics
 
 VERSION_URL = re.compile(r'^/api/\d/')
 VERSION_ACCEPT = re.compile(r'application/vnd\.zerqu\+json;\s+version=(\d)')
@@ -48,3 +48,4 @@ def init_app(app):
     register_blueprint(app, user.bp, 'user')
     register_blueprint(app, users.bp, 'users')
     register_blueprint(app, cafes.bp, 'cafes')
+    register_blueprint(app, topics.bp, 'topics')

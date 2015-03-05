@@ -6,7 +6,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer, Text
 from .user import User
-from .base import cache, Base, JSON
+from .base import cache, Base, JSON, CACHE_TIMES
 
 
 class Topic(Base):
@@ -61,8 +61,12 @@ class TopicLike(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     @classmethod
-    def topic_like_counts(cls, topic_ids):
+    def topics_like_counts(cls, topic_ids):
         return topic_ref_counts(cls, topic_ids)
+
+    @classmethod
+    def topics_liked_by_user(cls, user_id, topic_ids):
+        return topic_ref_current_user(cls, user_id, topic_ids)
 
 
 class Comment(Base):
@@ -90,7 +94,7 @@ class Comment(Base):
         )
 
     @classmethod
-    def topic_comment_counts(cls, topic_ids):
+    def topics_comment_counts(cls, topic_ids):
         return topic_ref_counts(cls, topic_ids)
 
 
@@ -115,4 +119,29 @@ def topic_ref_counts(cls, topic_ids):
     for tid in missed:
         rv[str(tid)] = cls.cache.filter_count(topic_id=tid)
 
+    return rv
+
+
+def topic_ref_current_user(cls, user_id, topic_ids):
+    prefix = cls.generate_cache_prefix('get')
+
+    def gen_key(tid):
+        return prefix + '-'.join(map(str, [tid, user_id]))
+
+    def get_key(key):
+        return key.lstrip(prefix).split('-')[0]
+
+    rv = cache.get_dict(*[gen_key(tid) for tid in topic_ids])
+    missed = {i for i in topic_ids if rv[gen_key(i)] is None}
+    rv = {get_key(k): rv[k] for k in rv}
+    if not missed:
+        return rv
+
+    to_cache = {}
+    q = cls.cache.filter_by(user_id=user_id)
+    for item in q.filter(cls.topic_id.in_(missed)):
+        rv[str(item.topic_id)] = item
+        to_cache[gen_key(item.topic_id)] = item
+
+    cache.set_many(to_cache, CACHE_TIMES['get'])
     return rv
