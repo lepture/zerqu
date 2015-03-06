@@ -11,8 +11,8 @@ bp = Blueprint('api_topics', __name__)
 
 
 @bp.route('/statuses')
-@require_oauth(login=False)
-def statuses():
+@require_oauth(login=False, cache_time=600)
+def view_statuses():
     id_list = request.args.get('topics')
     if not id_list:
         raise APIException(description='Require parameter "topics" missing')
@@ -78,6 +78,22 @@ def view_topic(tid):
             data['liked_by_me'] = False
 
     return jsonify(data)
+
+
+@bp.route('/<int:tid>/read', methods=['POST'])
+@require_oauth(login=True)
+def write_read_percent(tid):
+    topic = get_or_404(Topic, tid)
+    read = TopicRead.query.get((topic.id, current_user.id))
+    percent = request.json.get('percent')
+    if not isinstance(percent, int):
+        raise APIException(description='Invalid payload "percent"')
+    if not read:
+        read = TopicRead(topic_id=topic.id, user_id=current_user.id)
+    read.percent = percent
+    db.session.add(read)
+    db.session.commit()
+    return jsonify(percent=read.percent)
 
 
 @bp.route('/<int:tid>', methods=['POST'])
