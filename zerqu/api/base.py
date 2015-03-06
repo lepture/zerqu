@@ -132,7 +132,7 @@ def int_or_raise(key, value=0, maxvalue=None):
         )
 
 
-def cursor_query(model, order_by='desc', **filters):
+def cursor_query(model, order_by='desc', filter_func=None):
     """Return a cursor query on the given model. The model must has id as
     the primary key.
     """
@@ -147,12 +147,12 @@ def cursor_query(model, order_by='desc', **filters):
         raise APIException(description=desc)
 
     query = db.session.query(model.id)
-    if filters:
-        query = query.filter_by(**filters)
     if before:
         query = query.filter(model.id < before)
     elif after:
         query = query.filter(model.id > after)
+    if filter_func:
+        query = filter_func(query)
 
     if order_by == 'desc':
         query = query.order_by(model.id.desc())

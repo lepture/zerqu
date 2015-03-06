@@ -9,7 +9,7 @@ from .base import require_oauth
 from .base import cursor_query, pagination, first_or_404
 from .errors import NotFound, APIException, Denied, InvalidAccount
 from ..models import db, current_user
-from ..models import User, Cafe, CafeMember, Topic, Comment, TopicLike
+from ..models import User, Cafe, CafeMember, Topic
 
 bp = Blueprint('api_cafes', __name__)
 
@@ -153,7 +153,10 @@ def list_cafe_users(cafe):
 @bp.route('/<slug>/topics')
 @protect_cafe
 def list_cafe_topics(cafe):
-    data, cursor = cursor_query(Topic, 'desc', cafe_id=cafe.id)
+    data, cursor = cursor_query(
+        Topic, 'desc',
+        lambda q: q.filter_by(cafe_id=cafe.id)
+    )
     reference = {'user_id': User.cache.get_dict({o.user_id for o in data})}
     return jsonify(data=data, reference=reference, cursor=cursor)
 
