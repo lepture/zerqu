@@ -80,6 +80,13 @@ def view_topic(tid):
     return jsonify(data)
 
 
+@bp.route('/<int:tid>', methods=['POST'])
+@require_oauth(login=True)
+def update_topic(tid):
+    topic = Topic.cache.get(tid)
+    return jsonify(topic)
+
+
 @bp.route('/<int:tid>/read', methods=['POST'])
 @require_oauth(login=True)
 def write_read_percent(tid):
@@ -94,13 +101,6 @@ def write_read_percent(tid):
     db.session.add(read)
     db.session.commit()
     return jsonify(percent=read.percent)
-
-
-@bp.route('/<int:tid>', methods=['POST'])
-@require_oauth(login=True)
-def update_topic(tid):
-    topic = Topic.cache.get(tid)
-    return jsonify(topic)
 
 
 @bp.route('/<int:tid>/comments')
@@ -128,10 +128,7 @@ def like_topic(tid):
     if data:
         raise APIException(description='You already liked it')
 
-    topic = Topic.cache.get(tid)
-    if not topic:
-        raise NotFound('Topic')
-
+    topic = get_or_404(Topic, tid)
     db.session.add(TopicLike(topic_id=topic.id, user_id=current_user.id))
     db.session.commit()
     return '', 204

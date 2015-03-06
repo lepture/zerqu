@@ -38,6 +38,22 @@ class TestTopicLikes(TestCase):
         assert rv['1'] is not None
         assert rv['2'] is not None
 
+    def test_request_like_topic(self):
+        topic = Topic(title='hello', user_id=1)
+        db.session.add(topic)
+        db.session.commit()
+        headers = self.get_authorized_header(user_id=2)
+        url = '/api/topics/%d/likes' % topic.id
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 204
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 400
+
+        rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 204
+        rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 400
+
 
 class TestTopicsStatuses(TestCase):
     def test_invalid_request(self):
@@ -93,3 +109,8 @@ class TestTopicRead(TestCase):
             url, data=json.dumps({'percent': 100}), headers=headers
         )
         assert b'percent' in rv.data
+
+        rv = self.client.post(
+            url, data=json.dumps({'percent': 200}), headers=headers
+        )
+        assert b'100%' in rv.data
