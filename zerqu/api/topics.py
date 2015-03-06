@@ -2,9 +2,9 @@
 
 from flask import Blueprint
 from flask import request, jsonify
-from .base import require_oauth, get_or_404
-from .errors import APIException, NotFound
-from ..models import db, current_user
+from .base import require_oauth, get_or_404, pagination
+from .errors import APIException
+from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 
 bp = Blueprint('api_topics', __name__)
@@ -116,9 +116,27 @@ def create_topic_comments(tid):
 
 
 @bp.route('/<int:tid>/likes')
-@require_oauth(login=False)
+@require_oauth(login=False, cache_time=600)
 def view_topic_likes(tid):
-    return ''
+    topic = get_or_404(Topic, tid)
+
+    total = TopicLike.cache.filter_count(topic_id=topic.id)
+    pagi = pagination(total)
+    perpage = pagi['perpage']
+    offset = (pagi['page'] - 1) * perpage
+
+    q = TopicLike.query.filter_by(topic_id=topic.id)
+    items = q.order_by(TopicLike.created_at).offset(offset).limit(perpage)
+    user_ids = [o.user_id for o in items]
+
+    current_info = current_user and pagi['page'] == 1
+    if current_info and current_user.id in user_ids:
+        user_ids.remove(current_user.id)
+
+    data = User.cache.get_many(user_ids)
+    if current_info and TopicLike.cache.get((topic.id, current_user.id)):
+        data.insert(0, current_user)
+    return jsonify(data=data, pagination=pagi)
 
 
 @bp.route('/<int:tid>/likes', methods=['POST'])

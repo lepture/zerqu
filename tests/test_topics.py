@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from flask import json
-from zerqu.models import db, Topic, TopicLike, TopicRead
+from zerqu.models import db, User, Topic, TopicLike, TopicRead
 from ._base import TestCase
 
 
@@ -53,6 +53,39 @@ class TestTopicLikes(TestCase):
         assert rv.status_code == 204
         rv = self.client.delete(url, headers=headers)
         assert rv.status_code == 400
+
+    def test_view_topic_likes(self):
+        topic = Topic(title='hello', user_id=1)
+        db.session.add(topic)
+        db.session.commit()
+        for i in range(10, 100):
+            db.session.add(TopicLike(user_id=i, topic_id=topic.id))
+            name = 'foo-%d' % i
+            user = User(id=i, username=name, email='%s@gmail.com' % name)
+            db.session.add(user)
+        db.session.commit()
+
+        url = '/api/topics/%d/likes' % topic.id
+        rv = self.client.get(url)
+        data = json.loads(rv.data)
+        assert data['pagination']['total'] == 90
+
+        db.session.add(TopicLike(user_id=1, topic_id=topic.id))
+        db.session.commit()
+        headers = self.get_authorized_header(user_id=2)
+        rv = self.client.get(url, headers=headers)
+        data = json.loads(rv.data)
+        assert data['data'][0]['id'] != 1
+
+        headers = self.get_authorized_header(user_id=1)
+        rv = self.client.get(url, headers=headers)
+        data = json.loads(rv.data)
+        assert data['data'][0]['id'] == 1
+
+        headers = self.get_authorized_header(user_id=12)
+        rv = self.client.get(url, headers=headers)
+        data = json.loads(rv.data)
+        assert data['data'][0]['id'] == 12
 
 
 class TestTopicsStatuses(TestCase):
