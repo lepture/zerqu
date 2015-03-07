@@ -3,7 +3,7 @@
 from flask import Blueprint
 from flask import request, jsonify
 from .base import require_oauth, get_or_404, pagination
-from .errors import APIException
+from .errors import APIException, Conflict
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 
@@ -144,7 +144,7 @@ def view_topic_likes(tid):
 def like_topic(tid):
     data = TopicLike.query.get((tid, current_user.id))
     if data:
-        raise APIException(description='You already liked it')
+        raise Conflict('You already liked it')
 
     topic = get_or_404(Topic, tid)
     db.session.add(TopicLike(topic_id=topic.id, user_id=current_user.id))
@@ -157,7 +157,7 @@ def like_topic(tid):
 def unlike_topic(tid):
     data = TopicLike.query.get((tid, current_user.id))
     if not data:
-        raise APIException(description='You already unliked it')
+        raise Conflict('You already unliked it')
     db.session.delete(data)
     db.session.commit()
     return '', 204

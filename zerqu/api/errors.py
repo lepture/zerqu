@@ -63,6 +63,14 @@ class Denied(APIException):
         super(Denied, self).__init__(description=description)
 
 
+class Conflict(APIException):
+    code = 409
+    error_code = 'conflict'
+
+    def __init__(self, description):
+        super(Conflict, self).__init__(description=description)
+
+
 class InvalidAccount(Denied):
     error_code = 'invalid_account'
 

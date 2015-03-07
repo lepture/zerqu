@@ -47,12 +47,12 @@ class TestTopicLikes(TestCase):
         rv = self.client.post(url, headers=headers)
         assert rv.status_code == 204
         rv = self.client.post(url, headers=headers)
-        assert rv.status_code == 400
+        assert rv.status_code == 409
 
         rv = self.client.delete(url, headers=headers)
         assert rv.status_code == 204
         rv = self.client.delete(url, headers=headers)
-        assert rv.status_code == 400
+        assert rv.status_code == 409
 
     def test_view_topic_likes(self):
         topic = Topic(title='hello', user_id=1)

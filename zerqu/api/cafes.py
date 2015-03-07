@@ -7,7 +7,7 @@ from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth
 from .base import cursor_query, pagination, first_or_404
-from .errors import NotFound, APIException, Denied, InvalidAccount
+from .errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
 
@@ -106,7 +106,7 @@ def join_cafe(slug):
         db.session.add(item)
         db.session.commit()
     except IntegrityError:
-        raise APIException(error_code='duplicate_request')
+        raise Conflict('You already joined the cafe')
     return '', 204
 
 
