@@ -17,7 +17,7 @@ def create_user():
     form = RegisterForm(MultiDict(request.json), csrf_enabled=False)
     if not form.validate():
         return jsonify(
-            error_code='error_form',
+            error='invalid_form',
             error_form=form.errors,
         ), 400
     user = form.create_user()

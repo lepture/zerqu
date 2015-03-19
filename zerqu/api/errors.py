@@ -6,18 +6,18 @@ from werkzeug._compat import text_type
 
 class APIException(HTTPException):
     code = 400
-    error_code = 'invalid_request'
+    error = 'invalid_request'
 
     def __init__(self, code=None, error=None, description=None, response=None):
         if code is not None:
             self.code = code
         if error is not None:
-            self.error_code = error
+            self.error = error
         super(APIException, self).__init__(description, response)
 
     def get_body(self, environ=None):
         return text_type(json.dumps(dict(
-            error_code=self.error_code,
+            error=self.error,
             error_description=self.description,
         )))
 
@@ -27,7 +27,7 @@ class APIException(HTTPException):
 
 class NotAuth(APIException):
     code = 401
-    error_code = 'authorization_required'
+    error = 'authorization_required'
 
     def __init__(self, description=None):
         if description is None:
@@ -37,7 +37,7 @@ class NotAuth(APIException):
 
 class NotConfidential(APIException):
     code = 403
-    error_code = 'confidential_only'
+    error = 'confidential_only'
 
     def __init__(self, description=None):
         if description is None:
@@ -47,7 +47,7 @@ class NotConfidential(APIException):
 
 class NotFound(APIException):
     code = 404
-    error_code = 'not_found'
+    error = 'not_found'
 
     def __init__(self, key):
         description = '%s not found' % key
@@ -56,7 +56,7 @@ class NotFound(APIException):
 
 class Denied(APIException):
     code = 403
-    error_code = 'permission_denied'
+    error = 'permission_denied'
 
     def __init__(self, key):
         description = 'You have no permission in %s' % key
@@ -65,14 +65,14 @@ class Denied(APIException):
 
 class Conflict(APIException):
     code = 409
-    error_code = 'conflict'
+    error = 'conflict'
 
     def __init__(self, description):
         super(Conflict, self).__init__(description=description)
 
 
 class InvalidAccount(Denied):
-    error_code = 'invalid_account'
+    error = 'invalid_account'
 
     def __init__(self, description=None):
         if description is None:
