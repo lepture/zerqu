@@ -5,7 +5,7 @@ from flask import request
 from flask import render_template, jsonify, redirect
 from flask_wtf import Form
 from wtforms.fields import HiddenField
-from ..scopes import filter_user_scopes
+from ..scopes import extend_scopes, SCOPES, CHOICES
 from ..models import current_user
 from ..models.auth import oauth
 
@@ -32,16 +32,15 @@ def authorize(*args, **kwargs):
         return redirect(request.referrer)
 
     req = kwargs.pop('request')
-    scopes = kwargs.pop('scopes')
-    choices = filter_user_scopes(scopes)
-    scopes.extend(dict(choices).keys())
+    scopes = extend_scopes(kwargs.pop('scopes'))
     return render_template(
         'oauth/authorize.html',
         form=form,
         user=current_user,
         client=req.client,
         scopes=scopes,
-        choices=choices,
+        explains=dict(SCOPES),
+        choices=CHOICES,
         parameters=kwargs,
     )
 

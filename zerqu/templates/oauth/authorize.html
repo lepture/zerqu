@@ -26,15 +26,22 @@
     </section>
     <section class="scopes">
       <h4>Grant Permissions</h4>
-      {% for key, desc in choices %}
-      <label data-scope="{{ key }}">
-        <input type="checkbox" name="scope" value="{{ key }}" checked>
-        {{ desc }}
-      </label>
+      {% for key in choices %}
+        {% if key in scopes %}
+        <label data-scope="{{ key }}">
+          <input type="checkbox" name="scope" value="{{ key }}" checked>
+          {{ explains[key] }}
+        </label>
+        {% endif %}
       {% endfor %}
-      {% if not choices %}
-      <div class="notice">This client only requires public permissions.</div>
-      {% endif %}
+      {% for key in scopes %}
+        {% if key not in choices %}
+        <label data-scope="{{ key }}">
+          <input type="checkbox" name="scope" value="{{ key }}" checked disabled>
+          {{ explains[key] }}
+        </label>
+        {% endif %}
+      {% endfor %}
     </section>
     <section class="user">
       {% if user %}

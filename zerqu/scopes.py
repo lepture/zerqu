@@ -38,25 +38,12 @@ CHOICES = [
     'comment:delete',
 ]
 
-#: scopes that user can choose to grant
-USER_SCOPES = [
-    ('user:email', 'read your email address'),
-    ('user:write', 'change your account information'),
-    ('user:topic', 'create a topic under your name'),
-    ('user:follow', 'follow and unfollow other users'),
-    ('user:subscribe', 'follow and unfollow a cafe'),
-]
 
-
-def filter_user_scopes(scopes):
-    if 'user' in scopes:
-        scopes.remove('user')
-        return USER_SCOPES
-
+def extend_scopes(scopes):
     rv = []
-    for key, desc in USER_SCOPES:
-        if key in scopes:
-            scopes.remove(key)
-            rv.append((key, desc))
-
+    for name in scopes:
+        if name in ALIASES:
+            rv.extend(ALIASES[name])
+        else:
+            rv.append(name)
     return rv
