@@ -173,24 +173,32 @@ class TestCafeMembers(TestCase, CafeMixin):
         rv = self.client.get('/api/cafes/hello/users?perpage=1')
         assert rv.status_code == 400
 
-    def test_list_private_cafe_users(self):
+    def test_list_private_cafe_users_failed(self):
         total = 60
         self.create_membership(Cafe.PERMISSION_PRIVATE, total)
 
         url = '/api/cafes/hello/users'
-        rv = self.client.get(url)
-        assert rv.status_code == 401
-
-        headers = self.get_authorized_header(user_id=1)
+        headers = self.get_authorized_header(user_id=1, scope='cafe:private')
         rv = self.client.get(url, headers=headers)
         assert rv.status_code == 403
 
         headers = self.get_authorized_header(user_id=2)
         rv = self.client.get(url, headers=headers)
+        assert rv.status_code == 401
+
+    def test_list_private_cafe_users_success(self):
+        total = 60
+        self.create_membership(Cafe.PERMISSION_PRIVATE, total)
+
+        url = '/api/cafes/hello/users'
+        headers = self.get_authorized_header(user_id=2, scope='cafe:private')
+        rv = self.client.get(url, headers=headers)
         assert rv.status_code == 200
 
         item = CafeMember.query.filter_by(role=CafeMember.ROLE_MEMBER).first()
-        headers = self.get_authorized_header(user_id=item.user_id)
+        headers = self.get_authorized_header(
+            user_id=item.user_id, scope='cafe:private',
+        )
         rv = self.client.get(url, headers=headers)
         assert rv.status_code == 200
 

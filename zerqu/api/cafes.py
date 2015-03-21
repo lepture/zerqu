@@ -29,11 +29,12 @@ def protect_cafe(f):
     def decorated(slug):
         cafe = first_or_404(Cafe, slug=slug)
         if cafe.permission == Cafe.PERMISSION_PRIVATE:
+            @require_oauth(login=True, scopes=['cafe:private'])
             @wraps(f)
             def wrapped():
                 check_cafe_permission(cafe)
                 return f(cafe)
-            return require_oauth(login=True)(wrapped)()
+            return wrapped()
         return require_oauth(login=False, cache_time=600)(f)(cafe)
     return decorated
 
