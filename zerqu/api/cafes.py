@@ -47,7 +47,7 @@ def list_cafes():
 
 
 @bp.route('', methods=['POST'])
-@require_oauth(login=True)
+@require_oauth(login=True, scopes=['cafe:write'])
 def create_cafe():
     role = current_app.config.get('ZERQU_CAFE_CREATOR_ROLE')
     if current_user.role < role:
@@ -66,7 +66,7 @@ def view_cafe(slug):
 
 
 @bp.route('/<slug>', methods=['POST'])
-@require_oauth(login=True)
+@require_oauth(login=True, scopes=['cafe:write'])
 def update_cafe(slug):
     cafe = first_or_404(Cafe, slug=slug)
 

@@ -81,7 +81,7 @@ def view_topic(tid):
 
 
 @bp.route('/<int:tid>', methods=['POST'])
-@require_oauth(login=True)
+@require_oauth(login=True, scopes=['topic:write'])
 def update_topic(tid):
     topic = Topic.cache.get(tid)
     return jsonify(topic)
@@ -110,7 +110,7 @@ def view_topic_comments(tid):
 
 
 @bp.route('/<int:tid>/comments', methods=['POST'])
-@require_oauth(login=True)
+@require_oauth(login=True, scopes=['comment:write'])
 def create_topic_comments(tid):
     return ''
 
