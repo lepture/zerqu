@@ -21,7 +21,10 @@ CACHE_TIMES = {
 }
 CACHE_MODEL_PREFIX = 'db'
 
-db = SQLAlchemy(session_options={'expire_on_commit': False})
+db = SQLAlchemy(session_options={
+    'expire_on_commit': False,
+    'autoflush': False,
+})
 
 
 def use_cache(prefix='zerqu'):
