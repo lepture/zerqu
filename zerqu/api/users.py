@@ -7,6 +7,7 @@ from .base import require_oauth, require_confidential
 from .base import cursor_query, first_or_404
 from ..models import User
 from ..forms import RegisterForm
+from ..errors import FormError
 
 bp = Blueprint('api_users', __name__)
 
@@ -16,10 +17,7 @@ bp = Blueprint('api_users', __name__)
 def create_user():
     form = RegisterForm(MultiDict(request.get_json()), csrf_enabled=False)
     if not form.validate():
-        return jsonify(
-            error='invalid_form',
-            error_form=form.errors,
-        ), 400
+        raise FormError(form)
     user = form.create_user()
     return jsonify(user), 201
 

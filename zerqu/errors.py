@@ -25,24 +25,30 @@ class APIException(HTTPException):
         return [('Content-Type', 'application/json')]
 
 
+class FormError(APIException):
+    error = 'invalid_form'
+
+    def __init__(self, form, response=None):
+        self.form = form
+        super(FormError, self).__init__(None, response)
+
+    def get_body(self, environ=None):
+        return text_type(json.dumps(dict(
+            error=self.error,
+            error_form=self.form.errors,
+        )))
+
+
 class NotAuth(APIException):
     code = 401
-    error = 'authorization_required'
-
-    def __init__(self, description=None):
-        if description is None:
-            description = 'Authorization is required'
-        super(NotAuth, self).__init__(description=description)
+    error = 'require_login'
+    description = 'Authorization is required'
 
 
 class NotConfidential(APIException):
     code = 403
-    error = 'confidential_only'
-
-    def __init__(self, description=None):
-        if description is None:
-            description = 'Only confidential clients are allowed'
-        super(NotConfidential, self).__init__(description=description)
+    error = 'require_confidential'
+    description = 'Only confidential clients are allowed'
 
 
 class NotFound(APIException):
@@ -67,14 +73,17 @@ class Conflict(APIException):
     code = 409
     error = 'conflict'
 
-    def __init__(self, description):
-        super(Conflict, self).__init__(description=description)
-
 
 class InvalidAccount(Denied):
     error = 'invalid_account'
+    description = 'Your account is invalid'
 
-    def __init__(self, description=None):
-        if description is None:
-            description = 'Your account is invalid'
-        super(Denied, self).__init__(description=description)
+
+class InvalidClient(APIException):
+    error = 'invalid_client'
+    description = 'Client not found'
+
+
+class LimitExceeded(APIException):
+    code = 429
+    error = 'limit_exceeded'

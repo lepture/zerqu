@@ -4,7 +4,8 @@ from functools import wraps
 from flask import request, session
 from oauthlib.common import to_unicode
 from flask_oauthlib.utils import decode_base64
-from .errors import APIException, NotFound, NotAuth, NotConfidential
+from ..errors import APIException, NotFound, NotAuth, NotConfidential
+from ..errors import LimitExceeded, InvalidClient
 from ..models import db, oauth, cache, current_user
 from ..models import AuthSession, OAuthClient
 from ..libs.ratelimit import ratelimit
@@ -35,11 +36,9 @@ def generate_limit_params(login, scopes):
             client_id=client_id
         ).first()
         if not c:
-            raise APIException(
-                400,
-                'invalid_client',
-                'Client of %s not found' % client_id,
-            )
+            description = 'Client of %s not found' % client_id
+            raise InvalidClient(description=description)
+
         request.oauth_client = c
         return 'limit:client:%d' % c.id, 600, 600
     return 'limit:ip:%s' % request.remote_addr, 3600, 3600
@@ -52,13 +51,8 @@ def require_oauth(login=True, scopes=None, cache_time=None):
             prefix, count, duration = generate_limit_params(login, scopes)
             remaining, expires = ratelimit(prefix, count, duration)
             if remaining <= 0 and expires:
-                raise APIException(
-                    code=429,
-                    error='limit_exceeded',
-                    description=(
-                        'Rate limit exceeded, retry in %is'
-                    ) % expires
-                )
+                description = 'Rate limit exceeded, retry in %is' % expires
+                raise LimitExceeded(description=description)
 
             request._rate_remaining = remaining
             request._rate_expires = expires
