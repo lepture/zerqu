@@ -14,7 +14,7 @@ bp = Blueprint('api_users', __name__)
 @bp.route('', methods=['POST'])
 @require_confidential
 def create_user():
-    form = RegisterForm(MultiDict(request.json), csrf_enabled=False)
+    form = RegisterForm(MultiDict(request.get_json()), csrf_enabled=False)
     if not form.validate():
         return jsonify(
             error='invalid_form',

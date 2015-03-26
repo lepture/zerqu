@@ -92,7 +92,7 @@ def update_topic(tid):
 def write_read_percent(tid):
     topic = get_or_404(Topic, tid)
     read = TopicRead.query.get((topic.id, current_user.id))
-    percent = request.json.get('percent')
+    percent = request.get_json().get('percent')
     if not isinstance(percent, int):
         raise APIException(description='Invalid payload "percent"')
     if not read:

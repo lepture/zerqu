@@ -19,7 +19,7 @@ def view_current_user():
 def update_current_user():
     user = User.query.get(current_user.id)
     # TODO: use form to validate
-    description = request.json.get('description')
+    description = request.get_json().get('description')
     if description:
         user.description = description
         db.session.add(user)

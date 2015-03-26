@@ -19,8 +19,9 @@ def session():
     if request.mimetype != 'application/json':
         return jsonify(status='error')
 
-    username = request.json.get('username')
-    password = request.json.get('password')
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
     if not username or not password:
         return jsonify(
             status='error',
@@ -37,6 +38,6 @@ def session():
             error_code='login_failed',
             error_description='Invalid username or password.'
         )
-    permanent = request.json.get('permanent', False)
+    permanent = data.get('permanent', False)
     AuthSession.login(user, permanent)
     return jsonify(status='ok', data=user), 201
