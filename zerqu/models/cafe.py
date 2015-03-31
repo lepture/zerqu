@@ -57,6 +57,8 @@ class Cafe(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+    __reference__ = {'user': 'user_id'}
+
     def __repr__(self):
         return '<Cafe:%s>' % self.slug
 
@@ -66,7 +68,7 @@ class Cafe(Base):
     def keys(self):
         return (
             'id', 'slug', 'name', 'style', 'description', 'feature_type',
-            'label', 'user_id', 'is_active', 'created_at', 'updated_at',
+            'label', 'is_active', 'created_at', 'updated_at',
         )
 
     @cached_property

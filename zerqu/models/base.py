@@ -143,9 +143,16 @@ class CacheProperty(object):
 
 class Base(db.Model):
     __abstract__ = True
+    __reference__ = {}
 
     def __getitem__(self, key):
         return getattr(self, key)
+
+    def as_dict(self):
+        rv = dict(self)
+        for key in self.__reference__:
+            rv[key] = {'reference': str(self[self.__reference__[key]])}
+        return rv
 
     @classmethod
     def generate_cache_prefix(cls, name):

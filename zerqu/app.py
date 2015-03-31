@@ -7,8 +7,8 @@ from flask.json import JSONEncoder as _JSONEncoder
 
 class JSONEncoder(_JSONEncoder):
     def default(self, o):
-        if hasattr(o, '__getitem__') and hasattr(o, 'keys'):
-            return dict(o)
+        if hasattr(o, 'as_dict'):
+            return o.as_dict()
         if isinstance(o, datetime):
             return o.strftime('%Y-%m-%dT%H:%M:%SZ')
         return JSONEncoder.default(self, o)

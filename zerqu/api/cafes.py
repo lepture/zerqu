@@ -7,7 +7,7 @@ from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth
 from .base import cursor_query, pagination, first_or_404
-from .errors import NotFound, Denied, InvalidAccount, Conflict
+from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
 
@@ -43,7 +43,7 @@ def protect_cafe(f):
 @require_oauth(login=False, cache_time=300)
 def list_cafes():
     data, cursor = cursor_query(Cafe, 'desc')
-    reference = {'user_id': User.cache.get_dict({o.user_id for o in data})}
+    reference = {'user': User.cache.get_dict({o.user_id for o in data})}
     return jsonify(data=data, reference=reference, cursor=cursor)
 
 
@@ -107,7 +107,7 @@ def join_cafe(slug):
         db.session.add(item)
         db.session.commit()
     except IntegrityError:
-        raise Conflict('You already joined the cafe')
+        raise Conflict(description='You already joined the cafe')
     return '', 204
 
 
@@ -158,7 +158,7 @@ def list_cafe_topics(cafe):
         Topic, 'desc',
         lambda q: q.filter_by(cafe_id=cafe.id)
     )
-    reference = {'user_id': User.cache.get_dict({o.user_id for o in data})}
+    reference = {'user': User.cache.get_dict({o.user_id for o in data})}
     return jsonify(data=data, reference=reference, cursor=cursor)
 
 

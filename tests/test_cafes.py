@@ -33,7 +33,7 @@ class TestListCafes(TestCase, CafeMixin):
         assert rv.status_code == 200
         value = json.loads(rv.data)
         assert len(value['data']) == 20
-        assert 'user_id' in value['reference']
+        assert 'user' in value['reference']
         assert 'before' in value['cursor']
 
         rv = self.client.get('/api/cafes?count=40')

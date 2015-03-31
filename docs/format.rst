@@ -50,11 +50,13 @@ Reference data is an additional information for data response. For example::
         "data": [
             {
                 "id": 1,
-                "user_id": 1
+                "user": {
+                    "reference": "1"
+                }
             }
         ],
         "reference": {
-            "user_id": {
+            "user": {
                 "1": {
                     "username": "zerqu"
                 }
@@ -62,7 +64,7 @@ Reference data is an additional information for data response. For example::
         }
     }
 
-In this example, the **user_id** in data is an ID, you can use the ID to get
+In this example, the **user** in data is a reference, you can use the ID to get
 the full information of the user in **reference** section.
 
 
