@@ -17,7 +17,7 @@ def view_statuses():
     if not id_list:
         raise APIException(description='Require parameter "topics" missing')
     try:
-        tids = map(int, id_list.split(','))
+        tids = [int(i) for i in id_list.split(',')]
     except ValueError:
         raise APIException(
             description='Require int type on "topics" parameter'
