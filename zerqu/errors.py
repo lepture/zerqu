@@ -74,7 +74,8 @@ class Conflict(APIException):
     error = 'conflict'
 
 
-class InvalidAccount(Denied):
+class InvalidAccount(APIException):
+    code = 403
     error = 'invalid_account'
     description = 'Your account is invalid'
 

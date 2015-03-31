@@ -56,7 +56,7 @@ Request with GET method:
 
 .. sourcecode:: http
 
-    GET /api/user HTTP/1.1
+    GET /api/users/me HTTP/1.1
     Host: example.com
     Accept: application/vnd.zerqu+json; version=1
     Authorization: Bearer QNPh7UPkfaKwcpr1fKAzvA72q9Os7y
@@ -89,7 +89,7 @@ Update the authenticated user
 
 Request with PATCH method::
 
-    PATCH /user
+    PATCH /users/me
 
 Request with these parameters::
 

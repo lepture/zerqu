@@ -56,11 +56,11 @@ class TestCreateUser(TestCase):
 
 class TestCurrentUser(TestCase):
     def test_current_authenticated_user(self):
-        rv = self.client.get('/api/user')
+        rv = self.client.get('/api/users/me')
         assert rv.status_code == 401
 
         headers = self.get_authorized_header()
-        rv = self.client.get('/api/user', headers=headers)
+        rv = self.client.get('/api/users/me', headers=headers)
         assert b'username' in rv.data
 
     def test_update_current_user(self):
@@ -77,7 +77,7 @@ class TestCurrentUser(TestCase):
         db.session.add(token)
         db.session.commit()
 
-        rv = self.client.patch('/api/user', data=json.dumps({
+        rv = self.client.patch('/api/users/me', data=json.dumps({
             'description': 'unique_description'
         }), headers={
             'Authorization': 'Bearer current-user-access',
@@ -89,7 +89,7 @@ class TestCurrentUser(TestCase):
         db.session.add(token)
         db.session.commit()
 
-        rv = self.client.patch('/api/user', data=json.dumps({
+        rv = self.client.patch('/api/users/me', data=json.dumps({
             'description': 'unique_description'
         }), headers={
             'Authorization': 'Bearer current-user-access',
@@ -99,7 +99,7 @@ class TestCurrentUser(TestCase):
 
     def test_current_user_email(self):
         headers = self.get_authorized_header(scope='user:email')
-        rv = self.client.get('/api/user/email', headers=headers)
+        rv = self.client.get('/api/users/me/email', headers=headers)
         assert b'email' in rv.data
 
 

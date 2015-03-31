@@ -3,7 +3,7 @@
 
 import re
 from .base import headers_hook
-from . import front, user, users, cafes, topics
+from . import front, users, cafes, topics
 
 VERSION_URL = re.compile(r'^/api/\d/')
 VERSION_ACCEPT = re.compile(r'application/vnd\.zerqu\+json;\s+version=(\d)')
@@ -45,7 +45,6 @@ def register_blueprint(app, bp, name=''):
 def init_app(app):
     app.wsgi_app = ApiVersionMiddleware(app.wsgi_app)
     register_blueprint(app, front.bp, '')
-    register_blueprint(app, user.bp, 'user')
     register_blueprint(app, users.bp, 'users')
     register_blueprint(app, cafes.bp, 'cafes')
     register_blueprint(app, topics.bp, 'topics')

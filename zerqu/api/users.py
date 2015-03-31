@@ -5,7 +5,7 @@ from flask import request, jsonify
 from werkzeug.datastructures import MultiDict
 from .base import require_oauth, require_confidential
 from .base import cursor_query, first_or_404
-from ..models import User
+from ..models import db, User, current_user
 from ..forms import RegisterForm
 from ..errors import FormError
 
@@ -34,3 +34,28 @@ def list_users():
 def view_user(username):
     user = first_or_404(User, username=username)
     return jsonify(user)
+
+
+@bp.route('/me')
+@require_oauth(login=True)
+def view_current_user():
+    return jsonify(current_user)
+
+
+@bp.route('/me', methods=['PATCH'])
+@require_oauth(login=True, scopes=['user:write'])
+def update_current_user():
+    user = User.query.get(current_user.id)
+    # TODO: use form to validate
+    description = request.get_json().get('description')
+    if description:
+        user.description = description
+        db.session.add(user)
+        db.session.commit()
+    return jsonify(user)
+
+
+@bp.route('/me/email')
+@require_oauth(login=True, scopes=['user:email'])
+def view_current_user_email():
+    return jsonify(email=current_user.email)
