@@ -4,7 +4,7 @@ from flask import Blueprint
 from flask import request, jsonify
 from werkzeug.datastructures import MultiDict
 from .base import require_oauth, require_confidential
-from .base import cursor_query, first_or_404
+from .base import cursor_query
 from ..models import db, User, current_user
 from ..forms import RegisterForm
 from ..errors import FormError
@@ -32,7 +32,7 @@ def list_users():
 @bp.route('/<username>')
 @require_oauth(login=False, cache_time=600)
 def view_user(username):
-    user = first_or_404(User, username=username)
+    user = User.cache.first_or_404(username=username)
     return jsonify(user)
 
 

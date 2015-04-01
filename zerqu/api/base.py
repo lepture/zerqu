@@ -4,7 +4,7 @@ from functools import wraps
 from flask import request, session
 from oauthlib.common import to_unicode
 from flask_oauthlib.utils import decode_base64
-from ..errors import APIException, NotFound, NotAuth, NotConfidential
+from ..errors import APIException, NotAuth, NotConfidential
 from ..errors import LimitExceeded, InvalidClient
 from ..models import db, oauth, cache, current_user
 from ..models import AuthSession, OAuthClient
@@ -191,21 +191,3 @@ def pagination(total):
     if page < pages:
         rv['next'] = page + 1
     return rv
-
-
-def first_or_404(model, **kwargs):
-    data = model.cache.filter_first(**kwargs)
-    if data:
-        return data
-    key = model.__name__
-    if len(kwargs) == 1:
-        key = '%s "%s"' % (key, list(kwargs.values())[0])
-    raise NotFound(key)
-
-
-def get_or_404(model, ident):
-    data = model.cache.get(ident)
-    if data:
-        return data
-    key = '%s "%r"' % (model.__name__, ident)
-    raise NotFound(key)

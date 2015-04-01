@@ -1,6 +1,7 @@
 # coding: utf-8
 
-from flask import current_app, json
+from flask import json
+from flask import current_app, abort
 from sqlalchemy import event, func
 from sqlalchemy.orm import Query, class_mapper
 from sqlalchemy.orm.exc import UnmappedClassError
@@ -9,6 +10,8 @@ from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.dialects.postgresql import JSON as _JSON
 from werkzeug.local import LocalProxy
 from flask_sqlalchemy import SQLAlchemy
+from ..libs.utils import is_json
+from ..errors import NotFound
 
 __all__ = ['db', 'cache', 'use_cache', 'CACHE_TIMES', 'Base']
 
@@ -126,6 +129,30 @@ class CacheQuery(Query):
         rv = q.filter_by(**kwargs).scalar()
         cache.set(key, rv, CACHE_TIMES['fc'])
         return rv
+
+    def get_or_404(self, ident):
+        data = self.get(ident)
+        if data:
+            return data
+
+        if is_json():
+            mapper = self._only_full_mapper_zero('get')
+            key = '%s "%r"' % (mapper.class_.__name__, ident)
+            raise NotFound(key)
+        abort(404)
+
+    def first_or_404(self, **kwargs):
+        data = self.filter_first(**kwargs)
+        if data:
+            return data
+
+        if is_json():
+            mapper = self._only_full_mapper_zero('get')
+            key = mapper.class_.__name__
+            if len(kwargs) == 1:
+                key = '%s "%s"' % (key, list(kwargs.values())[0])
+            raise NotFound(key)
+        abort(404)
 
 
 class CacheProperty(object):

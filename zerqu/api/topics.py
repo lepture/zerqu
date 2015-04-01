@@ -2,7 +2,7 @@
 
 from flask import Blueprint
 from flask import request, jsonify
-from .base import require_oauth, get_or_404, pagination
+from .base import require_oauth, pagination
 from ..errors import APIException, Conflict
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
@@ -56,7 +56,7 @@ def view_statuses():
 @bp.route('/<int:tid>')
 @require_oauth(login=False, cache_time=600)
 def view_topic(tid):
-    topic = get_or_404(Topic, tid)
+    topic = Topic.cache.get_or_404(tid)
 
     data = dict(topic)
 
@@ -90,7 +90,7 @@ def update_topic(tid):
 @bp.route('/<int:tid>/read', methods=['POST'])
 @require_oauth(login=True)
 def write_read_percent(tid):
-    topic = get_or_404(Topic, tid)
+    topic = Topic.cache.get_or_404(tid)
     read = TopicRead.query.get((topic.id, current_user.id))
     percent = request.get_json().get('percent')
     if not isinstance(percent, int):
@@ -118,7 +118,7 @@ def create_topic_comments(tid):
 @bp.route('/<int:tid>/likes')
 @require_oauth(login=False, cache_time=600)
 def view_topic_likes(tid):
-    topic = get_or_404(Topic, tid)
+    topic = Topic.cache.get_or_404(tid)
 
     total = TopicLike.cache.filter_count(topic_id=topic.id)
     pagi = pagination(total)
@@ -146,7 +146,7 @@ def like_topic(tid):
     if data:
         raise Conflict(description='You already liked it')
 
-    topic = get_or_404(Topic, tid)
+    topic = Topic.cache.get_or_404(tid)
     db.session.add(TopicLike(topic_id=topic.id, user_id=current_user.id))
     db.session.commit()
     return '', 204

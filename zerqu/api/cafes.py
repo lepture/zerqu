@@ -6,7 +6,7 @@ from flask import Blueprint, current_app
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth
-from .base import cursor_query, pagination, first_or_404
+from .base import cursor_query, pagination
 from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
@@ -27,7 +27,7 @@ def check_cafe_permission(cafe):
 def protect_cafe(f):
     @wraps(f)
     def decorated(slug):
-        cafe = first_or_404(Cafe, slug=slug)
+        cafe = Cafe.cache.first_or_404(slug=slug)
         if cafe.permission == Cafe.PERMISSION_PRIVATE:
             @require_oauth(login=True, scopes=['cafe:private'])
             @wraps(f)
@@ -60,7 +60,7 @@ def create_cafe():
 @bp.route('/<slug>')
 @require_oauth(login=False, cache_time=300)
 def view_cafe(slug):
-    cafe = first_or_404(Cafe, slug=slug)
+    cafe = Cafe.cache.first_or_404(slug=slug)
     data = dict(cafe)
     data['user'] = cafe.user
     return jsonify(data)
@@ -69,7 +69,7 @@ def view_cafe(slug):
 @bp.route('/<slug>', methods=['POST'])
 @require_oauth(login=True, scopes=['cafe:write'])
 def update_cafe(slug):
-    cafe = first_or_404(Cafe, slug=slug)
+    cafe = Cafe.cache.first_or_404(slug=slug)
 
     if cafe.user_id != current_user.id:
         ident = (cafe.id, current_user.id)
@@ -84,7 +84,7 @@ def update_cafe(slug):
 @bp.route('/<slug>/users', methods=['POST'])
 @require_oauth(login=True, scopes=['user:subscribe'])
 def join_cafe(slug):
-    cafe = first_or_404(Cafe, slug=slug)
+    cafe = Cafe.cache.first_or_404(slug=slug)
     ident = (cafe.id, current_user.id)
 
     item = CafeMember.query.get(ident)
@@ -114,7 +114,7 @@ def join_cafe(slug):
 @bp.route('/<slug>/users', methods=['DELETE'])
 @require_oauth(login=True, scopes=['user:subscribe'])
 def leave_cafe(slug):
-    cafe = first_or_404(Cafe, slug=slug)
+    cafe = Cafe.cache.first_or_404(slug=slug)
     ident = (cafe.id, current_user.id)
     item = CafeMember.query.get(ident)
 

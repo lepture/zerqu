@@ -12,3 +12,19 @@ def is_robot():
 
 def is_mobile():
     return request.user_agent.platform in MOBILE_PLATFORMS
+
+
+def is_json():
+    if request.is_xhr:
+        return True
+
+    if request.path.startswith('/api/'):
+        return True
+
+    if hasattr(request, 'oauth_client'):
+        return True
+
+    if request.accept_mimetypes.accept_json:
+        return True
+
+    return False
