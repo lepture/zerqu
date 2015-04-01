@@ -6,7 +6,7 @@ from flask import Blueprint, current_app
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth
-from .base import cursor_query, pagination
+from .utils import cursor_query, pagination
 from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic

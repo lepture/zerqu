@@ -4,7 +4,7 @@ from flask import Blueprint
 from flask import request, jsonify
 from werkzeug.datastructures import MultiDict
 from .base import require_oauth, require_confidential
-from .base import cursor_query
+from .utils import cursor_query
 from ..models import db, User, current_user
 from ..forms import RegisterForm
 from ..errors import FormError

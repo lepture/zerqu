@@ -2,7 +2,8 @@
 
 from flask import Blueprint
 from flask import request, jsonify
-from .base import require_oauth, pagination
+from .base import require_oauth
+from .utils import pagination
 from ..errors import APIException, Conflict
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
