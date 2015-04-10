@@ -13,24 +13,21 @@ from ..models import User, Cafe, CafeMember, Topic
 bp = Blueprint('api_cafes', __name__)
 
 
-def check_cafe_permission(cafe):
+def get_and_protect_cafe(slug):
+    cafe = Cafe.cache.first_or_404(slug=slug)
+    if cafe.permission != Cafe.PERMISSION_PRIVATE:
+        oauth_ratelimit(False, scopes=None)
+        return cafe
+
+    oauth_ratelimit(True, scopes=['cafe:private'])
     if cafe.user_id == current_user.id:
-        return True
+        return cafe
+
     ident = (cafe.id, current_user.id)
     data = CafeMember.cache.get(ident)
     if data and data.role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN):
-        return data
+        return cafe
     raise Denied('cafe "%s"' % cafe.slug)
-
-
-def get_and_protect_cafe(slug):
-    cafe = Cafe.cache.first_or_404(slug=slug)
-    if cafe.permission == Cafe.PERMISSION_PRIVATE:
-        oauth_ratelimit(True, scopes=['cafe:private'])
-        check_cafe_permission(cafe)
-    else:
-        oauth_ratelimit(False, scopes=None)
-    return cafe
 
 
 @bp.route('')
