@@ -155,7 +155,7 @@ class AuthSession(Base):
         db.session.add(data)
         db.session.commit()
         session['id'] = data.id
-        session['ts'] = str(int(time.time()))
+        session['ts'] = int(time.time())
         if permanent:
             session.permanent = True
         return data
