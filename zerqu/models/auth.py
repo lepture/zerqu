@@ -182,14 +182,14 @@ def bind_oauth(app):
         client = req.client
         exist_token = OAuthToken.query.get((client.id, user.id))
         if exist_token:
-            db.session.delete(exist_token)
-            db.session.commit()
+            with db.auto_commit():
+                db.session.delete(exist_token)
 
         tok = OAuthToken(**token)
         tok.user_id = user.id
         tok.client_id = client.id
-        db.session.add(tok)
-        db.session.commit()
+        with db.auto_commit():
+            db.session.add(tok)
         return tok
 
     # use the same cache

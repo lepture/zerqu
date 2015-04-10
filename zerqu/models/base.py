@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from contextlib import contextmanager
+
 from flask import json
 from flask import current_app, abort
 from sqlalchemy import event, func
@@ -9,7 +11,7 @@ from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.dialects.postgresql import JSON as _JSON
 from werkzeug.local import LocalProxy
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy as _SQLAlchemy
 from ..libs.utils import is_json
 from ..errors import NotFound
 
@@ -23,6 +25,17 @@ CACHE_TIMES = {
     'fc': 300,
 }
 CACHE_MODEL_PREFIX = 'db'
+
+
+class SQLAlchemy(_SQLAlchemy):
+    @contextmanager
+    def auto_commit(self):
+        try:
+            yield
+            self.session.commit()
+        except:
+            self.session.rollback()
+
 
 db = SQLAlchemy(session_options={
     'expire_on_commit': False,

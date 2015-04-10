@@ -99,8 +99,9 @@ def write_read_percent(tid):
     if not read:
         read = TopicRead(topic_id=topic.id, user_id=current_user.id)
     read.percent = percent
-    db.session.add(read)
-    db.session.commit()
+
+    with db.auto_commit():
+        db.session.add(read)
     return jsonify(percent=read.percent)
 
 
@@ -148,8 +149,9 @@ def like_topic(tid):
         raise Conflict(description='You already liked it')
 
     topic = Topic.cache.get_or_404(tid)
-    db.session.add(TopicLike(topic_id=topic.id, user_id=current_user.id))
-    db.session.commit()
+    like = TopicLike(topic_id=topic.id, user_id=current_user.id)
+    with db.auto_commit():
+        db.session.add(like)
     return '', 204
 
 
@@ -159,6 +161,6 @@ def unlike_topic(tid):
     data = TopicLike.query.get((tid, current_user.id))
     if not data:
         raise Conflict(description='You already unliked it')
-    db.session.delete(data)
-    db.session.commit()
+    with db.auto_commit():
+        db.session.delete(data)
     return '', 204

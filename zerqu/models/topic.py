@@ -38,10 +38,12 @@ class Topic(Base):
         onupdate=datetime.datetime.utcnow,
     )
 
+    __reference__ = {'user': 'user_id', 'cafe': 'cafe_id'}
+
     def keys(self):
         return (
             'id', 'title', 'link', 'info', 'label',
-            'cafe_id', 'user_id', 'created_at', 'updated_at',
+            'created_at', 'updated_at',
         )
 
     @property

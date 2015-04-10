@@ -152,8 +152,8 @@ class AuthSession(Base):
             platform=ua.platform,
             browser=ua.browser,
         )
-        db.session.add(data)
-        db.session.commit()
+        with db.auto_commit():
+            db.session.add(data)
         session['id'] = data.id
         session['ts'] = int(time.time())
         if permanent:
@@ -168,8 +168,8 @@ class AuthSession(Base):
         data = cls.query.get(sid)
         if not data:
             return False
-        db.session.delete(data)
-        db.session.commit()
+        with db.auto_commit():
+            db.session.delete(data)
         return True
 
     @classmethod

@@ -50,8 +50,9 @@ def update_current_user():
     description = request.get_json().get('description')
     if description:
         user.description = description
+
+    with db.auto_commit():
         db.session.add(user)
-        db.session.commit()
     return jsonify(user)
 
 

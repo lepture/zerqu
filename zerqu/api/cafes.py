@@ -2,6 +2,7 @@
 
 import datetime
 from flask import Blueprint, current_app
+from flask import request
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import require_oauth, oauth_ratelimit, cache_response
@@ -13,13 +14,20 @@ from ..models import User, Cafe, CafeMember, Topic
 bp = Blueprint('api_cafes', __name__)
 
 
-def get_and_protect_cafe(slug):
+def get_and_protect_cafe(slug, scopes=None):
     cafe = Cafe.cache.first_or_404(slug=slug)
     if cafe.permission != Cafe.PERMISSION_PRIVATE:
-        oauth_ratelimit(False, scopes=None)
+        if scopes is None:
+            oauth_ratelimit(False, scopes=None)
+        else:
+            oauth_ratelimit(True, scopes=scopes)
         return cafe
 
-    oauth_ratelimit(True, scopes=['cafe:private'])
+    if scopes is None:
+        scopes = []
+    scopes.append('cafe:private')
+    oauth_ratelimit(True, scopes=scopes)
+
     if cafe.user_id == current_user.id:
         return cafe
 
@@ -96,8 +104,8 @@ def join_cafe(slug):
         item.role = CafeMember.ROLE_SUBSCRIBER
 
     try:
-        db.session.add(item)
-        db.session.commit()
+        with db.auto_commit():
+            db.session.add(item)
     except IntegrityError:
         raise Conflict(description='You already joined the cafe')
     return '', 204
@@ -114,8 +122,8 @@ def leave_cafe(slug):
         raise NotFound('CafeMember')
 
     item.role = CafeMember.ROLE_VISITOR
-    db.session.add(item)
-    db.session.commit()
+    with db.auto_commit():
+        db.session.add(item)
     return '', 204
 
 
@@ -157,9 +165,27 @@ def list_cafe_topics(slug):
 
 
 @bp.route('/<slug>/topics', methods=['POST'])
-@cache_response(600)
 def create_cafe_topic(slug):
+    cafe = get_and_protect_cafe(slug, ['topic:write'])
+
     if not current_user.is_active:
         raise InvalidAccount('Your account is not active')
-    # TODO
-    return 'todo'
+
+    rv = request.get_json()
+
+    topic = Topic(
+        title=rv['title'],
+        content=rv.get('content', ''),
+        link=rv.get('link', None),
+        cafe_id=cafe.id,
+        user_id=current_user.id,
+    )
+    # TODO: process feature
+    # process_feature = get_func(cafe.feature_type)
+    # process_feature(data, topic)
+    with db.auto_commit():
+        db.session.add(topic)
+
+    data = dict(topic)
+    data['user'] = current_user
+    return jsonify(data)

@@ -31,8 +31,8 @@ class RegisterForm(UserForm):
             email=self.email.data,
         )
         user.password = self.password.data
-        db.session.add(user)
-        db.session.commit()
+        with db.auto_commit():
+            db.session.add(user)
         return user
 
 
