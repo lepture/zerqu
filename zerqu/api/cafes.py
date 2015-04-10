@@ -1,11 +1,10 @@
 # coding: utf-8
 
 import datetime
-from functools import wraps
 from flask import Blueprint, current_app
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
-from .base import require_oauth
+from .base import require_oauth, oauth_ratelimit, cache_response
 from .utils import cursor_query, pagination
 from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
@@ -24,19 +23,14 @@ def check_cafe_permission(cafe):
     raise Denied('cafe "%s"' % cafe.slug)
 
 
-def protect_cafe(f):
-    @wraps(f)
-    def decorated(slug):
-        cafe = Cafe.cache.first_or_404(slug=slug)
-        if cafe.permission == Cafe.PERMISSION_PRIVATE:
-            @require_oauth(login=True, scopes=['cafe:private'])
-            @wraps(f)
-            def wrapped():
-                check_cafe_permission(cafe)
-                return f(cafe)
-            return wrapped()
-        return require_oauth(login=False, cache_time=600)(f)(cafe)
-    return decorated
+def get_and_protect_cafe(slug):
+    cafe = Cafe.cache.first_or_404(slug=slug)
+    if cafe.permission == Cafe.PERMISSION_PRIVATE:
+        oauth_ratelimit(True, scopes=['cafe:private'])
+        check_cafe_permission(cafe)
+    else:
+        oauth_ratelimit(False, scopes=None)
+    return cafe
 
 
 @bp.route('')
@@ -78,6 +72,7 @@ def update_cafe(slug):
             raise Denied('cafe "%s"' % cafe.slug)
 
     # TODO
+    data = {}
     return jsonify(data)
 
 
@@ -128,8 +123,9 @@ def leave_cafe(slug):
 
 
 @bp.route('/<slug>/users')
-@protect_cafe
-def list_cafe_users(cafe):
+@cache_response(600)
+def list_cafe_users(slug):
+    cafe = get_and_protect_cafe(slug)
     total = CafeMember.cache.filter_count(cafe_id=cafe.id)
     pagi = pagination(total)
     perpage = pagi['perpage']
@@ -152,8 +148,9 @@ def list_cafe_users(cafe):
 
 
 @bp.route('/<slug>/topics')
-@protect_cafe
-def list_cafe_topics(cafe):
+@cache_response(600)
+def list_cafe_topics(slug):
+    cafe = get_and_protect_cafe(slug)
     data, cursor = cursor_query(
         Topic, 'desc',
         lambda q: q.filter_by(cafe_id=cafe.id)
@@ -163,8 +160,8 @@ def list_cafe_topics(cafe):
 
 
 @bp.route('/<slug>/topics', methods=['POST'])
-@protect_cafe
-def create_cafe_topic(cafe):
+@cache_response(600)
+def create_cafe_topic(slug):
     if not current_user.is_active:
         raise InvalidAccount('Your account is not active')
     # TODO
