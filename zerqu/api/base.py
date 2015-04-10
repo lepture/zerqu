@@ -18,7 +18,7 @@ def oauth_limit_params(login, scopes):
     user = AuthSession.get_current_user()
     if user:
         request._current_user = user
-        return 'limit:sid:%s' % session.get('id'), 600, 300
+        return 'limit:sid:{0}'.format(session.get('id')), 600, 300
 
     valid, req = oauth.verify_request(scopes)
     if login and (not valid or not req.user):
@@ -40,8 +40,8 @@ def oauth_limit_params(login, scopes):
             raise InvalidClient(description=description)
 
         request.oauth_client = c
-        return 'limit:client:%d' % c.id, 600, 600
-    return 'limit:ip:%s' % request.remote_addr, 3600, 3600
+        return 'limit:client:{0}'.format(c.id), 600, 600
+    return 'limit:ip:{0}'.format(request.remote_addr), 3600, 3600
 
 
 def oauth_ratelimit(login, scopes):
