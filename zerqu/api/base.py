@@ -11,7 +11,7 @@ from ..models import AuthSession, OAuthClient
 from ..libs.ratelimit import ratelimit
 
 
-def generate_limit_params(login, scopes):
+def oauth_limit_params(login, scopes):
     if scopes is None:
         scopes = []
 
@@ -44,31 +44,44 @@ def generate_limit_params(login, scopes):
     return 'limit:ip:%s' % request.remote_addr, 3600, 3600
 
 
+def oauth_ratelimit(login, scopes):
+    prefix, count, duration = oauth_limit_params(login, scopes)
+    remaining, expires = ratelimit(prefix, count, duration)
+    if remaining <= 0 and expires:
+        description = 'Rate limit exceeded, retry in %is' % expires
+        raise LimitExceeded(description=description)
+
+    request._rate_remaining = remaining
+    request._rate_expires = expires
+
+
+def cache_response(cache_time):
+    def wrapper(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if current_user or request.method != 'GET':
+                return f(*args, **kwargs)
+
+            key = 'api:%s' % request.full_path
+            response = cache.get(key)
+            if response:
+                return response
+            response = f(*args, **kwargs)
+            cache.set(key, response, cache_time)
+            return response
+        return decorated
+    return wrapper
+
+
 def require_oauth(login=True, scopes=None, cache_time=None):
     def wrapper(f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            prefix, count, duration = generate_limit_params(login, scopes)
-            remaining, expires = ratelimit(prefix, count, duration)
-            if remaining <= 0 and expires:
-                description = 'Rate limit exceeded, retry in %is' % expires
-                raise LimitExceeded(description=description)
+            oauth_ratelimit(login, scopes)
 
-            request._rate_remaining = remaining
-            request._rate_expires = expires
+            if cache_time is not None:
+                return cache_response(cache_time)(f)(*args, **kwargs)
 
-            # don't cache when user is logged in
-            if current_user:
-                return f(*args, **kwargs)
-
-            if request.method == 'GET' and cache_time is not None:
-                key = 'api:%s' % request.full_path
-                response = cache.get(key)
-                if response:
-                    return response
-                response = f(*args, **kwargs)
-                cache.set(key, response, cache_time)
-                return response
             return f(*args, **kwargs)
         return decorated
     return wrapper
