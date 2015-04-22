@@ -1,17 +1,19 @@
 # coding: utf-8
 
 import datetime
-from flask import Blueprint, current_app
+from flask import current_app
 from flask import request
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
+from .base import ApiBlueprint
 from .base import require_oauth, oauth_ratelimit, cache_response
 from .utils import cursor_query, pagination
 from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
 
-bp = Blueprint('api_cafes', __name__)
+
+api = ApiBlueprint('/cafes')
 
 
 def get_and_protect_cafe(slug, scopes=None):
@@ -38,7 +40,7 @@ def get_and_protect_cafe(slug, scopes=None):
     raise Denied('cafe "%s"' % cafe.slug)
 
 
-@bp.route('')
+@api.route('')
 @require_oauth(login=False, cache_time=300)
 def list_cafes():
     data, cursor = cursor_query(Cafe, 'desc')
@@ -46,7 +48,7 @@ def list_cafes():
     return jsonify(data=data, reference=reference, cursor=cursor)
 
 
-@bp.route('', methods=['POST'])
+@api.route('', methods=['POST'])
 @require_oauth(login=True, scopes=['cafe:write'])
 def create_cafe():
     role = current_app.config.get('ZERQU_CAFE_CREATOR_ROLE')
@@ -56,7 +58,7 @@ def create_cafe():
     return 'todo'
 
 
-@bp.route('/<slug>')
+@api.route('/<slug>')
 @require_oauth(login=False, cache_time=300)
 def view_cafe(slug):
     cafe = Cafe.cache.first_or_404(slug=slug)
@@ -65,7 +67,7 @@ def view_cafe(slug):
     return jsonify(data)
 
 
-@bp.route('/<slug>', methods=['POST'])
+@api.route('/<slug>', methods=['POST'])
 @require_oauth(login=True, scopes=['cafe:write'])
 def update_cafe(slug):
     cafe = Cafe.cache.first_or_404(slug=slug)
@@ -81,7 +83,7 @@ def update_cafe(slug):
     return jsonify(data)
 
 
-@bp.route('/<slug>/users', methods=['POST'])
+@api.route('/<slug>/users', methods=['POST'])
 @require_oauth(login=True, scopes=['user:subscribe'])
 def join_cafe(slug):
     cafe = Cafe.cache.first_or_404(slug=slug)
@@ -111,7 +113,7 @@ def join_cafe(slug):
     return '', 204
 
 
-@bp.route('/<slug>/users', methods=['DELETE'])
+@api.route('/<slug>/users', methods=['DELETE'])
 @require_oauth(login=True, scopes=['user:subscribe'])
 def leave_cafe(slug):
     cafe = Cafe.cache.first_or_404(slug=slug)
@@ -127,7 +129,7 @@ def leave_cafe(slug):
     return '', 204
 
 
-@bp.route('/<slug>/users')
+@api.route('/<slug>/users')
 @cache_response(600)
 def list_cafe_users(slug):
     cafe = get_and_protect_cafe(slug)
@@ -152,7 +154,7 @@ def list_cafe_users(slug):
     return jsonify(data=data, pagination=pagi)
 
 
-@bp.route('/<slug>/topics')
+@api.route('/<slug>/topics')
 @cache_response(600)
 def list_cafe_topics(slug):
     cafe = get_and_protect_cafe(slug)
@@ -164,7 +166,7 @@ def list_cafe_topics(slug):
     return jsonify(data=data, reference=reference, cursor=cursor)
 
 
-@bp.route('/<slug>/topics', methods=['POST'])
+@api.route('/<slug>/topics', methods=['POST'])
 def create_cafe_topic(slug):
     cafe = get_and_protect_cafe(slug, ['topic:write'])
 

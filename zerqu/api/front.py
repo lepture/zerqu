@@ -1,12 +1,12 @@
 # coding: utf-8
 
 from flask import jsonify
-from flask import Blueprint
+from .base import ApiBlueprint
 from ..versions import VERSION, API_VERSION
 
-bp = Blueprint('api_base', __name__)
+api = ApiBlueprint('/')
 
 
-@bp.route('')
+@api.route('')
 def index():
     return jsonify(system='zerqu', version=VERSION, api_version=API_VERSION)

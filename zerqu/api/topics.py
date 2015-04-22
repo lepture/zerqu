@@ -1,17 +1,17 @@
 # coding: utf-8
 
-from flask import Blueprint
 from flask import request, jsonify
+from .base import ApiBlueprint
 from .base import require_oauth
 from .utils import pagination
 from ..errors import APIException, Conflict
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 
-bp = Blueprint('api_topics', __name__)
+api = ApiBlueprint('/topics')
 
 
-@bp.route('/statuses')
+@api.route('/statuses')
 @require_oauth(login=False, cache_time=600)
 def view_statuses():
     id_list = request.args.get('topics')
@@ -54,7 +54,7 @@ def view_statuses():
     return jsonify(rv)
 
 
-@bp.route('/<int:tid>')
+@api.route('/<int:tid>')
 @require_oauth(login=False, cache_time=600)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
@@ -81,14 +81,14 @@ def view_topic(tid):
     return jsonify(data)
 
 
-@bp.route('/<int:tid>', methods=['POST'])
+@api.route('/<int:tid>', methods=['POST'])
 @require_oauth(login=True, scopes=['topic:write'])
 def update_topic(tid):
     topic = Topic.cache.get(tid)
     return jsonify(topic)
 
 
-@bp.route('/<int:tid>/read', methods=['POST'])
+@api.route('/<int:tid>/read', methods=['POST'])
 @require_oauth(login=True)
 def write_read_percent(tid):
     topic = Topic.cache.get_or_404(tid)
@@ -105,19 +105,19 @@ def write_read_percent(tid):
     return jsonify(percent=read.percent)
 
 
-@bp.route('/<int:tid>/comments')
+@api.route('/<int:tid>/comments')
 @require_oauth(login=False)
 def view_topic_comments(tid):
     return ''
 
 
-@bp.route('/<int:tid>/comments', methods=['POST'])
+@api.route('/<int:tid>/comments', methods=['POST'])
 @require_oauth(login=True, scopes=['comment:write'])
 def create_topic_comments(tid):
     return ''
 
 
-@bp.route('/<int:tid>/likes')
+@api.route('/<int:tid>/likes')
 @require_oauth(login=False, cache_time=600)
 def view_topic_likes(tid):
     topic = Topic.cache.get_or_404(tid)
@@ -141,7 +141,7 @@ def view_topic_likes(tid):
     return jsonify(data=data, pagination=pagi)
 
 
-@bp.route('/<int:tid>/likes', methods=['POST'])
+@api.route('/<int:tid>/likes', methods=['POST'])
 @require_oauth(login=True)
 def like_topic(tid):
     data = TopicLike.query.get((tid, current_user.id))
@@ -155,7 +155,7 @@ def like_topic(tid):
     return '', 204
 
 
-@bp.route('/<int:tid>/likes', methods=['DELETE'])
+@api.route('/<int:tid>/likes', methods=['DELETE'])
 @require_oauth(login=True)
 def unlike_topic(tid):
     data = TopicLike.query.get((tid, current_user.id))

@@ -11,6 +11,23 @@ from ..models import AuthSession, OAuthClient
 from ..libs.ratelimit import ratelimit
 
 
+class ApiBlueprint(object):
+    def __init__(self, url_prefix):
+        self.url_prefix = url_prefix
+        self.deferred = []
+
+    def route(self, rule, **options):
+        def wrapper(f):
+            self.deferred.append((f, rule, options))
+            return f
+        return wrapper
+
+    def register(self, bp):
+        for f, rule, options in self.deferred:
+            endpoint = options.pop("endpoint", f.__name__)
+            bp.add_url_rule(self.url_prefix + rule, endpoint, f, **options)
+
+
 def oauth_limit_params(login, scopes):
     if scopes is None:
         scopes = []
@@ -107,21 +124,3 @@ def require_confidential(f):
             raise NotConfidential()
         return f(*args, **kwargs)
     return decorated
-
-
-def headers_hook(response):
-    if hasattr(request, '_rate_remaining'):
-        response.headers['X-Rate-Limit'] = str(request._rate_remaining)
-    if hasattr(request, '_rate_expires'):
-        response.headers['X-Rate-Expires'] = str(request._rate_expires)
-
-    # javascript can request API
-    if request.method == 'GET':
-        response.headers['Access-Control-Allow-Origin'] = '*'
-
-    # api not available in iframe
-    response.headers['X-Frame-Options'] = 'deny'
-    # security protection
-    response.headers['Content-Security-Policy'] = "default-src 'none'"
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    return response

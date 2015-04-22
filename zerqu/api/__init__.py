@@ -2,12 +2,36 @@
 
 
 import re
-from .base import headers_hook
-from . import front, users, cafes, topics
+from flask import Blueprint, request
+from . import front, users, topics, cafes
 
 VERSION_URL = re.compile(r'^/api/\d/')
 VERSION_ACCEPT = re.compile(r'application/vnd\.zerqu\+json;\s+version=(\d)')
 CURRENT_VERSION = '1'
+
+bp = Blueprint('api', __name__)
+
+
+@bp.after_request
+def headers_hook(response):
+    remaining = getattr(request, '_rate_remaining', None)
+    if remaining:
+        response.headers['X-Rate-Limit'] = str(remaining)
+
+    expires = getattr(request, '_rate_expires', None)
+    if expires:
+        response.headers['X-Rate-Expires'] = str(expires)
+
+    # javascript can request API
+    if request.method == 'GET':
+        response.headers['Access-Control-Allow-Origin'] = '*'
+
+    # api not available in iframe
+    response.headers['X-Frame-Options'] = 'deny'
+    # security protection
+    response.headers['Content-Security-Policy'] = "default-src 'none'"
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
 
 
 def find_version(environ):
@@ -36,15 +60,12 @@ class ApiVersionMiddleware(object):
         return self.app(environ, start_response)
 
 
-def register_blueprint(app, bp, name=''):
-    bp.after_request(headers_hook)
-    url_prefix = '/api/1/' + name
-    app.register_blueprint(bp, url_prefix=url_prefix)
-
-
 def init_app(app):
     app.wsgi_app = ApiVersionMiddleware(app.wsgi_app)
-    register_blueprint(app, front.bp, '')
-    register_blueprint(app, users.bp, 'users')
-    register_blueprint(app, cafes.bp, 'cafes')
-    register_blueprint(app, topics.bp, 'topics')
+
+    front.api.register(bp)
+    users.api.register(bp)
+    cafes.api.register(bp)
+    topics.api.register(bp)
+
+    app.register_blueprint(bp, url_prefix='/api/1')
