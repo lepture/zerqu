@@ -33,8 +33,9 @@ class SQLAlchemy(_SQLAlchemy):
         try:
             yield
             self.session.commit()
-        except:
+        except Exception as e:
             self.session.rollback()
+            current_app.logger.exception('%r' % e)
 
 
 db = SQLAlchemy(session_options={
@@ -223,7 +224,7 @@ Base.cache = CacheProperty(db)
 class MutableDict(Mutable, dict):
     @classmethod
     def coerce(cls, key, value):
-        "Convert plain dictionaries to MutableDict."
+        """Convert plain dictionaries to MutableDict."""
         if not isinstance(value, MutableDict):
             if isinstance(value, dict):
                 return MutableDict(value)
@@ -234,12 +235,12 @@ class MutableDict(Mutable, dict):
             return value
 
     def __setitem__(self, key, value):
-        "Detect dictionary set events and emit change events."
+        """Detect dictionary set events and emit change events."""
         dict.__setitem__(self, key, value)
         self.changed()
 
     def __delitem__(self, key):
-        "Detect dictionary del events and emit change events."
+        """Detect dictionary del events and emit change events."""
         dict.__delitem__(self, key)
         self.changed()
 
@@ -251,7 +252,7 @@ class MutableDict(Mutable, dict):
 
 
 class JSON(TypeDecorator):
-    "Represents an immutable structure as a json-encoded string."
+    """Represents an immutable structure as a json-encoded string."""
     impl = TEXT
 
     def load_dialect_impl(self, dialect):

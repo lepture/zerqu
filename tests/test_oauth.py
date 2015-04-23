@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from werkzeug import url_encode
+from werkzeug.urls import url_encode
 from zerqu.models import User, AuthSession, OAuthClient
 from flask_oauthlib.utils import to_bytes
 from ._base import TestCase

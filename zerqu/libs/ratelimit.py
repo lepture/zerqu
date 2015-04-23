@@ -9,7 +9,7 @@ logger = logging.getLogger('zerqu')
 
 
 def ratelimit(prefix, count=600, duration=300):
-    logger.info('Ratelimit on %s' % prefix)
+    logger.info('Rate limit on %s' % prefix)
     count_key = '%s$c' % prefix
     reset_key = '%s$r' % prefix
     remaining, resetting = cache.get_many(count_key, reset_key)

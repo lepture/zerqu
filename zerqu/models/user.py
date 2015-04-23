@@ -4,7 +4,7 @@ import time
 import datetime
 import hashlib
 from flask import request, session, current_app
-from werkzeug import url_encode
+from werkzeug.urls import url_encode
 from werkzeug.local import LocalProxy
 from werkzeug.utils import cached_property
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -124,7 +124,7 @@ class AuthSession(Base):
     last_used = Column(DateTime, default=datetime.datetime.utcnow)
 
     def __str__(self):
-        return '%s / %s (%d)' % (self.browser, self.platform, self.user_id)
+        return u'%s / %s (%d)' % (self.browser, self.platform, self.user_id)
 
     def keys(self):
         return (
@@ -187,8 +187,9 @@ class AuthSession(Base):
 
 
 def _get_current_user():
-    if hasattr(request, '_current_user'):
-        return request._current_user
+    user = getattr(request, '_current_user', None)
+    if user:
+        return user
     user = AuthSession.get_current_user()
     request._current_user = user
     return user

@@ -65,7 +65,6 @@ class TestCafeMembers(TestCase, CafeMixin):
         )
         db.session.add(item)
         db.session.commit()
-        total = 60
 
         for i in range(total):
             username = 'demo-%d' % i
