@@ -29,8 +29,12 @@ ZERQU_MOBILE_SCRIPTS = []
 # it can also be a module string for importing
 ZERQU_TEXT_RENDERER = 'markdown'
 
-# Available feature choices for a cafe
-ZERQU_CAFE_FEATURES = [
-    'text', 'link', 'image', 'video', 'audio', 'gist',
-]
+ZERQU_CAFE_FEATURES = {
+    'link': 0b1,
+    'image': 0b10,
+    'gist': 0b100,
+    'video': 0b1000,
+    'audio': 0b10000,
+}
+
 ZERQU_CAFE_CREATOR_ROLE = 4

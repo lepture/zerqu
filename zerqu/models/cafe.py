@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import datetime
+from flask import current_app
 from werkzeug.utils import cached_property
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime
@@ -46,8 +47,9 @@ class Cafe(Base):
         'background_url': None,
     })
 
-    # available feature
-    feature_type = Column(String(10), default='text')
+    # available features
+    _features = Column(Integer, default=0)
+
     # defined above
     permission = Column(SmallInteger, default=0)
 
@@ -67,7 +69,7 @@ class Cafe(Base):
 
     def keys(self):
         return (
-            'id', 'slug', 'name', 'style', 'description', 'feature_type',
+            'id', 'slug', 'name', 'style', 'description', 'features',
             'label', 'is_active', 'created_at', 'updated_at',
         )
 
@@ -85,6 +87,18 @@ class Cafe(Base):
         if label == 'active':
             return None
         return label
+
+    @cached_property
+    def features(self):
+        if not self._features:
+            return []
+
+        rv = []
+        defines = current_app.config.get('ZERQU_CAFE_FEATURES')
+        for k in defines:
+            if defines[k] & self._features:
+                rv.append(k)
+        return rv
 
 
 class CafeMember(Base):
