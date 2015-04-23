@@ -13,7 +13,7 @@ from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
 
 
-api = ApiBlueprint('/cafes')
+api = ApiBlueprint('cafes')
 
 
 def get_and_protect_cafe(slug, scopes=None):

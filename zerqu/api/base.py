@@ -12,8 +12,8 @@ from ..libs.ratelimit import ratelimit
 
 
 class ApiBlueprint(object):
-    def __init__(self, url_prefix):
-        self.url_prefix = url_prefix
+    def __init__(self, name):
+        self.name = name
         self.deferred = []
 
     def route(self, rule, **options):
@@ -22,10 +22,13 @@ class ApiBlueprint(object):
             return f
         return wrapper
 
-    def register(self, bp):
+    def register(self, bp, url_prefix=None):
+        if url_prefix is None:
+            url_prefix = '/' + self.name
+
         for f, rule, options in self.deferred:
             endpoint = options.pop("endpoint", f.__name__)
-            bp.add_url_rule(self.url_prefix + rule, endpoint, f, **options)
+            bp.add_url_rule(url_prefix + rule, endpoint, f, **options)
 
 
 def oauth_limit_params(login, scopes):

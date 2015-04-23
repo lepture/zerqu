@@ -8,7 +8,7 @@ from ..errors import APIException, Conflict
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 
-api = ApiBlueprint('/topics')
+api = ApiBlueprint('topics')
 
 
 @api.route('/statuses')

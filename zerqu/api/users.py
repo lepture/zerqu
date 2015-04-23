@@ -9,7 +9,7 @@ from ..models import db, User, current_user
 from ..forms import RegisterForm
 from ..errors import FormError
 
-api = ApiBlueprint('/users')
+api = ApiBlueprint('users')
 
 
 @api.route('', methods=['POST'])

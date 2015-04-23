@@ -4,7 +4,7 @@ from flask import jsonify
 from .base import ApiBlueprint
 from ..versions import VERSION, API_VERSION
 
-api = ApiBlueprint('/')
+api = ApiBlueprint('')
 
 
 @api.route('')
