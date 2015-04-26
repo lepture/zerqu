@@ -31,12 +31,19 @@ class Cafe(Base):
     # only member can read and write
     PERMISSION_PRIVATE = 9
 
+    PERMISSIONS = {
+        'public': PERMISSION_PUBLIC,
+        'subscriber': PERMISSION_SUBSCRIBER,
+        'member': PERMISSION_MEMBER,
+        'private': PERMISSION_PRIVATE,
+    }
+
     id = Column(Integer, primary_key=True)
 
     # basic information
     slug = Column(String(24), nullable=False, unique=True, index=True)
     name = Column(String(30), nullable=False, unique=True)
-    description = Column(String(280))
+    content = Column(String(480))
 
     # logo_url, base_color, text_color, background_color, background_url
     style = Column(JSON, default={
@@ -69,7 +76,7 @@ class Cafe(Base):
 
     def keys(self):
         return (
-            'id', 'slug', 'name', 'style', 'description', 'features',
+            'id', 'slug', 'name', 'style', 'content', 'features',
             'label', 'is_active', 'created_at', 'updated_at',
         )
 

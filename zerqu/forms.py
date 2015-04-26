@@ -1,12 +1,24 @@
 # coding: utf-8
 
 
-from flask_wtf import Form
+from flask import request
+from werkzeug.datastructures import MultiDict
+from flask_wtf import Form as BaseForm
 from flask_wtf.recaptcha import RecaptchaField
-from wtforms.fields import StringField, PasswordField
+from wtforms.fields import StringField, PasswordField, TextField
 from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
-from .models import db, User
+from .models import db, User, Cafe
+from .errors import FormError
+
+
+class Form(BaseForm):
+    @classmethod
+    def create_api_form(cls):
+        form = cls(MultiDict(request.get_json()), csrf_enabled=False)
+        if not form.validate():
+            raise FormError(form)
+        return form
 
 
 class UserForm(Form):
@@ -38,3 +50,32 @@ class RegisterForm(UserForm):
 
 class RecaptchaForm(RegisterForm):
     recaptcha = RecaptchaField()
+
+
+class CafeForm(Form):
+    # TODO: validators
+    name = StringField()
+    slug = StringField()
+    content = TextField()
+    permission = StringField(choices=Cafe.PERMISSIONS.keys())
+    # features
+
+    def validate_slug(self, field):
+        if Cafe.cache.filter_first(slug=field.data):
+            raise StopValidation('Slug has been registered')
+
+    def validate_name(self, field):
+        if Cafe.cache.filter_first(name=field.data):
+            raise StopValidation('Name has been registered')
+
+    def create_cafe(self, user_id):
+        cafe = Cafe(
+            name=self.name.data,
+            slug=self.slug.data,
+            content=self.content.data,
+            permission=Cafe.PERMISSIONS[self.permission.data],
+            user_id=user_id,
+        )
+        with db.auto_commit():
+            db.session.add(cafe)
+        return cafe

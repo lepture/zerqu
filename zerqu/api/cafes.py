@@ -11,6 +11,7 @@ from .utils import cursor_query, pagination
 from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
+from ..forms import CafeForm
 
 
 api = ApiBlueprint('cafes')
@@ -52,10 +53,11 @@ def list_cafes():
 @require_oauth(login=True, scopes=['cafe:write'])
 def create_cafe():
     role = current_app.config.get('ZERQU_CAFE_CREATOR_ROLE')
-    if current_user.role < role:
+    if current_user.role < role or not current_user.is_active:
         raise Denied('creating cafe')
-    # TODO
-    return 'todo'
+    form = CafeForm.create_api_form()
+    cafe = form.create_cafe(current_user.id)
+    return jsonify(cafe), 201
 
 
 @api.route('/<slug>')
