@@ -1,13 +1,11 @@
 # coding: utf-8
 
 from flask import request, jsonify
-from werkzeug.datastructures import MultiDict
 from .base import ApiBlueprint
 from .base import require_oauth, require_confidential
 from .utils import cursor_query
 from ..models import db, User, current_user
 from ..forms import RegisterForm
-from ..errors import FormError
 
 api = ApiBlueprint('users')
 
@@ -15,9 +13,7 @@ api = ApiBlueprint('users')
 @api.route('', methods=['POST'])
 @require_confidential
 def create_user():
-    form = RegisterForm(MultiDict(request.get_json()), csrf_enabled=False)
-    if not form.validate():
-        raise FormError(form)
+    form = RegisterForm.create_api_form()
     user = form.create_user()
     return jsonify(user), 201
 
