@@ -80,9 +80,9 @@ def update_cafe(slug):
         if not data or data.role != CafeMember.ROLE_ADMIN:
             raise Denied('cafe "%s"' % cafe.slug)
 
-    # TODO
-    data = {}
-    return jsonify(data)
+    form = CafeForm.create_api_form()
+    cafe = form.update_cafe(cafe, current_user.id)
+    return jsonify(cafe)
 
 
 @api.route('/<slug>/users', methods=['POST'])

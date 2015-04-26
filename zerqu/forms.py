@@ -83,3 +83,16 @@ class CafeForm(Form):
         with db.auto_commit():
             db.session.add(cafe)
         return cafe
+
+    def update_cafe(self, cafe, user_id):
+        # TODO: log for user_id
+        keys = ['name', 'slug', 'content']
+        for k in keys:
+            value = self.data.get(k)
+            if value:
+                setattr(cafe, k, value)
+
+        cafe.permission = Cafe.PERMISSIONS[self.permission.data]
+        with db.auto_commit():
+            db.session.add(cafe)
+        return cafe
