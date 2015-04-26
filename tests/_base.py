@@ -39,8 +39,8 @@ class TestCase(unittest.TestCase):
             ('zerqu', 'zerqu@gmail.com', None, 10),
             ('test', 'test@gmail.com', 'test-password', 1),
         ]
-        for username, email, password, status in users:
-            user = User(username=username, email=email, status=status)
+        for username, email, password, role in users:
+            user = User(username=username, email=email, role=role)
             if password:
                 user.password = password
             db.session.add(user)

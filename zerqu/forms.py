@@ -6,6 +6,7 @@ from werkzeug.datastructures import MultiDict
 from flask_wtf import Form as BaseForm
 from flask_wtf.recaptcha import RecaptchaField
 from wtforms.fields import StringField, PasswordField, TextField
+from wtforms.fields import SelectField
 from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
 from .models import db, User, Cafe
@@ -52,12 +53,15 @@ class RecaptchaForm(RegisterForm):
     recaptcha = RecaptchaField()
 
 
+CAFE_PERMISSIONS = Cafe.PERMISSIONS.keys()
+
+
 class CafeForm(Form):
     # TODO: validators
     name = StringField()
     slug = StringField()
     content = TextField()
-    permission = StringField(choices=Cafe.PERMISSIONS.keys())
+    permission = SelectField(choices=zip(CAFE_PERMISSIONS, CAFE_PERMISSIONS))
     # features
 
     def validate_slug(self, field):

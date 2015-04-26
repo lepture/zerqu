@@ -42,6 +42,42 @@ class TestListCafes(TestCase, CafeMixin):
         assert 'before' not in value['cursor']
 
 
+class TestCreateCafe(TestCase):
+    def test_no_permission(self):
+        user = User(username='demo', email='demo@gmail.com')
+        user.role = 1
+        db.session.add(user)
+        db.session.commit()
+        self.app.config['ZERQU_CAFE_CREATOR_ROLE'] = 4
+        headers = self.get_authorized_header(
+            user_id=user.id, scope='cafe:write',
+        )
+        rv = self.client.post('/api/cafes', headers=headers)
+        assert rv.status_code == 403
+
+    def get_creator_headers(self):
+        user = User(username='demo', email='demo@gmail.com')
+        user.status = 1
+        user.role = 9
+        self.app.config['ZERQU_CAFE_CREATOR_ROLE'] = 1
+        db.session.add(user)
+        db.session.commit()
+        headers = self.get_authorized_header(
+            user_id=user.id, scope='cafe:write',
+        )
+        return headers
+
+    def test_create_cafe(self):
+        headers = self.get_creator_headers()
+        data = json.dumps({
+            'name': 'hello-world',
+            'slug': 'hello-world',
+            'permission': 'public',
+        })
+        rv = self.client.post('/api/cafes', headers=headers, data=data)
+        assert rv.status_code == 201
+
+
 class TestViewCafe(TestCase, CafeMixin):
     def test_not_found(self):
         rv = self.client.get('/api/cafes/notfound')

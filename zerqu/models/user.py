@@ -35,7 +35,7 @@ class User(Base):
     _password = Column('password', String(100))
     description = Column(String(280))
 
-    status = Column(SmallInteger, default=0)
+    role = Column(SmallInteger, default=0)
     reputation = Column(Integer, default=0)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -56,15 +56,15 @@ class User(Base):
 
     @cached_property
     def is_active(self):
-        return self.status > 0
+        return self.role > 0
 
     @cached_property
     def label(self):
-        if self.status >= self.ROLE_STAFF:
+        if self.role >= self.ROLE_STAFF:
             return 'staff'
-        if self.status == self.ROLE_VERIFIED:
+        if self.role == self.ROLE_VERIFIED:
             return 'verified'
-        if self.status == self.ROLE_SPAMMER:
+        if self.role == self.ROLE_SPAMMER:
             return 'spammer'
         return None
 
