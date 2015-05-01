@@ -5,8 +5,8 @@ from flask import request
 from werkzeug.datastructures import MultiDict
 from flask_wtf import Form as BaseForm
 from flask_wtf.recaptcha import RecaptchaField
-from wtforms.fields import StringField, PasswordField, TextField
-from wtforms.fields import SelectField
+from wtforms.fields import StringField, PasswordField
+from wtforms.fields import SelectField, TextAreaField
 from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
 from .models import db, User, Cafe
@@ -60,7 +60,8 @@ class CafeForm(Form):
     # TODO: validators
     name = StringField()
     slug = StringField()
-    content = TextField()
+    content = TextAreaField()
+    # TODO: multiple choices
     permission = SelectField(choices=zip(CAFE_PERMISSIONS, CAFE_PERMISSIONS))
     # features
 
@@ -85,8 +86,12 @@ class CafeForm(Form):
         return cafe
 
     def update_cafe(self, cafe, user_id):
-        # TODO: log for user_id
-        keys = ['name', 'slug', 'content']
+        # Only owner can change slug
+        if user_id == cafe.user_id:
+            keys = ['name', 'slug', 'content']
+        else:
+            keys = ['name', 'content']
+
         for k in keys:
             value = self.data.get(k)
             if value:

@@ -58,16 +58,19 @@ def view_statuses():
 @require_oauth(login=False, cache_time=600)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
-
     data = dict(topic)
 
     cafe = Cafe.cache.get(topic.cafe_id)
-
     data['cafe'] = dict(cafe)
-    data['feature_type'] = cafe.feature
 
-    # TODO: render content
-    data['content'] = topic.content
+    # /api/topic/:id?content=raw vs ?content=html
+    content_format = request.args.get('content')
+    if content_format == 'raw':
+        data['content'] = topic.content
+    else:
+        # TODO: render to html
+        data['content'] = topic.content
+
     data['user'] = dict(topic.user)
     data['like_count'] = TopicLike.cache.filter_count(topid_id=tid)
     data['comment_count'] = Comment.cache.filter_count(topid_id=tid)
