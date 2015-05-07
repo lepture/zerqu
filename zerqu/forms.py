@@ -17,6 +17,7 @@ class Form(BaseForm):
     @classmethod
     def create_api_form(cls, obj=None):
         form = cls(MultiDict(request.get_json()), obj=obj, csrf_enabled=False)
+        form._obj = obj
         if not form.validate():
             raise FormError(form)
         return form
@@ -57,25 +58,35 @@ class RecaptchaForm(RegisterForm):
     recaptcha = RecaptchaField()
 
 
-CAFE_PERMISSIONS = Cafe.PERMISSIONS.keys()
-
-
 class CafeForm(Form):
     # TODO: validators
     name = StringField()
     slug = StringField()
     content = TextAreaField()
-    # TODO: multiple choices
-    permission = SelectField(choices=zip(CAFE_PERMISSIONS, CAFE_PERMISSIONS))
-    # features
+    permission = StringField()
+    # TODO: multiple choices features
+
+    def _validate_obj(self, key, value):
+        obj = getattr(self, '_obj', None)
+        return obj and getattr(obj, key) == value
 
     def validate_slug(self, field):
+        if self._validate_obj('slug', field.data):
+            return
         if Cafe.cache.filter_first(slug=field.data):
             raise StopValidation('Slug has been registered')
 
     def validate_name(self, field):
+        if self._validate_obj('name', field.data):
+            return
         if Cafe.cache.filter_first(name=field.data):
             raise StopValidation('Name has been registered')
+
+    def validate_permission(self, field):
+        obj = getattr(self, '_obj', None)
+
+        if not obj and field.data not in Cafe.PERMISSIONS:
+            raise StopValidation('Invalid choice for permission')
 
     def create_cafe(self, user_id):
         cafe = Cafe(
@@ -90,18 +101,18 @@ class CafeForm(Form):
         return cafe
 
     def update_cafe(self, cafe, user_id):
+        keys = ['name', 'content']
         # Only owner can change slug
         if user_id == cafe.user_id:
-            keys = ['name', 'slug', 'content']
-        else:
-            keys = ['name', 'content']
+            keys.append('slug')
 
         for k in keys:
             value = self.data.get(k)
             if value:
                 setattr(cafe, k, value)
 
-        cafe.permission = Cafe.PERMISSIONS[self.permission.data]
+        if self.permission.data:
+            cafe.permission = Cafe.PERMISSIONS[self.permission.data]
         with db.auto_commit():
             db.session.add(cafe)
         return cafe

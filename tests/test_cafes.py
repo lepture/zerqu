@@ -78,6 +78,71 @@ class TestCreateCafe(TestCase):
         assert rv.status_code == 201
 
 
+class TestUpdateCafe(TestCase, CafeMixin):
+    def get_prepared_data(self, cafe_user=1):
+        self.create_cafes(10)
+        user = User.query.get(1)
+        cafe = Cafe.query.filter_by(user_id=cafe_user).first()
+        headers = self.get_authorized_header(user.id, scope='cafe:write')
+        return cafe, headers
+
+    def test_owner_update_cafe_name(self):
+        cafe, headers = self.get_prepared_data(1)
+        data = json.dumps({'name': 'A'})
+        rv = self.client.post(
+            '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
+        )
+        assert rv.status_code == 200
+        assert cafe.name == 'A'
+
+    def test_owner_update_cafe_slug(self):
+        cafe, headers = self.get_prepared_data(1)
+        data = json.dumps({'slug': 'a-b-c'})
+        rv = self.client.post(
+            '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
+        )
+        assert rv.status_code == 200
+        data = json.loads(rv.data)
+        assert data['slug'] == 'a-b-c'
+        assert cafe.slug == 'a-b-c'
+
+    def test_admin_update_cafe_no_permission(self):
+        cafe, headers = self.get_prepared_data(2)
+        data = json.dumps({'name': 'A'})
+        rv = self.client.post(
+            '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
+        )
+        assert rv.status_code == 403
+
+    def add_membership(self, cafe):
+        m = CafeMember(user_id=1, cafe_id=cafe.id, role=CafeMember.ROLE_ADMIN)
+        db.session.add(m)
+        db.session.commit()
+
+    def test_admin_update_cafe_name(self):
+        # Add membership
+        cafe, headers = self.get_prepared_data(2)
+        self.add_membership(cafe)
+        data = json.dumps({'name': 'A'})
+        rv = self.client.post(
+            '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
+        )
+        assert rv.status_code == 200
+        assert cafe.name == 'A'
+
+    def test_admin_update_cafe_slug(self):
+        cafe, headers = self.get_prepared_data(2)
+        self.add_membership(cafe)
+        data = json.dumps({'slug': 'a-b-c'})
+        rv = self.client.post(
+            '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
+        )
+        assert rv.status_code == 200
+        data = json.loads(rv.data)
+        assert data['slug'] != 'a-b-c'
+        assert cafe.slug != 'a-b-c'
+
+
 class TestViewCafe(TestCase, CafeMixin):
     def test_not_found(self):
         rv = self.client.get('/api/cafes/notfound')
