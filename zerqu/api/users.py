@@ -1,11 +1,11 @@
 # coding: utf-8
 
-from flask import request, jsonify
+from flask import jsonify
 from .base import ApiBlueprint
 from .base import require_oauth, require_confidential
 from .utils import cursor_query
 from ..models import db, User, current_user
-from ..forms import RegisterForm
+from ..forms import RegisterForm, UserProfileForm
 
 api = ApiBlueprint('users')
 
@@ -42,11 +42,8 @@ def view_current_user():
 @require_oauth(login=True, scopes=['user:write'])
 def update_current_user():
     user = User.query.get(current_user.id)
-    # TODO: use form to validate
-    description = request.get_json().get('description')
-    if description:
-        user.description = description
-
+    form = UserProfileForm.create_api_form(user)
+    form.populate_obj(user)
     with db.auto_commit():
         db.session.add(user)
     return jsonify(user)

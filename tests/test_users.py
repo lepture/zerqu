@@ -97,6 +97,17 @@ class TestCurrentUser(TestCase):
         })
         assert b'unique_description' in rv.data
 
+    def test_update_description(self):
+        headers = self.get_authorized_header(user_id=1, scope='user:write')
+        rv = self.client.patch('/api/users/me', data=json.dumps({
+            'description': 'unique_description'
+        }), headers=headers)
+        assert b'unique_description' in rv.data
+
+        # request without description
+        rv = self.client.patch('/api/users/me', data='{}', headers=headers)
+        assert b'unique_description' in rv.data
+
     def test_current_user_email(self):
         headers = self.get_authorized_header(scope='user:email')
         rv = self.client.get('/api/users/me/email', headers=headers)

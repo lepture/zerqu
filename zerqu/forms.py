@@ -15,8 +15,8 @@ from .errors import FormError
 
 class Form(BaseForm):
     @classmethod
-    def create_api_form(cls):
-        form = cls(MultiDict(request.get_json()), csrf_enabled=False)
+    def create_api_form(cls, obj=None):
+        form = cls(MultiDict(request.get_json()), obj=obj, csrf_enabled=False)
         if not form.validate():
             raise FormError(form)
         return form
@@ -25,6 +25,10 @@ class Form(BaseForm):
 class UserForm(Form):
     username = StringField(validators=[DataRequired()])
     password = PasswordField(validators=[DataRequired()])
+
+
+class UserProfileForm(Form):
+    description = StringField()
 
 
 class RegisterForm(UserForm):
