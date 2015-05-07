@@ -106,6 +106,14 @@ class TestUpdateCafe(TestCase, CafeMixin):
         assert data['slug'] == 'a-b-c'
         assert cafe.slug == 'a-b-c'
 
+    def test_owner_update_cafe_no_change(self):
+        cafe, headers = self.get_prepared_data(1)
+        data = json.dumps({'slug': cafe.slug, 'name': cafe.name})
+        rv = self.client.post(
+            '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
+        )
+        assert rv.status_code == 200
+
     def test_admin_update_cafe_no_permission(self):
         cafe, headers = self.get_prepared_data(2)
         data = json.dumps({'name': 'A'})
