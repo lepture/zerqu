@@ -45,8 +45,9 @@ def get_and_protect_cafe(slug, scopes=None):
 @require_oauth(login=False, cache_time=300)
 def list_cafes():
     data, cursor = cursor_query(Cafe, 'desc')
-    reference = {'user': User.cache.get_dict({o.user_id for o in data})}
-    return jsonify(data=data, reference=reference, cursor=cursor)
+    users = User.cache.get_dict({o.user_id for o in data})
+    data = list(Cafe.iter_dict(data, user=users))
+    return jsonify(data=data, cursor=cursor)
 
 
 @api.route('', methods=['POST'])
@@ -165,7 +166,8 @@ def list_cafe_topics(slug):
         lambda q: q.filter_by(cafe_id=cafe.id)
     )
     reference = {'user': User.cache.get_dict({o.user_id for o in data})}
-    return jsonify(data=data, reference=reference, cursor=cursor)
+    data = list(Topic.iter_dict(data, **reference))
+    return jsonify(data=data, cursor=cursor)
 
 
 @api.route('/<slug>/topics', methods=['POST'])

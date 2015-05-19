@@ -41,33 +41,6 @@ of the hash map::
     }
 
 
-Reference
----------
-
-Reference data is an additional information for data response. For example::
-
-    {
-        "data": [
-            {
-                "id": 1,
-                "user": {
-                    "reference": "1"
-                }
-            }
-        ],
-        "reference": {
-            "user": {
-                "1": {
-                    "username": "zerqu"
-                }
-            }
-        }
-    }
-
-In this example, the **user** in data is a reference, you can use the ID to get
-the full information of the user in **reference** section.
-
-
 Pagination
 ----------
 
@@ -100,7 +73,7 @@ can not hold all the data::
         "data": [],
         "cursor": {
             "key": "id",
-            "before": 1,
+            "before": 10,
             "after": 30
         }
     }

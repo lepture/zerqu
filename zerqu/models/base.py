@@ -189,11 +189,15 @@ class Base(db.Model):
     def __getitem__(self, key):
         return getattr(self, key)
 
-    def as_dict(self):
-        rv = dict(self)
-        for key in self.__reference__:
-            rv[key] = {'reference': str(self[self.__reference__[key]])}
-        return rv
+    @classmethod
+    def iter_dict(cls, items, **references):
+        for item in items:
+            data = dict(item)
+            for key in cls.__reference__:
+                ident = getattr(item, cls.__reference__[key])
+                choices = references.get(key, {})
+                data[key] = choices.get(str(ident))
+            yield data
 
     @classmethod
     def generate_cache_prefix(cls, name):
