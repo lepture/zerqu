@@ -44,7 +44,7 @@ def get_and_protect_cafe(slug, scopes=None):
 @api.route('')
 @require_oauth(login=False, cache_time=300)
 def list_cafes():
-    data, cursor = cursor_query(Cafe, 'desc')
+    data, cursor = cursor_query(Cafe)
     users = User.cache.get_dict({o.user_id for o in data})
     data = list(Cafe.iter_dict(data, user=users))
     return jsonify(data=data, cursor=cursor)
@@ -162,7 +162,7 @@ def list_cafe_users(slug):
 def list_cafe_topics(slug):
     cafe = get_and_protect_cafe(slug)
     data, cursor = cursor_query(
-        Topic, 'desc',
+        Topic, True,
         lambda q: q.filter_by(cafe_id=cafe.id)
     )
     reference = {'user': User.cache.get_dict({o.user_id for o in data})}

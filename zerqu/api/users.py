@@ -21,7 +21,7 @@ def create_user():
 @api.route('')
 @require_oauth(login=False, cache_time=300)
 def list_users():
-    data, cursor = cursor_query(User, 'desc')
+    data, cursor = cursor_query(User)
     return jsonify(data=data, cursor=cursor)
 
 

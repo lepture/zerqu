@@ -66,16 +66,12 @@ Request pagination with parameters **page**. For example::
 Cursor
 ------
 
-Cursor is another efficient to fetch data. When a single array data response
+Cursor is another efficient way to fetch data. When a single array data response
 can not hold all the data::
 
     {
         "data": [],
-        "cursor": {
-            "key": "id",
-            "before": 10,
-            "after": 30
-        }
+        "cursor": 10
     }
 
 An array data response will always return with a **pagination** or **cursor**.

@@ -33,12 +33,12 @@ class TestListCafes(TestCase, CafeMixin):
         assert rv.status_code == 200
         value = json.loads(rv.data)
         assert len(value['data']) == 20
-        assert 'before' in value['cursor']
+        assert value['cursor']
 
         rv = self.client.get('/api/cafes?count=40')
         assert rv.status_code == 200
         value = json.loads(rv.data)
-        assert 'before' not in value['cursor']
+        assert not value['cursor']
 
 
 class TestCreateCafe(TestCase):
