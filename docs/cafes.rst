@@ -15,6 +15,7 @@ Response with::
 
     {
         "data": [{
+            "id": 30,
             "slug": "support",
             "name": "Tech Support",
             "description": "",
@@ -29,27 +30,22 @@ Response with::
                 "topic": 20,
                 "users": 31
             },
-            "user_id": 1,
+            "user": {
+                "id": 1,
+                "username": "huashan",
+                "avatar_url": "https://example.com/avatar/1.png",
+                "role": "admin",
+                "active": true,
+                "url": "http://doocer.com/",
+                "bio": "I am a mountain.",
+                "reputation": 10,
+                "created_at": "2014-12-31T14:40:52Z",
+                "updated_at": "2014-12-31T18:50:06Z"
+            },
             "created_at": "2014-12-31T14:40:52Z",
             "updated_at": "2014-12-31T18:50:06Z"
         }],
-        "reference": {
-            "user_id": {
-                "1": {
-                    "id": 1,
-                    "username": "huashan",
-                    "avatar_url": "https://example.com/avatar/1.png",
-                    "role": "admin",
-                    "active": true,
-                    "url": "http://doocer.com/",
-                    "bio": "I am a mountain.",
-                    "reputation": 10,
-                    "created_at": "2014-12-31T14:40:52Z",
-                    "updated_at": "2014-12-31T18:50:06Z"
-                }
-            }
-        },
-        "pagination": {}
+        "cursor": 20
     }
 
 
