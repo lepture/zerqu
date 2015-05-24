@@ -1,14 +1,16 @@
 # coding: utf-8
 
+import datetime
+from flask import current_app
 from flask import request, jsonify
 from markupsafe import escape
 from .base import ApiBlueprint
 from .base import require_oauth
 from .utils import cursor_query, pagination
-from ..errors import APIException, Conflict
+from ..errors import APIException, Conflict, NotFound
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
-from ..forms import CommentForm
+from ..forms import TopicForm, CommentForm
 from ..libs import renderer
 
 api = ApiBlueprint('topics')
@@ -57,8 +59,21 @@ def view_topic(tid):
 @api.route('/<int:tid>', methods=['POST'])
 @require_oauth(login=True, scopes=['topic:write'])
 def update_topic(tid):
-    topic = Topic.cache.get(tid)
-    return jsonify(topic)
+    topic = Topic.query.get(tid)
+    if not topic:
+        raise NotFound('Topic')
+
+    valid = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
+    if valid:
+        delta = datetime.datetime.utcnow() - topic.created_at
+        if delta.total_seconds() > valid:
+            msg = 'Topic can only be updated in {} seconds'.format(valid)
+            raise APIException(code=403, description=msg)
+
+    form = TopicForm.create_api_form(obj=topic)
+    data = dict(form.update_topic())
+    data['content'] = renderer.markup(topic.content)
+    return jsonify(data)
 
 
 @api.route('/<int:tid>/read', methods=['POST'])

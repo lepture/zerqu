@@ -2,7 +2,6 @@
 
 import datetime
 from flask import current_app
-from flask import request
 from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import ApiBlueprint
@@ -11,8 +10,8 @@ from .utils import cursor_query, pagination
 from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
-from ..forms import CafeForm
-
+from ..forms import CafeForm, TopicForm
+from ..libs import renderer
 
 api = ApiBlueprint('cafes')
 
@@ -174,21 +173,8 @@ def create_cafe_topic(slug):
     if not current_user.is_active:
         raise InvalidAccount('Your account is not active')
 
-    rv = request.get_json()
-
-    topic = Topic(
-        title=rv['title'],
-        content=rv.get('content', ''),
-        link=rv.get('link', None),
-        cafe_id=cafe.id,
-        user_id=current_user.id,
-    )
-    # TODO: process feature
-    # process_feature = get_func(cafe.feature_type)
-    # process_feature(data, topic)
-    with db.auto_commit():
-        db.session.add(topic)
-
+    form = TopicForm.create_api_form()
+    topic = form.create_topic(cafe.id, current_user.id)
     data = dict(topic)
-    data['user'] = current_user
+    data['content'] = renderer.markup(topic.content)
     return jsonify(data)

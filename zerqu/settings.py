@@ -25,6 +25,9 @@ ZERQU_MOBILE_TEMPLATE = 'mobile.html'
 ZERQU_MOBILE_STYLES = []
 ZERQU_MOBILE_SCRIPTS = []
 
+# user can update topic in the given seconds
+ZERQU_VALID_MODIFY_TIME = 600
+
 # render topic content use the given renderer, other choice is `text`
 # it can also be a module string for importing
 ZERQU_TEXT_RENDERER = 'markdown'

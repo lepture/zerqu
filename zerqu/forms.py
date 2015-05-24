@@ -10,7 +10,7 @@ from wtforms.fields import TextAreaField
 from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
 from .models import db, cache
-from .models import User, Cafe, Comment
+from .models import User, Cafe, Comment, Topic
 from .errors import FormError
 
 
@@ -22,6 +22,10 @@ class Form(BaseForm):
         if not form.validate():
             raise FormError(form)
         return form
+
+    def _validate_obj(self, key, value):
+        obj = getattr(self, '_obj', None)
+        return obj and getattr(obj, key) == value
 
 
 class UserForm(Form):
@@ -66,10 +70,6 @@ class CafeForm(Form):
     content = TextAreaField()
     permission = StringField()
     # TODO: multiple choices features
-
-    def _validate_obj(self, key, value):
-        obj = getattr(self, '_obj', None)
-        return obj and getattr(obj, key) == value
 
     def validate_slug(self, field):
         if self._validate_obj('slug', field.data):
@@ -117,6 +117,52 @@ class CafeForm(Form):
         with db.auto_commit():
             db.session.add(cafe)
         return cafe
+
+
+class TopicForm(Form):
+    title = StringField(validators=[DataRequired()])
+    link = StringField()
+    content = TextAreaField()
+
+    feature_type = StringField()
+    feature_value = StringField()
+
+    def validate_feature_type(self, field):
+        pass
+
+    def validate_feature_value(self, field):
+        pass
+
+    def validate_link(self, field):
+        if not field.data:
+            return
+
+    def create_topic(self, cafe_id, user_id):
+        # TODO: process feature
+
+        if self.link.data:
+            link = self.link.data
+        else:
+            link = None
+
+        topic = Topic(
+            title=self.title.data,
+            content=self.content.data,
+            link=link,
+            cafe_id=cafe_id,
+            user_id=user_id,
+        )
+        with db.auto_commit():
+            db.session.add(topic)
+        return topic
+
+    def update_topic(self):
+        topic = getattr(self, '_obj')
+        topic.title = self.title.data
+        topic.content = self.content.data
+        with db.auto_commit():
+            db.session.add(topic)
+        return topic
 
 
 class CommentForm(Form):
