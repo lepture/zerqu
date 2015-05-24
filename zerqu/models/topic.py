@@ -54,6 +54,51 @@ class Topic(Base):
     def user(self):
         return User.cache.get(self.user_id)
 
+    def get_statuses(self, user_id=None):
+        rv = {
+            'like_count': TopicLike.cache.filter_count(topid_id=self.id),
+            'comment_count': Comment.cache.filter_count(topid_id=self.id),
+        }
+        if user_id:
+            key = (self.id, user_id)
+            rv['liked_by_me'] = bool(TopicLike.cache.get(key))
+            read = TopicRead.cache.get(key)
+            if read:
+                rv['read_by_me'] = read.percent
+            else:
+                rv['read_by_me'] = '0%'
+        return rv
+
+    @staticmethod
+    def get_multi_statuses(tids, user_id):
+        rv = {}
+        likes = TopicLike.topics_like_counts(tids)
+        comments = Comment.topics_comment_counts(tids)
+        reading = TopicRead.topics_read_counts(tids)
+
+        for tid in tids:
+            tid = str(tid)
+            rv[tid] = {
+                'like_count': likes.get(tid, 0),
+                'comment_count': comments.get(tid, 0),
+                'read_count': reading.get(tid, 0),
+            }
+
+        if not user_id:
+            return rv
+
+        liked = TopicLike.topics_liked_by_user(user_id, tids)
+        reads = TopicRead.topics_read_by_user(user_id, tids)
+        for tid in tids:
+            tid = str(tid)
+            item = liked.get(tid)
+            if item:
+                rv[tid]['liked_by_me'] = item.created_at
+            item = reads.get(tid)
+            if item:
+                rv[tid]['read_by_me'] = item.percent
+        return rv
+
 
 class TopicLike(Base):
     __tablename__ = 'zq_topic_like'

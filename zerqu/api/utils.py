@@ -24,7 +24,7 @@ def cursor_query(model, filter_func=None):
     cursor = int_or_raise('cursor', 0)
     count = int_or_raise('count', 20, 100)
     query = db.session.query(model.id)
-    desc = request.args.get('order') == 'desc'
+    desc = request.args.get('order') != 'asc'
 
     if cursor and desc:
         query = query.filter(model.id < cursor)

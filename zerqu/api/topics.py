@@ -26,35 +26,10 @@ def view_statuses():
         raise APIException(
             description='Require int type on "topics" parameter'
         )
-
-    rv = {}
-    likes = TopicLike.topics_like_counts(tids)
-    comments = Comment.topics_comment_counts(tids)
-    reading = TopicRead.topics_read_counts(tids)
-
-    for tid in tids:
-        tid = str(tid)
-        rv[tid] = {
-            'like_count': likes.get(tid, 0),
-            'comment_count': comments.get(tid, 0),
-            'read_count': reading.get(tid, 0),
-        }
-
-    if not current_user:
-        return jsonify(rv)
-
-    liked = TopicLike.topics_liked_by_user(current_user.id, tids)
-    reads = TopicRead.topics_read_by_user(current_user.id, tids)
-    for tid in tids:
-        tid = str(tid)
-        item = liked.get(tid)
-        if item:
-            rv[tid]['liked_by_me'] = item.created_at
-        item = reads.get(tid)
-        if item:
-            rv[tid]['read_by_me'] = item.percent
-
-    return jsonify(rv)
+    user_id = None
+    if current_user:
+        user_id = current_user.id
+    return jsonify(Topic.get_multi_statuses(tids, user_id))
 
 
 @api.route('/<int:tid>')
@@ -62,9 +37,6 @@ def view_statuses():
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
     data = dict(topic)
-
-    cafe = Cafe.cache.get(topic.cafe_id)
-    data['cafe'] = dict(cafe)
 
     # /api/topic/:id?content=raw vs ?content=html
     content_format = request.args.get('content')
@@ -74,15 +46,11 @@ def view_topic(tid):
         data['content'] = renderer.markup(topic.content)
 
     data['user'] = dict(topic.user)
-    data['like_count'] = TopicLike.cache.filter_count(topid_id=tid)
-    data['comment_count'] = Comment.cache.filter_count(topid_id=tid)
-
+    data['cafe'] = dict(Cafe.cache.get(topic.cafe_id))
+    user_id = None
     if current_user:
-        if TopicLike.cache.get((tid, current_user.id)):
-            data['liked_by_me'] = True
-        else:
-            data['liked_by_me'] = False
-
+        user_id = current_user.id
+    data.update(topic.get_statuses(user_id))
     return jsonify(data)
 
 
