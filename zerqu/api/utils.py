@@ -17,13 +17,14 @@ def int_or_raise(key, value=0, maxvalue=None):
         )
 
 
-def cursor_query(model, desc=True, filter_func=None):
+def cursor_query(model, filter_func=None):
     """Return a cursor query on the given model. The model must has id as
     the primary key.
     """
     cursor = int_or_raise('cursor', 0)
     count = int_or_raise('count', 20, 100)
     query = db.session.query(model.id)
+    desc = request.args.get('order') == 'desc'
 
     if cursor and desc:
         query = query.filter(model.id < cursor)

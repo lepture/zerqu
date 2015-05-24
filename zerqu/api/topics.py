@@ -3,10 +3,11 @@
 from flask import request, jsonify
 from .base import ApiBlueprint
 from .base import require_oauth
-from .utils import pagination
+from .utils import cursor_query, pagination
 from ..errors import APIException, Conflict
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
+from ..forms import CommentForm
 
 api = ApiBlueprint('topics')
 
@@ -109,15 +110,26 @@ def write_read_percent(tid):
 
 
 @api.route('/<int:tid>/comments')
-@require_oauth(login=False)
+@require_oauth(login=False, cache_time=600)
 def view_topic_comments(tid):
-    return ''
+    topic = Topic.cache.get_or_404(tid)
+    data, cursor = cursor_query(
+        Comment, lambda q: q.filter_by(topic_id=topic.id)
+    )
+    reference = {'user': User.cache.get_dict({o.user_id for o in data})}
+    data = list(Comment.iter_dict(data, **reference))
+    return jsonify(data=data, cursor=cursor)
 
 
 @api.route('/<int:tid>/comments', methods=['POST'])
 @require_oauth(login=True, scopes=['comment:write'])
-def create_topic_comments(tid):
-    return ''
+def create_topic_comment(tid):
+    topic = Topic.cache.get_or_404(tid)
+    form = CommentForm.create_api_form()
+    comment = form.create_comment(current_user.id, topic.id)
+    rv = dict(comment)
+    rv['user'] = dict(current_user)
+    return jsonify(rv)
 
 
 @api.route('/<int:tid>/likes')

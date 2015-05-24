@@ -161,10 +161,7 @@ def list_cafe_users(slug):
 @cache_response(600)
 def list_cafe_topics(slug):
     cafe = get_and_protect_cafe(slug)
-    data, cursor = cursor_query(
-        Topic, True,
-        lambda q: q.filter_by(cafe_id=cafe.id)
-    )
+    data, cursor = cursor_query(Topic, lambda q: q.filter_by(cafe_id=cafe.id))
     reference = {'user': User.cache.get_dict({o.user_id for o in data})}
     data = list(Topic.iter_dict(data, **reference))
     return jsonify(data=data, cursor=cursor)

@@ -1,15 +1,16 @@
 # coding: utf-8
 
-
+import hashlib
 from flask import request
 from werkzeug.datastructures import MultiDict
 from flask_wtf import Form as BaseForm
 from flask_wtf.recaptcha import RecaptchaField
 from wtforms.fields import StringField, PasswordField
-from wtforms.fields import SelectField, TextAreaField
+from wtforms.fields import TextAreaField
 from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
-from .models import db, User, Cafe
+from .models import db, cache
+from .models import User, Cafe, Comment
 from .errors import FormError
 
 
@@ -116,3 +117,24 @@ class CafeForm(Form):
         with db.auto_commit():
             db.session.add(cafe)
         return cafe
+
+
+class CommentForm(Form):
+    content = TextAreaField()
+
+    def validate_content(self, field):
+        key = hashlib.md5(field.data).hexdigest()
+        if cache.get(key):
+            raise StopValidation("Duplicate requesting")
+        # avoid duplicate requesting
+        cache.set(key, 1, 100)
+
+    def create_comment(self, user_id, topic_id):
+        c = Comment(
+            user_id=user_id,
+            topic_id=topic_id,
+            content=self.content.data,
+        )
+        with db.auto_commit():
+            db.session.add(c)
+        return c
