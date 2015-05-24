@@ -122,6 +122,14 @@ class CafeMember(Base):
     # people who can change cafe descriptions
     ROLE_ADMIN = 9
 
+    ROLE_LABELS = {
+        ROLE_VISITOR: 'visitor',
+        ROLE_APPLICANT: 'applicant',
+        ROLE_SUBSCRIBER: 'subscriber',
+        ROLE_MEMBER: 'member',
+        ROLE_ADMIN: 'admin',
+    }
+
     cafe_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, primary_key=True)
     role = Column('role', SmallInteger, default=0)
@@ -131,17 +139,7 @@ class CafeMember(Base):
 
     @cached_property
     def label(self):
-        if self.role == self.ROLE_VISITOR:
-            return 'visitor'
-        if self.role == self.ROLE_APPLICANT:
-            return 'applicant'
-        if self.role == self.ROLE_SUBSCRIBER:
-            return 'subscriber'
-        if self.role == self.ROLE_MEMBER:
-            return 'member'
-        if self.role == self.ROLE_ADMIN:
-            return 'admin'
-        return None
+        return self.ROLE_LABELS.get(self.role)
 
     def keys(self):
         return ['cafe_id', 'user_id', 'label', 'created_at', 'updated_at']
