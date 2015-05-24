@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from flask import request, jsonify
+from markupsafe import escape
 from .base import ApiBlueprint
 from .base import require_oauth
 from .utils import cursor_query, pagination
@@ -8,6 +9,7 @@ from ..errors import APIException, Conflict
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 from ..forms import CommentForm
+from ..libs import renderer
 
 api = ApiBlueprint('topics')
 
@@ -67,10 +69,9 @@ def view_topic(tid):
     # /api/topic/:id?content=raw vs ?content=html
     content_format = request.args.get('content')
     if content_format == 'raw':
-        data['content'] = topic.content
+        data['content'] = escape(topic.content)
     else:
-        # TODO: render to html
-        data['content'] = topic.content
+        data['content'] = renderer.markup(topic.content)
 
     data['user'] = dict(topic.user)
     data['like_count'] = TopicLike.cache.filter_count(topid_id=tid)
@@ -146,6 +147,7 @@ def view_topic_likes(tid):
     items = q.order_by(TopicLike.created_at).offset(offset).limit(perpage)
     user_ids = [o.user_id for o in items]
 
+    # make current user at the very first position of the list
     current_info = current_user and pagi['page'] == 1
     if current_info and current_user.id in user_ids:
         user_ids.remove(current_user.id)
