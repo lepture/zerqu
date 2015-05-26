@@ -182,8 +182,7 @@ class CacheProperty(object):
             return None
 
 
-class Base(db.Model):
-    __abstract__ = True
+class BaseMixin(object):
     __reference__ = {}
 
     def __getitem__(self, key):
@@ -222,21 +221,22 @@ class Base(db.Model):
             key = _unique_key(target, mapper.primary_key)
             cache.delete_many(key, target.generate_cache_prefix('count'))
 
-Base.cache = CacheProperty(db)
+
+class Base(db.Model, BaseMixin):
+    __abstract__ = True
+    cache = CacheProperty(db)
 
 
 class MutableDict(Mutable, dict):
     @classmethod
     def coerce(cls, key, value):
         """Convert plain dictionaries to MutableDict."""
-        if not isinstance(value, MutableDict):
-            if isinstance(value, dict):
-                return MutableDict(value)
-
-            # this call will raise ValueError
-            return Mutable.coerce(key, value)
-        else:
+        if isinstance(value, MutableDict):
             return value
+        if isinstance(value, dict):
+            return MutableDict(value)
+        # this call will raise ValueError
+        return Mutable.coerce(key, value)
 
     def __setitem__(self, key, value):
         """Detect dictionary set events and emit change events."""
