@@ -32,12 +32,14 @@ ZERQU_VALID_MODIFY_TIME = 600
 # it can also be a module string for importing
 ZERQU_TEXT_RENDERER = 'markdown'
 
-ZERQU_CAFE_FEATURES = {
+ZERQU_FEATURE_DEFINES = {
     'link': 0b1,
     'image': 0b10,
-    'gist': 0b100,
-    'video': 0b1000,
-    'audio': 0b10000,
+    'video': 0b100,
+    'audio': 0b1000,
 }
+
+# define your custom processors
+ZERQU_FEATURE_PROCESSORS = {}
 
 ZERQU_CAFE_CREATOR_ROLE = 4

@@ -101,7 +101,7 @@ class Cafe(Base):
             return []
 
         rv = []
-        defines = current_app.config.get('ZERQU_CAFE_FEATURES')
+        defines = current_app.config.get('ZERQU_FEATURE_DEFINES')
         for k in defines:
             if defines[k] & self._features:
                 rv.append(k)

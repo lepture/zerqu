@@ -11,7 +11,8 @@ from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
 from .models import db, cache
 from .models import User, Cafe, Comment, Topic
-from .errors import FormError
+from .errors import APIException, FormError
+from .libs import feature
 
 
 class Form(BaseForm):
@@ -127,19 +128,11 @@ class TopicForm(Form):
     feature_type = StringField()
     feature_value = StringField()
 
-    def validate_feature_type(self, field):
-        pass
-
-    def validate_feature_value(self, field):
-        pass
-
     def validate_link(self, field):
         if not field.data:
             return
 
     def create_topic(self, cafe_id, user_id):
-        # TODO: process feature
-
         if self.link.data:
             link = self.link.data
         else:
@@ -152,6 +145,22 @@ class TopicForm(Form):
             cafe_id=cafe_id,
             user_id=user_id,
         )
+
+        feature_type = self.feature_type.data
+        feature_value = self.feature_value.data
+        if feature_type and feature_value:
+            cafe = Cafe.cache.get(cafe_id)
+            if feature_type not in cafe.features:
+                raise APIException('Invalid feature_type')
+            try:
+                feature.process(
+                    feature_type,
+                    feature_value,
+                    topic,
+                )
+            except feature.FeatureError as e:
+                raise APIException(e.message)
+
         with db.auto_commit():
             db.session.add(topic)
         return topic
