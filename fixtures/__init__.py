@@ -1,6 +1,11 @@
 import os
 import json
-from zerqu.models import db, User
+from zerqu.models import db
+from zerqu.models import (
+    User,
+    OAuthClient,
+)
+
 
 root = os.path.dirname(__file__)
 
@@ -17,3 +22,4 @@ def load(cls, filename):
 
 def run():
     load(User, 'users.json')
+    load(OAuthClient, 'clients.json')
