@@ -24,7 +24,18 @@ root = os.path.abspath(os.path.dirname(__file__))
 os.environ['ZERQU_CONF'] = os.path.join(root, 'etc/development.py')
 
 app = create_app()
-with app.app_context():
-    db.create_all()
+
+
+def create_database():
+    import fixtures
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        fixtures.run()
+
+
+if '--initdb' in sys.argv:
+    create_database()
+
 app.debug = True
 app.run()
