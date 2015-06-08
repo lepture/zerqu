@@ -1,10 +1,17 @@
 # coding: utf-8
 
 from flask import Blueprint
-from zerqu.libs import render_template
+from flask import render_template
+from zerqu.libs.utils import is_robot
 
 
 bp = Blueprint('front', __name__)
+
+
+@bp.before_request
+def handle_app():
+    if not is_robot():
+        return render_template('app.html')
 
 
 @bp.route('/')
