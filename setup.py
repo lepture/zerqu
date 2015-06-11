@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
-try:
-    import multiprocessing
-except ImportError:
-    pass
-
 try:
     from setuptools import setup
 except ImportError:
@@ -42,8 +36,6 @@ setup(
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
-        'License :: OSI Approved',
-        'License :: OSI Approved :: BSD License',
         'Operating System :: MacOS',
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
