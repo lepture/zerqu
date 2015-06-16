@@ -3,7 +3,6 @@
 from flask import jsonify
 from .base import ApiBlueprint
 from .base import require_oauth, require_confidential
-from .utils import cursor_query
 from ..models import db, User, current_user
 from ..forms import RegisterForm, UserProfileForm
 
@@ -21,8 +20,9 @@ def create_user():
 @api.route('')
 @require_oauth(login=False, cache_time=300)
 def list_users():
-    data, cursor = cursor_query(User)
-    return jsonify(data=data, cursor=cursor)
+    q = User.query.filter(User.role >= 0).order_by(User.reputation.desc())
+    data = q.limit(100).all()
+    return jsonify(data=data)
 
 
 @api.route('/<username>')

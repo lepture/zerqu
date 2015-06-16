@@ -11,7 +11,8 @@ OAUTH2_CACHE_TYPE = 'simple'
 # Gravatar settings
 GRAVATAR_URL = 'https://secure.gravatar.com/avatar/'
 GRAVATAR_PARAMETERS = {
-    's': '140'
+    's': '140',
+    'd': '404',
 }
 
 # ZERQU settings

@@ -119,11 +119,6 @@ class TestListUsers(TestCase):
         rv = self.client.get('/api/users')
         assert rv.status_code == 200
 
-    def test_list_with_cursor(self):
-        rv = self.client.get('/api/users?cursor=2')
-        value = json.loads(rv.data)
-        assert len(value['data']) == 1
-
 
 class TestViewUser(TestCase):
     def test_not_found(self):
