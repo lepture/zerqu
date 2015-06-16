@@ -2,7 +2,6 @@ import os
 import json
 from zerqu.models import db
 from zerqu.models import (
-    User,
     OAuthClient,
 )
 
@@ -20,6 +19,15 @@ def load(cls, filename):
     db.session.commit()
 
 
+def commit(module):
+    for m in module.iter_data():
+        db.session.add(m)
+    db.session.commit()
+
+
 def run():
-    load(User, 'users.json')
+    from fixtures import users, cafes
+    commit(users)
+    commit(cafes)
+
     load(OAuthClient, 'clients.json')
