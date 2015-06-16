@@ -36,6 +36,7 @@ def create_database():
 
 if '--initdb' in sys.argv:
     create_database()
+    sys.exit()
 
 app.debug = True
 app.run()

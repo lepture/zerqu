@@ -1,5 +1,6 @@
 import os
 import json
+from sqlalchemy.exc import IntegrityError
 from zerqu.models import db
 from zerqu.models import (
     OAuthClient,
@@ -22,12 +23,17 @@ def load(cls, filename):
 def commit(module):
     for m in module.iter_data():
         db.session.add(m)
-    db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            pass
 
 
 def run():
-    from fixtures import users, cafes
+    from fixtures import users, cafes, topics
     commit(users)
     commit(cafes)
+    commit(topics)
 
     load(OAuthClient, 'clients.json')

@@ -1,4 +1,5 @@
 
+import random
 from zerqu.models import Cafe
 
 
@@ -27,6 +28,41 @@ def iter_site_cafes():
     }
 
 
+def iter_user_cafes():
+    names = []
+    with open('/usr/share/dict/words', 'rb') as f:
+        for word in f:
+            word = word.strip()
+            if 4 < len(word) < 8:
+                names.append(word)
+
+    def pick_name():
+        first = random.choice(names)
+        last = random.choice(names)
+        return '%s %s' % (first, last)
+
+    for i in range(3, 102):
+        name = pick_name()
+        slug = name.replace(' ', '-').lower()
+        color = (
+            random.randint(0, 256),
+            random.randint(0, 256),
+            random.randint(0, 256),
+        )
+        yield {
+            "id": i,
+            "name": name,
+            "slug": slug,
+            "permission": random.choice([0, 3, 6, 9]),
+            "user_id": random.randint(1, 1024),
+            "style": {
+                "base_color": 'rgb(%d, %d, %d)' % color
+            }
+        }
+
+
 def iter_data():
     for data in iter_site_cafes():
+        yield Cafe(**data)
+    for data in iter_user_cafes():
         yield Cafe(**data)
