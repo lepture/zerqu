@@ -100,6 +100,18 @@ class Topic(Base):
         return rv
 
 
+class TopicStatus(Base):
+    __tablename__ = 'zq_topic_status'
+
+    topic_id = Column(Integer, primary_key=True)
+    views = Column(Integer, default=1)
+    reads = Column(Integer, default=1)
+    likes = Column(Integer, default=0)
+    comments = Column(Integer, default=0)
+    timestamp = Column(Integer, default=0)
+    reputation = Column(Integer, default=0)
+
+
 class TopicLike(Base):
     __tablename__ = 'zq_topic_like'
 
