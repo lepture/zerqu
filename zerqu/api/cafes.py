@@ -10,6 +10,7 @@ from .utils import cursor_query, pagination
 from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
+from ..models.topic import topic_list_with_statuses
 from ..forms import CafeForm, TopicForm
 from ..libs import renderer
 
@@ -163,19 +164,8 @@ def list_cafe_topics(slug):
     data, cursor = cursor_query(Topic, lambda q: q.filter_by(cafe_id=cafe.id))
     reference = {'user': User.cache.get_dict({o.user_id for o in data})}
     data = list(Topic.iter_dict(data, **reference))
-
-    if current_user:
-        user_id = current_user.id
-    else:
-        user_id = None
-
-    rv = []
-    statuses = Topic.get_multi_statuses([t['id'] for t in data], user_id)
-    for t in data:
-        t.update(statuses.get(str(t['id']), {}))
-        rv.append(t)
-
-    return jsonify(data=rv, cursor=cursor)
+    data = topic_list_with_statuses(data, current_user.id)
+    return jsonify(data=data, cursor=cursor)
 
 
 @api.route('/<slug>/topics', methods=['POST'])

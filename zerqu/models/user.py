@@ -186,11 +186,34 @@ class AuthSession(Base):
         return data.user
 
 
+class Anonymous(object):
+    id = None
+
+    def __eq__(self, other):
+        return isinstance(other, Anonymous)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __nonzero__(self):
+        return False
+
+    def __bool__(self):
+        return False
+
+    def __str__(self):
+        return "Anonymous User"
+
+ANONYMOUS = Anonymous()
+
+
 def _get_current_user():
     user = getattr(request, '_current_user', None)
     if user:
         return user
     user = AuthSession.get_current_user()
+    if user is None:
+        return ANONYMOUS
     request._current_user = user
     return user
 

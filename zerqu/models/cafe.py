@@ -7,7 +7,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer
 from .user import User
-from .base import Base, JSON
+from .base import db, Base, JSON
 
 __all__ = ['Cafe', 'CafeMember']
 
@@ -21,6 +21,8 @@ class Cafe(Base):
         6: 'verified',
         9: 'official',
     }
+    STATUS_VERIFIED = 6
+    STATUS_OFFICIAL = 9
 
     # everyone can read and write
     PERMISSION_PUBLIC = 0
@@ -107,6 +109,25 @@ class Cafe(Base):
                 rv.append(k)
         return rv
 
+    @classmethod
+    def get_cafe_ids_by_status(cls, status):
+        q = db.session.query(cls.id).filter_by(status=status)
+        return {cafe_id for cafe_id, in q}
+
+    @classmethod
+    def get_cafe_ids_by_user_id(cls, user_id):
+        q = db.session.query(cls.id).filter_by(user_id=user_id)
+        return {cafe_id for cafe_id, in q}
+
+    @classmethod
+    def get_timeline_cafe_ids(cls, user_id=None):
+        if user_id:
+            following = CafeMember.get_user_following_cafe_ids(user_id)
+            rv = cls.get_cafe_ids_by_user_id(user_id) | following
+        else:
+            rv = cls.get_cafe_ids_by_status(cls.STATUS_VERIFIED)
+        return cls.get_cafe_ids_by_status(cls.STATUS_OFFICIAL) | rv
+
 
 class CafeMember(Base):
     __tablename__ = 'zq_cafe_member'
@@ -143,3 +164,10 @@ class CafeMember(Base):
 
     def keys(self):
         return ['cafe_id', 'user_id', 'label', 'created_at', 'updated_at']
+
+    @classmethod
+    def get_user_following_cafe_ids(cls, user_id):
+        # TODO: cache
+        q = db.session.query(cls.cafe_id).filter_by(user_id=user_id)
+        q = q.filter(cls.role >= cls.ROLE_SUBSCRIBER)
+        return {cafe_id for cafe_id, in q}

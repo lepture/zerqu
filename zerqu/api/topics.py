@@ -10,10 +10,28 @@ from .utils import cursor_query, pagination
 from ..errors import APIException, Conflict, NotFound
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
+from ..models.topic import topic_list_with_statuses
 from ..forms import TopicForm, CommentForm
 from ..libs import renderer
 
 api = ApiBlueprint('topics')
+
+
+@api.route('/timeline')
+@require_oauth(login=False, cache_time=600)
+def timeline():
+    cafe_ids = Cafe.get_timeline_cafe_ids(current_user.id)
+    data, cursor = cursor_query(
+        Topic,
+        lambda q: q.filter(Topic.cafe_id.in_(cafe_ids)),
+    )
+    reference = {
+        'user': User.cache.get_dict({o.user_id for o in data}),
+        'cafe': Cafe.cache.get_dict({o.cafe_id for o in data}),
+    }
+    data = list(Topic.iter_dict(data, **reference))
+    data = topic_list_with_statuses(data, current_user.id)
+    return jsonify(data=data, cursor=cursor)
 
 
 @api.route('/statuses')

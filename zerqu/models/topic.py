@@ -219,3 +219,17 @@ def topic_ref_current_user(cls, user_id, topic_ids):
 
     cache.set_many(to_cache, CACHE_TIMES['get'])
     return rv
+
+
+def topic_list_with_statuses(topics, user_id):
+    """Update topic list with statuses.
+
+    :param topics: A list of topic dict.
+    :param user_id: Current user ID.
+    """
+    rv = []
+    statuses = Topic.get_multi_statuses([t['id'] for t in topics], user_id)
+    for t in topics:
+        t.update(statuses.get(str(t['id']), {}))
+        rv.append(t)
+    return rv
