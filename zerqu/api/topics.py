@@ -6,11 +6,12 @@ from flask import request, jsonify
 from markupsafe import escape
 from .base import ApiBlueprint
 from .base import require_oauth
-from .utils import cursor_query, pagination_query
+from .utils import cursor_query, pagination_query, int_or_raise
 from ..errors import APIException, Conflict, NotFound
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 from ..models.topic import topic_list_with_statuses
+from ..rec.timeline import get_timeline_topics
 from ..forms import TopicForm, CommentForm
 from ..libs import renderer
 
@@ -20,11 +21,8 @@ api = ApiBlueprint('topics')
 @api.route('/timeline')
 @require_oauth(login=False, cache_time=600)
 def timeline():
-    cafe_ids = Cafe.get_timeline_cafe_ids(current_user.id)
-    data, cursor = cursor_query(
-        Topic,
-        lambda q: q.filter(Topic.cafe_id.in_(cafe_ids)),
-    )
+    cursor = int_or_raise('cursor', 0)
+    data, cursor = get_timeline_topics(cursor, current_user.id)
     reference = {
         'user': User.cache.get_dict({o.user_id for o in data}),
         'cafe': Cafe.cache.get_dict({o.cafe_id for o in data}),

@@ -109,25 +109,6 @@ class Cafe(Base):
                 rv.append(k)
         return rv
 
-    @classmethod
-    def get_cafe_ids_by_status(cls, status):
-        q = db.session.query(cls.id).filter_by(status=status)
-        return {cafe_id for cafe_id, in q}
-
-    @classmethod
-    def get_cafe_ids_by_user_id(cls, user_id):
-        q = db.session.query(cls.id).filter_by(user_id=user_id)
-        return {cafe_id for cafe_id, in q}
-
-    @classmethod
-    def get_timeline_cafe_ids(cls, user_id=None):
-        if user_id:
-            following = CafeMember.get_user_following_cafe_ids(user_id)
-            rv = cls.get_cafe_ids_by_user_id(user_id) | following
-        else:
-            rv = cls.get_cafe_ids_by_status(cls.STATUS_VERIFIED)
-        return cls.get_cafe_ids_by_status(cls.STATUS_OFFICIAL) | rv
-
 
 class CafeMember(Base):
     __tablename__ = 'zq_cafe_member'
