@@ -10,6 +10,7 @@ def iter_site_cafes():
         "slug": "site",
         "content": "Things about this site. This very site is something",
         "permission": 6,
+        "status": 9,
         "user_id": 1,
         "style": {
             "base_color": "#42B983"
@@ -21,6 +22,7 @@ def iter_site_cafes():
         "name": "About",
         "slug": "about",
         "permission": 6,
+        "status": 9,
         "user_id": 1,
         "style": {
             "logo_url": "https://avatars0.githubusercontent.com/u/290496"
@@ -54,6 +56,7 @@ def iter_user_cafes():
             "name": name,
             "slug": slug,
             "permission": random.choice([0, 3, 6, 9]),
+            "status": random.choice([0, 1, 6]),
             "user_id": random.randint(1, 1024),
             "style": {
                 "base_color": 'rgb(%d, %d, %d)' % color
