@@ -49,7 +49,7 @@ def cursor_query(model, filter_func=None):
     return data, cursor
 
 
-def pagination_query(model, order_by, **filters):
+def pagination_query(model, key, **filters):
     page = int_or_raise('page', 1)
     if page < 1:
         raise APIException(description='page should be larger than 1')
@@ -66,5 +66,24 @@ def pagination_query(model, order_by, **filters):
             description='page should be smaller than total pages'
         )
 
-    q = model.query.filter_by(**filters).order_by(order_by)
-    return rv.fetch(q), rv
+    if not isinstance(key, str):
+        q = model.query.filter_by(**filters).order_by(key)
+        return rv.fetch(q), rv
+
+    order_key = request.args.get('key', key)
+    desc = request.args.get('order') != 'asc'
+    if not hasattr(model, order_key):
+        order_key = key
+
+    field = getattr(model, order_key)
+    if desc:
+        field = field.desc()
+
+    if hasattr(model, 'id'):
+        q = db.session.query(model.id).filter_by(**filters).order_by(field)
+        ids = [i for i, in rv.fetch(q)]
+        data = model.cache.get_many(ids)
+    else:
+        q = model.query.filter_by(**filters).order_by(field)
+        data = rv.fetch(q)
+    return data, rv

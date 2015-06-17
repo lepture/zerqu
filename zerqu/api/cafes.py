@@ -157,11 +157,11 @@ def list_cafe_users(slug):
 @cache_response(600)
 def list_cafe_topics(slug):
     cafe = get_and_protect_cafe(slug)
-    data, cursor = cursor_query(Topic, lambda q: q.filter_by(cafe_id=cafe.id))
+    data, p = pagination_query(Topic, 'id', cafe_id=cafe.id)
     reference = {'user': User.cache.get_dict({o.user_id for o in data})}
     data = list(Topic.iter_dict(data, **reference))
     data = topic_list_with_statuses(data, current_user.id)
-    return jsonify(data=data, cursor=cursor)
+    return jsonify(data=data, pagination=dict(p))
 
 
 @api.route('/<slug>/topics', methods=['POST'])
