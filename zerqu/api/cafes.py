@@ -6,7 +6,7 @@ from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import ApiBlueprint
 from .base import require_oauth, oauth_ratelimit, cache_response
-from .utils import cursor_query, pagination
+from .utils import cursor_query, pagination_query
 from ..errors import NotFound, Denied, InvalidAccount, Conflict
 from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
@@ -136,22 +136,21 @@ def leave_cafe(slug):
 @cache_response(600)
 def list_cafe_users(slug):
     cafe = get_and_protect_cafe(slug)
-    pagi = pagination(CafeMember, cafe_id=cafe.id)
-
-    q = CafeMember.query.filter_by(cafe_id=cafe.id)
-    items = pagi.fetch(q.order_by(CafeMember.user_id))
-    user_ids = [o.user_id for o in items]
+    data, pagination = pagination_query(
+        CafeMember, CafeMember.user_id, cafe_id=cafe.id
+    )
+    user_ids = [o.user_id for o in data]
     users = User.cache.get_dict(user_ids)
 
     data = []
-    for item in items:
+    for item in data:
         key = str(item.user_id)
         if key in users:
             rv = dict(item)
             rv['user'] = dict(users[key])
             data.append(rv)
 
-    return jsonify(data=data, pagination=dict(pagi))
+    return jsonify(data=data, pagination=dict(pagination))
 
 
 @api.route('/<slug>/topics')

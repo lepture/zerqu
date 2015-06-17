@@ -6,7 +6,7 @@ from flask import request, jsonify
 from markupsafe import escape
 from .base import ApiBlueprint
 from .base import require_oauth
-from .utils import cursor_query, pagination
+from .utils import cursor_query, pagination_query
 from ..errors import APIException, Conflict, NotFound
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
@@ -139,21 +139,20 @@ def create_topic_comment(tid):
 def view_topic_likes(tid):
     topic = Topic.cache.get_or_404(tid)
 
-    pagi = pagination(TopicLike, topic_id=topic.id)
-
-    q = TopicLike.query.filter_by(topic_id=topic.id)
-    items = pagi.fetch(q.order_by(TopicLike.created_at))
-    user_ids = [o.user_id for o in items]
+    data, pagination = pagination_query(
+        TopicLike, TopicLike.created_at, topic_id=topic.id
+    )
+    user_ids = [o.user_id for o in data]
 
     # make current user at the very first position of the list
-    current_info = current_user and pagi['page'] == 1
+    current_info = current_user and pagination.page == 1
     if current_info and current_user.id in user_ids:
         user_ids.remove(current_user.id)
 
     data = User.cache.get_many(user_ids)
     if current_info and TopicLike.cache.get((topic.id, current_user.id)):
         data.insert(0, current_user)
-    return jsonify(data=data, pagination=dict(pagi))
+    return jsonify(data=data, pagination=dict(pagination))
 
 
 @api.route('/<int:tid>/likes', methods=['POST'])

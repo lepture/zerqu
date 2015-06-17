@@ -49,7 +49,7 @@ def cursor_query(model, filter_func=None):
     return data, cursor
 
 
-def pagination(model, **filters):
+def pagination_query(model, order_by, **filters):
     page = int_or_raise('page', 1)
     if page < 1:
         raise APIException(description='page should be larger than 1')
@@ -66,4 +66,5 @@ def pagination(model, **filters):
             description='page should be smaller than total pages'
         )
 
-    return rv
+    q = model.query.filter_by(**filters).order_by(order_by)
+    return rv.fetch(q), rv
