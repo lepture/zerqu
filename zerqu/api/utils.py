@@ -3,6 +3,7 @@
 from flask import request
 from ..models import db
 from ..errors import APIException
+from ..libs.utils import Pagination
 
 
 def int_or_raise(key, value=0, maxvalue=None):
@@ -48,7 +49,7 @@ def cursor_query(model, filter_func=None):
     return data, cursor
 
 
-def pagination(total):
+def pagination(model, **filters):
     page = int_or_raise('page', 1)
     if page < 1:
         raise APIException(description='page should be larger than 1')
@@ -57,23 +58,12 @@ def pagination(total):
     if perpage < 10:
         raise APIException(description='perpage should be larger than 10')
 
-    pages = int((total - 1) / perpage) + 1
-    if page > pages:
+    total = model.cache.filter_count(**filters)
+    rv = Pagination(total, page, perpage)
+
+    if page > rv.pages:
         raise APIException(
             description='page should be smaller than total pages'
         )
 
-    rv = {
-        'total': total,
-        'pages': pages,
-        'page': page,
-        'perpage': perpage,
-        'prev': None,
-        'next': None,
-    }
-
-    if page > 1:
-        rv['prev'] = page - 1
-    if page < pages:
-        rv['next'] = page + 1
     return rv

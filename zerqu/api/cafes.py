@@ -136,13 +136,10 @@ def leave_cafe(slug):
 @cache_response(600)
 def list_cafe_users(slug):
     cafe = get_and_protect_cafe(slug)
-    total = CafeMember.cache.filter_count(cafe_id=cafe.id)
-    pagi = pagination(total)
-    perpage = pagi['perpage']
-    offset = (pagi['page'] - 1) * perpage
+    pagi = pagination(CafeMember, cafe_id=cafe.id)
 
     q = CafeMember.query.filter_by(cafe_id=cafe.id)
-    items = q.order_by(CafeMember.user_id).offset(offset).limit(perpage).all()
+    items = pagi.fetch(q.order_by(CafeMember.user_id))
     user_ids = [o.user_id for o in items]
     users = User.cache.get_dict(user_ids)
 
@@ -154,7 +151,7 @@ def list_cafe_users(slug):
             rv['user'] = dict(users[key])
             data.append(rv)
 
-    return jsonify(data=data, pagination=pagi)
+    return jsonify(data=data, pagination=dict(pagi))
 
 
 @api.route('/<slug>/topics')

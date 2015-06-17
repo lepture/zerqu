@@ -139,13 +139,10 @@ def create_topic_comment(tid):
 def view_topic_likes(tid):
     topic = Topic.cache.get_or_404(tid)
 
-    total = TopicLike.cache.filter_count(topic_id=topic.id)
-    pagi = pagination(total)
-    perpage = pagi['perpage']
-    offset = (pagi['page'] - 1) * perpage
+    pagi = pagination(TopicLike, topic_id=topic.id)
 
     q = TopicLike.query.filter_by(topic_id=topic.id)
-    items = q.order_by(TopicLike.created_at).offset(offset).limit(perpage)
+    items = pagi.fetch(q.order_by(TopicLike.created_at))
     user_ids = [o.user_id for o in items]
 
     # make current user at the very first position of the list
@@ -156,7 +153,7 @@ def view_topic_likes(tid):
     data = User.cache.get_many(user_ids)
     if current_info and TopicLike.cache.get((topic.id, current_user.id)):
         data.insert(0, current_user)
-    return jsonify(data=data, pagination=pagi)
+    return jsonify(data=data, pagination=dict(pagi))
 
 
 @api.route('/<int:tid>/likes', methods=['POST'])
