@@ -14,7 +14,7 @@ def ratelimit(prefix, count=600, duration=300):
     reset_key = '%s$r' % prefix
     remaining, resetting = cache.get_many(count_key, reset_key)
 
-    if not remaining and not resetting:
+    if not remaining or not resetting:
         remaining = count - 1
         expires_at = duration + int(time.time())
         cache.set_many({
