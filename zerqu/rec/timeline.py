@@ -4,7 +4,7 @@ from zerqu.models import db, Topic, Cafe, CafeMember
 # TODO: use redis to calculate popularity
 
 
-def get_timeline_topics(cursor=None, user_id=None):
+def get_timeline_topics(cursor=None, user_id=None, count=20):
     if user_id:
         cafe_ids = get_user_timeline_cafe_ids(user_id)
     else:
@@ -12,9 +12,8 @@ def get_timeline_topics(cursor=None, user_id=None):
 
     q = db.session.query(Topic.id).filter(Topic.cafe_id.in_(cafe_ids))
     if cursor:
-        q.filter(Topic.id < cursor)
+        q = q.filter(Topic.id < cursor)
 
-    count = 20
     q = q.order_by(Topic.id.desc()).limit(count)
     topic_ids = [i for i, in q]
     topics = Topic.cache.get_many(topic_ids)
