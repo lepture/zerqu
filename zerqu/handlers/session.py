@@ -14,10 +14,10 @@ def session():
     if request.method == 'DELETE':
         if AuthSession.logout():
             return jsonify(status='ok')
-        return jsonify(status='error')
+        return jsonify(status='error'), 400
 
     if request.mimetype != 'application/json':
-        return jsonify(status='error')
+        return jsonify(status='error'), 400
 
     data = request.get_json()
     username = data.get('username')
@@ -27,7 +27,7 @@ def session():
             status='error',
             error_code='missing_required_field',
             error_description='Username and password are required.'
-        )
+        ), 400
     if '@' in username:
         user = User.cache.filter_first(email=username)
     else:
@@ -37,7 +37,7 @@ def session():
             status='error',
             error_code='login_failed',
             error_description='Invalid username or password.'
-        )
+        ), 400
     permanent = data.get('permanent', False)
     AuthSession.login(user, permanent)
     return jsonify(status='ok', data=user), 201

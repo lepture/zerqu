@@ -34,4 +34,5 @@ def get_user_timeline_cafe_ids(user_id):
 def get_public_timeline_cafe_ids():
     statuses = [Cafe.STATUS_OFFICIAL, Cafe.STATUS_VERIFIED]
     q = db.session.query(Cafe.id).filter(Cafe.status.in_(statuses))
+    q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
     return {cafe_id for cafe_id, in q}
