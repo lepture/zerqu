@@ -3,6 +3,7 @@
 from flask import Blueprint
 from flask import request
 from flask import jsonify
+from ..errors import LimitExceeded
 from ..models import User, AuthSession
 
 
@@ -28,10 +29,19 @@ def session():
             error_code='missing_required_field',
             error_description='Username and password are required.'
         ), 400
+
+    # can only try login a user 5 times
+    prefix = 'limit:login:{0}:{1}'.format(username, request.remote_addr)
+    LimitExceeded.raise_on_limit(prefix, 5, 3600)
+
+    prefix = 'limit:login:{0}'.format(request.remote_addr)
+    LimitExceeded.raise_on_limit(prefix, 60, 3600)
+
     if '@' in username:
         user = User.cache.filter_first(email=username)
     else:
         user = User.cache.filter_first(username=username)
+
     if not user or not user.check_password(password):
         return jsonify(
             status='error',
@@ -40,4 +50,4 @@ def session():
         ), 400
     permanent = data.get('permanent', False)
     AuthSession.login(user, permanent)
-    return jsonify(status='ok', data=user), 201
+    return jsonify(user), 201

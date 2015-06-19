@@ -8,7 +8,6 @@ from ..errors import NotAuth, NotConfidential
 from ..errors import LimitExceeded, InvalidClient
 from ..models import oauth, cache, current_user
 from ..models import AuthSession, OAuthClient
-from ..libs.ratelimit import ratelimit
 
 
 class ApiBlueprint(object):
@@ -66,13 +65,8 @@ def oauth_limit_params(login, scopes):
 
 def oauth_ratelimit(login, scopes):
     prefix, count, duration = oauth_limit_params(login, scopes)
-    remaining, expires = ratelimit(prefix, count, duration)
-    if remaining <= 0 and expires:
-        description = 'Rate limit exceeded, retry in %is' % expires
-        raise LimitExceeded(description=description)
-
-    request._rate_remaining = remaining
-    request._rate_expires = expires
+    rv = LimitExceeded.raise_on_limit(prefix, count, duration)
+    request._rate_remaining, request._rate_expires = rv
 
 
 def cache_response(cache_time):
