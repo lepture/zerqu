@@ -56,8 +56,8 @@ class Topic(Base):
 
     def get_statuses(self, user_id=None):
         rv = {
-            'like_count': TopicLike.cache.filter_count(topid_id=self.id),
-            'comment_count': Comment.cache.filter_count(topid_id=self.id),
+            'like_count': TopicLike.cache.filter_count(topic_id=self.id),
+            'comment_count': Comment.cache.filter_count(topic_id=self.id),
         }
         if user_id:
             key = (self.id, user_id)
