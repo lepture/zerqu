@@ -64,10 +64,7 @@ def view_topic(tid):
 
     data['user'] = dict(topic.user)
     data['cafe'] = dict(Cafe.cache.get(topic.cafe_id))
-    user_id = None
-    if current_user:
-        user_id = current_user.id
-    data.update(topic.get_statuses(user_id))
+    data.update(topic.get_statuses(current_user.id))
     return jsonify(data)
 
 

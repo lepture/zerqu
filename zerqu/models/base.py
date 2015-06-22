@@ -29,13 +29,15 @@ CACHE_MODEL_PREFIX = 'db'
 
 class SQLAlchemy(_SQLAlchemy):
     @contextmanager
-    def auto_commit(self):
+    def auto_commit(self, throw=True):
         try:
             yield
             self.session.commit()
         except Exception as e:
             self.session.rollback()
             current_app.logger.exception('%r' % e)
+            if throw:
+                raise e
 
 
 db = SQLAlchemy(session_options={

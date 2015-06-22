@@ -6,7 +6,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer, Text
 from .user import User
-from .base import cache, Base, JSON, CACHE_TIMES
+from .base import db, cache, Base, JSON, CACHE_TIMES
 
 
 class Topic(Base):
@@ -65,14 +65,19 @@ class Topic(Base):
             'like_count': TopicLike.cache.filter_count(topic_id=self.id),
             'comment_count': Comment.cache.filter_count(topic_id=self.id),
         }
-        if user_id:
-            key = (self.id, user_id)
-            rv['liked_by_me'] = bool(TopicLike.cache.get(key))
-            read = TopicRead.cache.get(key)
-            if read:
-                rv['read_by_me'] = read.percent
-            else:
-                rv['read_by_me'] = '0%'
+        if not user_id:
+            return rv
+
+        key = (self.id, user_id)
+        rv['liked_by_me'] = bool(TopicLike.cache.get(key))
+        read = TopicRead.cache.get(key)
+        if read:
+            rv['read_by_me'] = read.percent
+        else:
+            rv['read_by_me'] = '0%'
+            read = TopicRead(topic_id=self.id, user_id=user_id)
+            with db.auto_commit(throw=False):
+                db.session.add(read)
         return rv
 
     @staticmethod
@@ -149,6 +154,9 @@ class TopicRead(Base):
 
     @percent.setter
     def percent(self, num):
+        if self._percent == 100:
+            # finished already
+            return
         if 0 < num <= 100:
             self._percent = num
 
@@ -180,6 +188,8 @@ class Comment(Base):
         default=datetime.datetime.utcnow,
         onupdate=datetime.datetime.utcnow,
     )
+
+    __reference__ = {'user': 'user_id'}
 
     def keys(self):
         return (
