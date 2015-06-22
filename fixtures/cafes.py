@@ -2,6 +2,11 @@
 import random
 from zerqu.models import Cafe
 
+TYPEWRITER = (
+    "https://d262ilb51hltx0.cloudfront.net/max/1600/"
+    "1*TI7VtPCCe6bPi9xc-k_W1w.jpeg"
+)
+
 
 def iter_site_cafes():
     yield {
@@ -13,7 +18,8 @@ def iter_site_cafes():
         "status": 9,
         "user_id": 1,
         "style": {
-            "base_color": "#42B983"
+            "color": "#42B983",
+            "cover": TYPEWRITER
         }
     }
 
@@ -25,7 +31,7 @@ def iter_site_cafes():
         "status": 9,
         "user_id": 1,
         "style": {
-            "logo_url": "https://avatars0.githubusercontent.com/u/290496"
+            "logo": "https://avatars0.githubusercontent.com/u/290496"
         }
     }
 
@@ -59,7 +65,7 @@ def iter_user_cafes():
             "status": random.choice([0, 1, 6]),
             "user_id": random.randint(1, 1024),
             "style": {
-                "base_color": 'rgb(%d, %d, %d)' % color
+                "color": 'rgb(%d, %d, %d)' % color
             }
         }
 

@@ -47,13 +47,10 @@ class Cafe(Base):
     name = Column(String(30), nullable=False, unique=True)
     content = Column(String(480))
 
-    # logo_url, base_color, text_color, background_color, background_url
     style = Column(JSON, default={
-        'logo_url': None,
-        'base_color': None,
-        'text_color': None,
-        'background_color': None,
-        'background_url': None,
+        'logo': None,
+        'color': None,
+        'cover': None,
     })
 
     # available features
