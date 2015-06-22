@@ -27,6 +27,10 @@ def iter_site_cafes():
         "id": 2,
         "name": "About",
         "slug": "about",
+        "content": (
+            "This site is created by lepture, view his blog: "
+            "http://lepture.com"
+        ),
         "permission": 6,
         "status": 9,
         "user_id": 1,
@@ -49,7 +53,7 @@ def iter_user_cafes():
         last = random.choice(names)
         return '%s %s' % (first, last)
 
-    for i in range(3, 102):
+    for i in range(3, 68):
         name = pick_name()
         slug = name.replace(' ', '-').lower()
         color = (
