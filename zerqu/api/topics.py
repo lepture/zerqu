@@ -1,13 +1,12 @@
 # coding: utf-8
 
-import datetime
 from flask import current_app
 from flask import request, jsonify
 from markupsafe import escape
 from .base import ApiBlueprint
 from .base import require_oauth
 from .utils import cursor_query, pagination_query, int_or_raise
-from ..errors import APIException, Conflict, NotFound
+from ..errors import APIException, Conflict, NotFound, Denied
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 from ..models.topic import topic_list_with_statuses
@@ -79,12 +78,15 @@ def update_topic(tid):
     if not topic:
         raise NotFound('Topic')
 
+    # who can update topic
+    if current_user.id != topic.user_id:
+        raise Denied('updating this topic')
+
+    # update topic in the given time
     valid = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
-    if valid:
-        delta = datetime.datetime.utcnow() - topic.created_at
-        if delta.total_seconds() > valid:
-            msg = 'Topic can only be updated in {} seconds'.format(valid)
-            raise APIException(code=403, description=msg)
+    if valid and not topic.is_changeable(valid):
+        msg = 'Topic can only be updated in {} seconds'.format(valid)
+        raise APIException(code=403, description=msg)
 
     form = TopicForm.create_api_form(obj=topic)
     data = dict(form.update_topic())

@@ -28,6 +28,8 @@ class Topic(Base):
 
     cafe_id = Column(Integer)
     user_id = Column(Integer, nullable=False)
+    # A topic copied from another topic
+    fork_id = Column(Integer)
 
     status = Column(SmallInteger, default=1)
 
@@ -45,6 +47,10 @@ class Topic(Base):
             'id', 'title', 'link', 'info', 'label',
             'created_at', 'updated_at',
         )
+
+    def is_changeable(self, valid_time):
+        delta = datetime.datetime.utcnow() - self.created_at
+        return delta.total_seconds() < valid_time
 
     @property
     def label(self):
@@ -163,6 +169,8 @@ class Comment(Base):
 
     topic_id = Column(Integer, nullable=False)
     user_id = Column(Integer, nullable=False)
+    # comment reply to another comment
+    reply_to = Column(Integer)
 
     status = Column(SmallInteger, default=0)
 
