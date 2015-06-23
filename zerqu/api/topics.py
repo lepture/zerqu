@@ -10,7 +10,7 @@ from ..errors import APIException, Conflict, NotFound, Denied
 from ..models import db, current_user, User
 from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
 from ..models.topic import topic_list_with_statuses
-from ..rec.timeline import get_timeline_topics
+from ..rec.timeline import get_timeline_topics, get_public_topics
 from ..forms import TopicForm, CommentForm
 from ..libs import renderer
 
@@ -21,7 +21,10 @@ api = ApiBlueprint('topics')
 @require_oauth(login=False, cache_time=600)
 def timeline():
     cursor = int_or_raise('cursor', 0)
-    data, cursor = get_timeline_topics(cursor, current_user.id)
+    if request.args.get('show') == 'all':
+        data, cursor = get_public_topics(cursor)
+    else:
+        data, cursor = get_timeline_topics(cursor, current_user.id)
     reference = {
         'user': User.cache.get_dict({o.user_id for o in data}),
         'cafe': Cafe.cache.get_dict({o.cafe_id for o in data}),
@@ -112,11 +115,14 @@ def write_read_percent(tid):
 @require_oauth(login=False, cache_time=600)
 def view_topic_comments(tid):
     topic = Topic.cache.get_or_404(tid)
-    data, cursor = cursor_query(
+    comments, cursor = cursor_query(
         Comment, lambda q: q.filter_by(topic_id=topic.id)
     )
-    reference = {'user': User.cache.get_dict({o.user_id for o in data})}
-    data = list(Comment.iter_dict(data, **reference))
+    reference = {'user': User.cache.get_dict({o.user_id for o in comments})}
+    data = []
+    for d in Comment.iter_dict(comments, **reference):
+        d['content'] = renderer.markup(d['content'])
+        data.append(d)
     return jsonify(data=data, cursor=cursor)
 
 

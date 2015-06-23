@@ -44,7 +44,7 @@ class Topic(Base):
 
     def keys(self):
         return (
-            'id', 'title', 'link', 'info', 'label',
+            'id', 'title', 'link', 'info', 'label', 'status',
             'created_at', 'updated_at',
         )
 

@@ -6,10 +6,40 @@ from zerqu.models import db, Topic, Cafe, CafeMember
 
 def get_timeline_topics(cursor=None, user_id=None, count=20):
     if user_id:
-        cafe_ids = get_user_timeline_cafe_ids(user_id)
+        cafe_ids = get_following_cafe_ids(user_id)
     else:
-        cafe_ids = get_public_timeline_cafe_ids()
+        cafe_ids = get_promoted_cafe_ids()
+    return get_cafe_topics(cafe_ids, cursor, count)
 
+
+def get_public_topics(cursor=None, count=20):
+    cafe_ids = get_public_cafe_ids()
+    return get_cafe_topics(cafe_ids, cursor, count)
+
+
+def get_following_cafe_ids(user_id):
+    q = db.session.query(Cafe.id).filter_by(status=Cafe.STATUS_OFFICIAL)
+    official = {cafe_id for cafe_id, in q}
+    following = CafeMember.get_user_following_cafe_ids(user_id)
+    q = db.session.query(Cafe.id).filter_by(user_id=user_id)
+    mine = {cafe_id for cafe_id, in q}
+    return official | following | mine
+
+
+def get_promoted_cafe_ids():
+    statuses = [Cafe.STATUS_OFFICIAL, Cafe.STATUS_VERIFIED]
+    q = db.session.query(Cafe.id).filter(Cafe.status.in_(statuses))
+    q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
+    return {cafe_id for cafe_id, in q}
+
+
+def get_public_cafe_ids():
+    q = db.session.query(Cafe.id)
+    q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
+    return {cafe_id for cafe_id, in q}
+
+
+def get_cafe_topics(cafe_ids, cursor=None, count=20):
     q = db.session.query(Topic.id).filter(Topic.cafe_id.in_(cafe_ids))
     if cursor:
         q = q.filter(Topic.id < cursor)
@@ -20,19 +50,3 @@ def get_timeline_topics(cursor=None, user_id=None, count=20):
     if len(topics) < count:
         return topics, 0
     return topics, topics[-1].id
-
-
-def get_user_timeline_cafe_ids(user_id):
-    q = db.session.query(Cafe.id).filter_by(status=Cafe.STATUS_OFFICIAL)
-    official = {cafe_id for cafe_id, in q}
-    following = CafeMember.get_user_following_cafe_ids(user_id)
-    q = db.session.query(Cafe.id).filter_by(user_id=user_id)
-    mine = {cafe_id for cafe_id, in q}
-    return official | following | mine
-
-
-def get_public_timeline_cafe_ids():
-    statuses = [Cafe.STATUS_OFFICIAL, Cafe.STATUS_VERIFIED]
-    q = db.session.query(Cafe.id).filter(Cafe.status.in_(statuses))
-    q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
-    return {cafe_id for cafe_id, in q}
