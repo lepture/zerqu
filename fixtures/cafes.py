@@ -13,10 +13,11 @@ def iter_site_cafes():
         "id": 1,
         "name": "Site",
         "slug": "site",
-        "content": "Things about this site. This very site is something",
+        "description": "Things about this site. This very site is something",
         "permission": 6,
         "status": 9,
         "user_id": 1,
+        "intro": 1,
         "style": {
             "color": "#42B983",
             "cover": TYPEWRITER
@@ -27,13 +28,14 @@ def iter_site_cafes():
         "id": 2,
         "name": "About",
         "slug": "about",
-        "content": (
+        "description": (
             "This site is created by lepture, view his blog: "
             "http://lepture.com"
         ),
         "permission": 6,
         "status": 9,
         "user_id": 1,
+        "intro": 2,
         "style": {
             "logo": "https://avatars0.githubusercontent.com/u/290496"
         }

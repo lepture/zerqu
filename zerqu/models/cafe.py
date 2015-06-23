@@ -45,7 +45,9 @@ class Cafe(Base):
     # basic information
     slug = Column(String(24), nullable=False, unique=True, index=True)
     name = Column(String(30), nullable=False, unique=True)
-    content = Column(String(480))
+    description = Column(String(140))
+    # refer to a topic ID as introduction
+    intro = Column(Integer)
 
     style = Column(JSON, default={
         'logo': None,
@@ -75,8 +77,8 @@ class Cafe(Base):
 
     def keys(self):
         return (
-            'id', 'slug', 'name', 'style', 'content', 'features',
-            'label', 'is_active', 'created_at', 'updated_at',
+            'id', 'slug', 'name', 'style', 'description', 'intro',
+            'features', 'label', 'is_active', 'created_at', 'updated_at',
         )
 
     @cached_property

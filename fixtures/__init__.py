@@ -27,7 +27,6 @@ def commit(module):
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            pass
 
 
 def run():

@@ -15,7 +15,7 @@ for name in os.listdir(DATADIR):
 
 def iter_user_topics():
     print('Creating topics')
-    for i in range(612):
+    for i in range(1, 612):
         title = loremipsum.generate_sentence()[2]
         paragraphs = loremipsum.generate_paragraphs(random.randint(3, 7))
         paragraphs = [p[2] for p in paragraphs]
@@ -23,18 +23,23 @@ def iter_user_topics():
         index = random.randint(0, len(paragraphs))
         paragraphs.insert(index, md_content)
         content = '\n\n'.join(paragraphs)
+        # intro topics
+        if i in (1, 2):
+            cafe_id = i
+        else:
+            cafe_id = random.randint(1, 16)
         yield {
             "id": i,
             "title": title,
             "content": content,
-            "cafe_id": random.randint(1, 16),
+            "cafe_id": cafe_id,
             "user_id": random.randint(1, 500),
         }
 
 
 def iter_topic_likes():
     print('Creating topics likes')
-    for i in range(2000):
+    for i in range(1, 2000):
         yield {
             "topic_id": random.randint(1, 62),
             "user_id": random.randint(2, 1000),
@@ -48,12 +53,12 @@ def iter_comments():
         count = random.randint(10, 200)
         return text[:count]
 
-    for i in range(2400):
+    for i in range(1, 2400):
         paragraphs = loremipsum.generate_paragraphs(random.randint(1, 3))
         content = '\n\n'.join(sub(p[2]) for p in paragraphs)
         yield {
             "id": i,
-            "topic_id": random.randint(1, 100),
+            "topic_id": random.randint(400, 600),
             "user_id": random.randint(2, 1000),
             "content": content
         }
