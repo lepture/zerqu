@@ -2,9 +2,9 @@
 
 import hashlib
 from flask import request
-from werkzeug.datastructures import MultiDict
 from flask_wtf import Form as BaseForm
 from flask_wtf.recaptcha import RecaptchaField
+from flask_oauthlib.utils import to_bytes
 from wtforms.fields import StringField, PasswordField
 from wtforms.fields import TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Email
@@ -18,7 +18,7 @@ from .libs import feature
 class Form(BaseForm):
     @classmethod
     def create_api_form(cls, obj=None):
-        form = cls(MultiDict(request.get_json()), obj=obj, csrf_enabled=False)
+        form = cls(data=request.get_json(), obj=obj, csrf_enabled=False)
         form._obj = obj
         if not form.validate():
             raise FormError(form)
@@ -179,7 +179,7 @@ class CommentForm(Form):
     content = TextAreaField()
 
     def validate_content(self, field):
-        key = hashlib.md5(field.data).hexdigest()
+        key = hashlib.md5(to_bytes(field.data)).hexdigest()
         if cache.get(key):
             raise StopValidation("Duplicate requesting")
         # avoid duplicate requesting
@@ -200,4 +200,5 @@ class CommentForm(Form):
 
         with db.auto_commit():
             db.session.add(c)
+
         return c
