@@ -13,28 +13,35 @@ for name in os.listdir(DATADIR):
             markdown_contents.append(content.encode('utf-8'))
 
 
+TYPEWRITER = (
+    'https://d262ilb51hltx0.cloudfront.net/max/1600/'
+    '1*TI7VtPCCe6bPi9xc-k_W1w.jpeg'
+)
+
+
+def create_topic(i, cafe_id, user_id):
+    title = loremipsum.generate_sentence()[2]
+    paragraphs = loremipsum.generate_paragraphs(random.randint(3, 7))
+    paragraphs = [p[2] for p in paragraphs]
+    md_content = random.choice(markdown_contents)
+    index = random.randint(0, len(paragraphs))
+    paragraphs.insert(index, md_content)
+    content = '\n\n'.join(paragraphs)
+    return {
+        "id": i,
+        "title": title,
+        "content": content,
+        "cafe_id": cafe_id,
+        "user_id": user_id,
+    }
+
+
 def iter_user_topics():
     print('Creating topics')
-    for i in range(1, 612):
-        title = loremipsum.generate_sentence()[2]
-        paragraphs = loremipsum.generate_paragraphs(random.randint(3, 7))
-        paragraphs = [p[2] for p in paragraphs]
-        md_content = random.choice(markdown_contents)
-        index = random.randint(0, len(paragraphs))
-        paragraphs.insert(index, md_content)
-        content = '\n\n'.join(paragraphs)
-        # intro topics
-        if i in (1, 2):
-            cafe_id = i
-        else:
-            cafe_id = random.randint(1, 16)
-        yield {
-            "id": i,
-            "title": title,
-            "content": content,
-            "cafe_id": cafe_id,
-            "user_id": random.randint(1, 500),
-        }
+    for i in range(1, 500):
+        yield create_topic(i, random.randint(1, 16), random.randint(1, 500))
+    for i in range(500, 620):
+        yield create_topic(i, random.randint(1, 3), random.randint(1, 3))
 
 
 def iter_topic_likes():
@@ -66,6 +73,9 @@ def iter_comments():
 
 def iter_data():
     for data in iter_user_topics():
+        if data['id'] == 1:
+            data['cafe_id'] = 1
+            data['info'] = {'cover': TYPEWRITER}
         yield Topic(**data)
 
     for data in iter_topic_likes():
