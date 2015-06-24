@@ -133,6 +133,7 @@ def create_topic_comment(tid):
     form = CommentForm.create_api_form()
     comment = form.create_comment(current_user.id, topic.id)
     rv = dict(comment)
+    rv['content'] = renderer.markup(rv['content'])
     rv['user'] = dict(current_user)
     return jsonify(rv)
 
@@ -180,4 +181,17 @@ def unlike_topic(tid):
         raise Conflict(description='You already unliked it')
     with db.auto_commit():
         db.session.delete(data)
+    return '', 204
+
+
+@api.route('/<int:tid>/comments/<int:cid>', methods=['DELETE'])
+@require_oauth(login=True, scopes=['comment:write'])
+def delete_topic_comment(tid, cid):
+    comment = Comment.query.get(cid)
+    if not comment or comment.topic_id != tid:
+        raise NotFound('Comment')
+    if comment.user_id != current_user.id:
+        raise Denied('deleting this comment')
+    with db.auto_commit():
+        db.session.delete(comment)
     return '', 204
