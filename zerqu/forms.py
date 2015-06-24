@@ -6,7 +6,7 @@ from werkzeug.datastructures import MultiDict
 from flask_wtf import Form as BaseForm
 from flask_wtf.recaptcha import RecaptchaField
 from wtforms.fields import StringField, PasswordField
-from wtforms.fields import TextAreaField
+from wtforms.fields import TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
 from .models import db, cache
@@ -175,6 +175,7 @@ class TopicForm(Form):
 
 
 class CommentForm(Form):
+    reply_to = IntegerField()
     content = TextAreaField()
 
     def validate_content(self, field):
@@ -190,6 +191,13 @@ class CommentForm(Form):
             topic_id=topic_id,
             content=self.content.data,
         )
+
+        reply_to = self.reply_to.data
+        if reply_to:
+            reply = Comment.cache.get(reply_to)
+            if reply and reply.topic_id == topic_id:
+                c.reply_to = reply.id
+
         with db.auto_commit():
             db.session.add(c)
         return c
