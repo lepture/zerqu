@@ -12,7 +12,7 @@ class TestSession(TestCase):
         }), content_type='application/json')
         assert rv.status_code == 201
         data = json.loads(rv.data)
-        assert data['status'] == 'ok'
+        assert data['username'] == 'test'
 
         rv = self.client.post('/session', data=json.dumps({
             'username': 'test@gmail.com',
@@ -20,16 +20,14 @@ class TestSession(TestCase):
         }), content_type='application/json')
         assert rv.status_code == 201
         data = json.loads(rv.data)
-        assert data['status'] == 'ok'
+        assert data['username'] == 'test'
 
         rv = self.client.delete('/session')
-        assert rv.status_code == 200
-        data = json.loads(rv.data)
-        assert data['status'] == 'ok'
+        assert rv.status_code == 204
 
     def test_session_logout(self):
         rv = self.client.delete('/session')
-        assert rv.status_code == 200
+        assert rv.status_code == 400
         data = json.loads(rv.data)
         assert data['status'] == 'error'
 
@@ -38,21 +36,21 @@ class TestSession(TestCase):
             'username': 'test',
             'password': 'test-password',
         })
-        assert rv.status_code == 200
+        assert rv.status_code == 400
         data = json.loads(rv.data)
         assert data['status'] == 'error'
 
         rv = self.client.post('/session', data=json.dumps({
             'username': 'test',
         }), content_type='application/json')
-        assert rv.status_code == 200
+        assert rv.status_code == 400
         data = json.loads(rv.data)
         assert data['status'] == 'error'
 
         rv = self.client.post('/session', data=json.dumps({
             'password': 'test',
         }), content_type='application/json')
-        assert rv.status_code == 200
+        assert rv.status_code == 400
         data = json.loads(rv.data)
         assert data['status'] == 'error'
 
@@ -60,6 +58,6 @@ class TestSession(TestCase):
             'username': 'test',
             'password': 'test',
         }), content_type='application/json')
-        assert rv.status_code == 200
+        assert rv.status_code == 400
         data = json.loads(rv.data)
         assert data['status'] == 'error'

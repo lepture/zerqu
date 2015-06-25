@@ -14,7 +14,7 @@ bp = Blueprint('session', __name__)
 def session():
     if request.method == 'DELETE':
         if AuthSession.logout():
-            return jsonify(status='ok')
+            return '', 204
         return jsonify(status='error'), 400
 
     if request.mimetype != 'application/json':

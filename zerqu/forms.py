@@ -9,6 +9,7 @@ from wtforms.fields import StringField, PasswordField
 from wtforms.fields import TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
+from werkzeug.datastructures import MultiDict
 from .models import db, cache
 from .models import User, Cafe, Comment, Topic
 from .errors import APIException, FormError
@@ -18,7 +19,8 @@ from .libs import feature
 class Form(BaseForm):
     @classmethod
     def create_api_form(cls, obj=None):
-        form = cls(data=request.get_json(), obj=obj, csrf_enabled=False)
+        formdata = MultiDict(request.get_json())
+        form = cls(formdata=formdata, obj=obj, csrf_enabled=False)
         form._obj = obj
         if not form.validate():
             raise FormError(form)
@@ -68,7 +70,7 @@ class CafeForm(Form):
     # TODO: validators
     name = StringField()
     slug = StringField()
-    content = TextAreaField()
+    description = TextAreaField()
     permission = StringField()
     # TODO: multiple choices features
 
@@ -94,7 +96,7 @@ class CafeForm(Form):
         cafe = Cafe(
             name=self.name.data,
             slug=self.slug.data,
-            content=self.content.data,
+            description=self.description.data,
             permission=Cafe.PERMISSIONS[self.permission.data],
             user_id=user_id,
         )
@@ -103,7 +105,7 @@ class CafeForm(Form):
         return cafe
 
     def update_cafe(self, cafe, user_id):
-        keys = ['name', 'content']
+        keys = ['name', 'description']
         # Only owner can change slug
         if user_id == cafe.user_id:
             keys.append('slug')
