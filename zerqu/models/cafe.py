@@ -197,3 +197,9 @@ class CafeMember(Base):
         q = db.session.query(cls.cafe_id).filter_by(user_id=user_id)
         q = q.filter(cls.role >= cls.ROLE_SUBSCRIBER)
         return {cafe_id for cafe_id, in q}
+
+    @classmethod
+    def get_cafe_admin_ids(cls, cafe_id):
+        q = db.session.query(cls.user_id).filter_by(cafe_id=cafe_id)
+        q = q.filter_by(role=cls.ROLE_ADMIN)
+        return {user_id for user_id, in q}

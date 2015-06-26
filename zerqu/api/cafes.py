@@ -140,21 +140,24 @@ def leave_cafe(slug):
 @cache_response(600)
 def list_cafe_users(slug):
     cafe = get_and_protect_cafe(slug)
-    data, pagination = pagination_query(
+    members, pagination = pagination_query(
         CafeMember, CafeMember.user_id, cafe_id=cafe.id
     )
-    user_ids = [o.user_id for o in data]
+    user_ids = [o.user_id for o in members]
     users = User.cache.get_dict(user_ids)
 
     data = []
-    for item in data:
+    for item in members:
         key = str(item.user_id)
         if key in users:
             rv = dict(item)
             rv['user'] = dict(users[key])
             data.append(rv)
 
-    return jsonify(data=data, pagination=dict(pagination))
+    admin_ids = CafeMember.get_cafe_admin_ids(cafe.id)
+    admin_ids.add(cafe.user_id)
+    admins = User.cache.get_many(admin_ids)
+    return jsonify(admins=admins, data=data, pagination=dict(pagination))
 
 
 @api.route('/<slug>/topics')
