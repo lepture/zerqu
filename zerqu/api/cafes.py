@@ -67,6 +67,10 @@ def view_cafe(slug):
     cafe = Cafe.cache.first_or_404(slug=slug)
     data = dict(cafe)
     data['user'] = cafe.user
+    if current_user:
+        role = CafeMember.get_role(cafe.id, current_user.id)
+        if role:
+            data['membership'] = role
     return jsonify(data)
 
 

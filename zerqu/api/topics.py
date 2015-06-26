@@ -8,7 +8,8 @@ from .base import require_oauth
 from .utils import cursor_query, pagination_query, int_or_raise
 from ..errors import APIException, Conflict, NotFound, Denied
 from ..models import db, current_user, User
-from ..models import Cafe, Topic, TopicLike, Comment, TopicRead
+from ..models import Cafe, CafeMember
+from ..models import Topic, TopicLike, Comment, TopicRead
 from ..models.topic import topic_list_with_statuses
 from ..rec.timeline import get_timeline_topics, get_public_topics
 from ..forms import TopicForm, CommentForm
@@ -134,6 +135,9 @@ def view_topic_comments(tid):
 @require_oauth(login=True, scopes=['comment:write'])
 def create_topic_comment(tid):
     topic = Topic.cache.get_or_404(tid)
+    # take a record for cafe membership
+    CafeMember.get_or_create(topic.cafe_id, current_user.id)
+
     form = CommentForm.create_api_form()
     comment = form.create_comment(current_user.id, topic.id)
     rv = dict(comment)

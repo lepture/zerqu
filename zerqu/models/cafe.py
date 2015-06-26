@@ -158,6 +158,22 @@ class CafeMember(Base):
         return ['cafe_id', 'user_id', 'label', 'created_at', 'updated_at']
 
     @classmethod
+    def get_role(cls, cafe_id, user_id):
+        m = cls.cache.get((cafe_id, user_id))
+        if not m:
+            return None
+        return cls.ROLE_LABELS.get(m.role)
+
+    @classmethod
+    def get_or_create(cls, cafe_id, user_id):
+        m = cls.cache.get((cafe_id, user_id))
+        if m:
+            return m
+        m = cls(cafe_id=cafe_id, user_id=user_id)
+        db.session.add(m)
+        return m
+
+    @classmethod
     def get_user_following_cafe_ids(cls, user_id):
         # TODO: cache
         q = db.session.query(cls.cafe_id).filter_by(user_id=user_id)
