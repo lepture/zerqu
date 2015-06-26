@@ -108,6 +108,18 @@ class Cafe(Base):
                 rv.append(k)
         return rv
 
+    def has_read_permission(self, user_id):
+        if self.permission != self.PERMISSION_PRIVATE:
+            return True
+
+        if not user_id:
+            return False
+
+        m = CafeMember.cache.get((self.id, user_id))
+        if not m:
+            return False
+        return m.role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
+
 
 class CafeMember(Base):
     __tablename__ = 'zq_cafe_member'

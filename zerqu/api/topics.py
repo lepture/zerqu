@@ -56,6 +56,10 @@ def view_statuses():
 @require_oauth(login=False, cache_time=600)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
+    cafe = Cafe.cache.get_or_404(topic.cafe_id)
+    if not cafe.has_read_permission(current_user.id):
+        raise Denied('viewing this topic')
+
     data = dict(topic)
 
     # /api/topic/:id?content=raw vs ?content=html
@@ -66,7 +70,7 @@ def view_topic(tid):
         data['content'] = renderer.markup(topic.content)
 
     data['user'] = dict(topic.user)
-    data['cafe'] = dict(Cafe.cache.get(topic.cafe_id))
+    data['cafe'] = dict(cafe)
     data.update(topic.get_statuses(current_user.id))
     return jsonify(data)
 

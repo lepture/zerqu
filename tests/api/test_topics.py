@@ -2,7 +2,85 @@
 
 from flask import json
 from zerqu.models import db, User, Topic, TopicLike, TopicRead
+from zerqu.models import Cafe
 from ._base import TestCase
+
+
+class TestTopicTimeline(TestCase):
+    def create_topics(self):
+        pub_cafe = Cafe(
+            name='official', slug='official', user_id=1,
+            permission=Cafe.PERMISSION_PUBLIC, status=9,
+        )
+        private_cafe = Cafe(
+            name='private', slug='private', user_id=1,
+            permission=Cafe.PERMISSION_PUBLIC, status=1,
+        )
+        db.session.add(pub_cafe)
+        db.session.add(private_cafe)
+        db.session.flush()
+
+        for i in range(30):
+            t1 = Topic(user_id=1, cafe_id=pub_cafe.id, title='hi public')
+            t2 = Topic(user_id=2, cafe_id=private_cafe.id, title='hi private')
+            db.session.add(t1)
+            db.session.add(t2)
+        db.session.commit()
+
+    def test_public_timeline(self):
+        self.create_topics()
+        rv = self.client.get('/api/topics/timeline')
+        assert rv.status_code == 200
+        data = json.loads(rv.data)
+        assert len(set([d['cafe']['id'] for d in data['data']])) == 1
+
+    def test_show_all_timeline(self):
+        self.create_topics()
+        rv = self.client.get('/api/topics/timeline?show=all')
+        assert rv.status_code == 200
+        data = json.loads(rv.data)
+        assert len(set([d['cafe']['id'] for d in data['data']])) == 2
+
+
+class TestViewTopic(TestCase):
+    def create_topic(self, cafe=None):
+        if cafe is None:
+            cafe = Cafe(name='official', slug='official', user_id=1)
+            db.session.add(cafe)
+            db.session.commit()
+
+        t = Topic(
+            user_id=1,
+            cafe_id=cafe.id,
+            title='View',
+            content='A **text**',
+        )
+        db.session.add(t)
+        db.session.commit()
+        return t
+
+    def test_markup_content(self):
+        t = self.create_topic()
+        rv = self.client.get('/api/topics/%d' % t.id)
+        assert rv.status_code == 200
+        data = json.loads(rv.data)
+        assert '<strong>' in data['content']
+
+    def test_raw_content(self):
+        t = self.create_topic()
+        rv = self.client.get('/api/topics/%d?content=raw' % t.id)
+        assert rv.status_code == 200
+        data = json.loads(rv.data)
+        assert '<strong>' not in data['content']
+
+    def test_view_topic_without_permission(self):
+        cafe = Cafe(name='official', slug='official', user_id=1)
+        cafe.permission = Cafe.PERMISSION_PRIVATE
+        db.session.add(cafe)
+        db.session.commit()
+        t = self.create_topic(cafe)
+        rv = self.client.get('/api/topics/%d' % t.id)
+        assert rv.status_code == 403
 
 
 class TestTopicLikes(TestCase):
