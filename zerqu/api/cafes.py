@@ -175,6 +175,12 @@ def create_cafe_topic(slug):
     if not current_user.is_active:
         raise InvalidAccount('Your account is not active')
 
+    if cafe.permission == Cafe.PERMISSION_PUBLIC:
+        CafeMember.get_or_create(cafe.id, current_user.id)
+    elif cafe.permission != Cafe.PERMISSION_PRIVATE:
+        if not cafe.has_write_permission(current_user.id):
+            raise Denied('creating topic in this cafe')
+
     form = TopicForm.create_api_form()
     topic = form.create_topic(cafe.id, current_user.id)
     data = dict(topic)

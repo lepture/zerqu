@@ -118,7 +118,25 @@ class Cafe(Base):
         m = CafeMember.cache.get((self.id, user_id))
         if not m:
             return False
+
         return m.role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
+
+    def has_write_permission(self, user_id):
+        if not user_id:
+            return False
+
+        if self.permission == self.PERMISSION_PUBLIC:
+            return True
+
+        m = CafeMember.cache.get((self.id, user_id))
+        if not m:
+            return False
+
+        membership = (self.PERMISSION_PRIVATE, self.PERMISSION_MEMBER)
+        if self.permission in membership:
+            return m.role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
+
+        return m.role != CafeMember.ROLE_VISITOR
 
 
 class CafeMember(Base):

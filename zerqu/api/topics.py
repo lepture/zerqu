@@ -18,6 +18,13 @@ from ..libs import renderer
 api = ApiBlueprint('topics')
 
 
+def get_topic_cafe(cafe_id):
+    cafe = Cafe.cache.get_or_404(cafe_id)
+    if not cafe.has_read_permission(current_user.id):
+        raise Denied('viewing this topic')
+    return cafe
+
+
 @api.route('/timeline')
 @require_oauth(login=False, cache_time=600)
 def timeline():
@@ -57,9 +64,7 @@ def view_statuses():
 @require_oauth(login=False, cache_time=600)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
-    cafe = Cafe.cache.get_or_404(topic.cafe_id)
-    if not cafe.has_read_permission(current_user.id):
-        raise Denied('viewing this topic')
+    cafe = get_topic_cafe(topic.cafe_id)
 
     data = dict(topic)
 
@@ -103,11 +108,12 @@ def update_topic(tid):
 @require_oauth(login=True)
 def write_read_percent(tid):
     topic = Topic.cache.get_or_404(tid)
-    read = TopicRead.query.get((topic.id, current_user.id))
     percent = request.get_json().get('percent')
     if not isinstance(percent, int):
         raise APIException(description='Invalid payload "percent"')
+    read = TopicRead.query.get((topic.id, current_user.id))
     if not read:
+        get_topic_cafe(topic.cafe_id)
         read = TopicRead(topic_id=topic.id, user_id=current_user.id)
     read.percent = percent
 
@@ -120,6 +126,8 @@ def write_read_percent(tid):
 @require_oauth(login=False, cache_time=600)
 def view_topic_comments(tid):
     topic = Topic.cache.get_or_404(tid)
+    get_topic_cafe(topic.cafe_id)
+
     comments, cursor = cursor_query(
         Comment, lambda q: q.filter_by(topic_id=topic.id)
     )
@@ -135,8 +143,9 @@ def view_topic_comments(tid):
 @require_oauth(login=True, scopes=['comment:write'])
 def create_topic_comment(tid):
     topic = Topic.cache.get_or_404(tid)
+    cafe = get_topic_cafe(topic.cafe_id)
     # take a record for cafe membership
-    CafeMember.get_or_create(topic.cafe_id, current_user.id)
+    CafeMember.get_or_create(cafe.id, current_user.id)
 
     form = CommentForm.create_api_form()
     comment = form.create_comment(current_user.id, topic.id)
@@ -175,6 +184,7 @@ def like_topic(tid):
         raise Conflict(description='You already liked it')
 
     topic = Topic.cache.get_or_404(tid)
+    get_topic_cafe(topic.cafe_id)
     like = TopicLike(topic_id=topic.id, user_id=current_user.id)
     with db.auto_commit():
         db.session.add(like)
