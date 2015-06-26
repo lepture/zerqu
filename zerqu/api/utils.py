@@ -61,6 +61,9 @@ def pagination_query(model, key, **filters):
     total = model.cache.filter_count(**filters)
     rv = Pagination(total, page, perpage)
 
+    if page == 1 and rv.pages == 0:
+        return [], rv
+
     if page > rv.pages:
         raise APIException(
             description='page should be smaller than total pages'
