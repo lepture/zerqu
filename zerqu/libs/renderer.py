@@ -1,6 +1,10 @@
 
 import re
 from mistune import Renderer, Markdown
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+
 from flask import current_app
 from markupsafe import escape
 from werkzeug.utils import import_string
@@ -11,11 +15,55 @@ except ImportError:
     html5lib = None
 
 
-_md = Markdown(renderer=Renderer(escape=True, skip_style=True))
+class PrettyRenderer(Renderer):
+    def link(self, link, title, content):
+        html = '<a href="%s"' % link
+        if title:
+            html = '%s title="%s"' % (html, title)
+
+        if '<figure><img' in content:
+            return re.sub(r'(<img.*?>)', r'%s>\1</a>' % html, content)
+
+        html = '%s>%s</a>' % (html, content)
+        return html
+
+    def image(self, link, title, alt_text):
+        html = '<img src="%s" alt="%s" />' % (link, alt_text)
+        if not title:
+            return html
+        return '<figure>%s<figcaption>%s</figcaption></figure>' % (
+            html, title
+        )
+
+    def paragraph(self, content):
+        pattern = r'<figure>.*</figure>'
+        if re.match(pattern, content):
+            return content
+        # a single image in this paragraph
+        pattern = r'^<img[^>]+>$'
+        if re.match(pattern, content):
+            return '<figure>%s</figure>\n' % content
+        return '<p>%s</p>\n' % content
+
+    def block_code(self, text, lang):
+        if not lang:
+            text = text.strip()
+            return u'<pre><code>%s</code></pre>\n' % escape(text)
+
+        try:
+            lexer = get_lexer_by_name(lang, stripall=True)
+            formatter = HtmlFormatter(noclasses=False, linenos=False)
+            return highlight(text, lexer, formatter)
+        except:
+            return '<pre class="%s"><code>%s</code></pre>\n' % (
+                lang, escape(text)
+            )
+
+
+_md = Markdown(renderer=PrettyRenderer(escape=True, skip_style=True))
 
 
 def markdown(s):
-    # TODO: highlight
     return _md.render(s)
 
 

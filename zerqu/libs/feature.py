@@ -2,7 +2,7 @@
 from flask import current_app
 from werkzeug.utils import import_string
 
-__all__ =['FeatureError', 'process']
+__all__ = ['FeatureError', 'process']
 
 
 class FeatureError(Exception):

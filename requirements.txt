@@ -5,3 +5,4 @@ Flask-WTF==0.11
 Flask-OAuthlib==0.9.1
 Flask-SQLAlchemy==2.0
 mistune==0.6
+Pygments==2.0.2
