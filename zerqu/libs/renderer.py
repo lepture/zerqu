@@ -11,6 +11,7 @@ from werkzeug.utils import import_string
 from jinja2.utils import urlize
 try:
     import html5lib
+    import html5lib.sanitizer
 except ImportError:
     html5lib = None
 
@@ -67,13 +68,6 @@ def markdown(s):
     return _md.render(s)
 
 
-def html(s):
-    if html5lib is None:
-        raise RuntimeError('Please install html5lib for "html" renderer')
-    # TODO
-    return s
-
-
 RE_NEWLINES = re.compile(r'\r\n|\r')
 RE_LINE_SPLIT = re.compile(r'\n{2,}')
 
@@ -89,6 +83,22 @@ def text(s):
     paras = RE_LINE_SPLIT.split(s)
     paras = ['<p>%s</p>' % _process_text(p) for p in paras]
     return ''.join(paras)
+
+
+if html5lib is None:
+    def html(s):
+        raise RuntimeError('Please install html5lib for "html" renderer')
+else:
+    _html_parser = html5lib.HTMLParser(
+        tree=html5lib.treebuilders.getTreeBuilder('dom'),
+        tokenizer=html5lib.sanitizer.HTMLSanitizer,
+    )
+    _html_walker = html5lib.getTreeWalker('dom')
+    _html_serializer = html5lib.serializer.HTMLSerializer()
+
+    def html(s):
+        stream = _html_walker(_html_parser.parse(s))
+        return u''.join(_html_serializer.serialize(stream)).strip()
 
 
 def markup(s):
