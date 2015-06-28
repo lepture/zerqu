@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import random
 from zerqu.models import db, Topic, Cafe, CafeMember
 # TODO: use redis to calculate popularity
 
@@ -9,6 +10,13 @@ def get_timeline_topics(cursor=None, user_id=None, count=20):
         cafe_ids = get_following_cafe_ids(user_id)
     else:
         cafe_ids = get_promoted_cafe_ids()
+
+    if len(cafe_ids) < 10:
+        # random sample some public cafes
+        q = db.session.query(Cafe.id)
+        q = q.filter_by(permission=Cafe.PERMISSION_PUBLIC)
+        choices = {cafe_id for cafe_id, in q}
+        cafe_ids = set(random.sample(choices, 6)) | cafe_ids
     return get_cafe_topics(cafe_ids, cursor, count)
 
 

@@ -15,6 +15,7 @@ from sqlalchemy import SmallInteger, Integer
 from sqlalchemy.orm.attributes import get_history
 from flask_oauthlib.utils import to_bytes
 from .base import db, cache, Base
+from ..libs.utils import Empty
 
 __all__ = ['current_user', 'User', 'AuthSession']
 
@@ -186,23 +187,14 @@ class AuthSession(Base):
         return data.user
 
 
-class Anonymous(object):
+class Anonymous(Empty):
     id = None
-
-    def __eq__(self, other):
-        return isinstance(other, Anonymous)
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __nonzero__(self):
-        return False
-
-    def __bool__(self):
-        return False
 
     def __str__(self):
         return "Anonymous User"
+
+    def __repr__(self):
+        return "<User: Anonymous>"
 
 ANONYMOUS = Anonymous()
 

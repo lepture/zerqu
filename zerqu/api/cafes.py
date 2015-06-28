@@ -68,9 +68,14 @@ def view_cafe(slug):
     data = dict(cafe)
     data['user'] = cafe.user
     if current_user:
-        role = CafeMember.get_role(cafe.id, current_user.id)
-        if role:
-            data['membership'] = role
+        membership = CafeMember.cache.get((cafe.id, current_user.id))
+        if membership:
+            data['membership'] = membership.label
+
+        data['permission'] = {
+            'read': cafe.has_read_permission(current_user.id, membership),
+            'write': cafe.has_write_permission(current_user.id, membership),
+        }
     return jsonify(data)
 
 

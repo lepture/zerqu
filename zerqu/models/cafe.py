@@ -8,6 +8,7 @@ from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer
 from .user import User
 from .base import db, Base, JSON
+from ..libs.utils import EMPTY
 
 __all__ = ['Cafe', 'CafeMember']
 
@@ -108,35 +109,41 @@ class Cafe(Base):
                 rv.append(k)
         return rv
 
-    def has_read_permission(self, user_id):
+    def has_read_permission(self, user_id, membership=EMPTY):
         if self.permission != self.PERMISSION_PRIVATE:
             return True
 
         if not user_id:
             return False
 
-        m = CafeMember.cache.get((self.id, user_id))
-        if not m:
+        if membership is EMPTY:
+            membership = CafeMember.cache.get((self.id, user_id))
+
+        if not membership:
             return False
 
-        return m.role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
+        role = membership.role
+        return role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
 
-    def has_write_permission(self, user_id):
+    def has_write_permission(self, user_id, membership=EMPTY):
         if not user_id:
             return False
 
         if self.permission == self.PERMISSION_PUBLIC:
             return True
 
-        m = CafeMember.cache.get((self.id, user_id))
-        if not m:
+        if membership is EMPTY:
+            membership = CafeMember.cache.get((self.id, user_id))
+
+        if not membership:
             return False
 
-        membership = (self.PERMISSION_PRIVATE, self.PERMISSION_MEMBER)
-        if self.permission in membership:
-            return m.role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
+        role = membership.role
+        limited = (self.PERMISSION_PRIVATE, self.PERMISSION_MEMBER)
+        if self.permission in limited:
+            return role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
 
-        return m.role != CafeMember.ROLE_VISITOR
+        return role != CafeMember.ROLE_VISITOR
 
 
 class CafeMember(Base):
@@ -174,13 +181,6 @@ class CafeMember(Base):
 
     def keys(self):
         return ['cafe_id', 'user_id', 'label', 'created_at', 'updated_at']
-
-    @classmethod
-    def get_role(cls, cafe_id, user_id):
-        m = cls.cache.get((cafe_id, user_id))
-        if not m:
-            return None
-        return cls.ROLE_LABELS.get(m.role)
 
     @classmethod
     def get_or_create(cls, cafe_id, user_id):

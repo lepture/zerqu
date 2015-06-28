@@ -59,3 +59,25 @@ class Pagination(object):
         if offset:
             q = q.offset(offset)
         return q.limit(self.perpage).all()
+
+
+class Empty(object):
+    def __eq__(self, other):
+        return isinstance(other, Empty)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __nonzero__(self):
+        return False
+
+    def __bool__(self):
+        return False
+
+    def __str__(self):
+        return "Empty"
+
+    def __repr__(self):
+        return '<Empty>'
+
+EMPTY = Empty()
