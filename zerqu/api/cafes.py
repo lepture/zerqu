@@ -12,7 +12,6 @@ from ..models import db, current_user
 from ..models import User, Cafe, CafeMember, Topic
 from ..models.topic import topic_list_with_statuses
 from ..forms import CafeForm, TopicForm
-from ..libs import renderer
 
 api = ApiBlueprint('cafes')
 
@@ -192,5 +191,6 @@ def create_cafe_topic(slug):
     form = TopicForm.create_api_form()
     topic = form.create_topic(cafe.id, current_user.id)
     data = dict(topic)
-    data['content'] = renderer.markup(topic.content)
+    data['user'] = dict(current_user)
+    data['content'] = topic.get_html_content()
     return jsonify(data)

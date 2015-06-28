@@ -13,7 +13,7 @@ from ..models import Topic, TopicLike, Comment, TopicRead
 from ..models.topic import topic_list_with_statuses
 from ..rec.timeline import get_timeline_topics, get_public_topics
 from ..forms import TopicForm, CommentForm
-from ..libs import renderer
+from ..libs.renderer import markup
 
 api = ApiBlueprint('topics')
 
@@ -73,7 +73,7 @@ def view_topic(tid):
     if content_format == 'raw':
         data['content'] = escape(topic.content)
     else:
-        data['content'] = renderer.markup(topic.content)
+        data['content'] = topic.get_html_content()
 
     data['user'] = dict(topic.user)
     data['cafe'] = dict(cafe)
@@ -100,7 +100,8 @@ def update_topic(tid):
 
     form = TopicForm.create_api_form(obj=topic)
     data = dict(form.update_topic())
-    data['content'] = renderer.markup(topic.content)
+    data['user'] = dict(current_user)
+    data['content'] = topic.get_html_content()
     return jsonify(data)
 
 
@@ -134,7 +135,7 @@ def view_topic_comments(tid):
     reference = {'user': User.cache.get_dict({o.user_id for o in comments})}
     data = []
     for d in Comment.iter_dict(comments, **reference):
-        d['content'] = renderer.markup(d['content'])
+        d['content'] = markup(d['content'])
         data.append(d)
     return jsonify(data=data, cursor=cursor)
 
@@ -150,7 +151,7 @@ def create_topic_comment(tid):
     form = CommentForm.create_api_form()
     comment = form.create_comment(current_user.id, topic.id)
     rv = dict(comment)
-    rv['content'] = renderer.markup(rv['content'])
+    rv['content'] = markup(rv['content'])
     rv['user'] = dict(current_user)
     return jsonify(rv), 201
 

@@ -7,6 +7,7 @@ from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer, Text
 from .user import User
 from .base import db, cache, Base, JSON, CACHE_TIMES
+from ..libs.renderer import markup
 
 
 class Topic(Base):
@@ -55,6 +56,9 @@ class Topic(Base):
     @property
     def label(self):
         return self.STATUSES.get(self.status)
+
+    def get_html_content(self):
+        return markup(self.content)
 
     @cached_property
     def user(self):
