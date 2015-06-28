@@ -2,8 +2,22 @@
 
 from flask import json
 from zerqu.models import db, User, Topic, TopicLike, TopicRead
-from zerqu.models import Cafe
+from zerqu.models import Cafe, Comment
 from ._base import TestCase
+
+
+class TopicMixin(object):
+    def create_public_topic(self):
+        cafe = Cafe(
+            name='pub', slug='pub', user_id=1,
+            permission=Cafe.PERMISSION_PUBLIC, status=9,
+        )
+        db.session.add(cafe)
+        db.session.flush()
+        topic = Topic(title='hello', user_id=1, cafe_id=cafe.id)
+        db.session.add(topic)
+        db.session.commit()
+        return topic
 
 
 class TestTopicTimeline(TestCase):
@@ -83,7 +97,7 @@ class TestViewTopic(TestCase):
         assert rv.status_code == 403
 
 
-class TestTopicLikes(TestCase):
+class TestTopicLikes(TestCase, TopicMixin):
     def test_topic_likes(self):
         for i in range(1, 10):
             db.session.add(TopicLike(topic_id=1, user_id=i))
@@ -117,9 +131,7 @@ class TestTopicLikes(TestCase):
         assert rv['2'] is not None
 
     def test_request_like_topic(self):
-        topic = Topic(title='hello', user_id=1)
-        db.session.add(topic)
-        db.session.commit()
+        topic = self.create_public_topic()
         headers = self.get_authorized_header(user_id=2)
         url = '/api/topics/%d/likes' % topic.id
         rv = self.client.post(url, headers=headers)
@@ -203,11 +215,9 @@ class TestTopicsStatuses(TestCase):
         assert 'liked_by_me' not in data['2']
 
 
-class TestTopicRead(TestCase):
+class TestTopicRead(TestCase, TopicMixin):
     def test_record_read_percent(self):
-        topic = Topic(title='hello', user_id=1)
-        db.session.add(topic)
-        db.session.commit()
+        topic = self.create_public_topic()
         headers = self.get_authorized_header(user_id=2)
         url = '/api/topics/%d/read' % topic.id
 
@@ -225,3 +235,62 @@ class TestTopicRead(TestCase):
             url, data=json.dumps({'percent': 200}), headers=headers
         )
         assert b'100%' in rv.data
+
+
+class TestTopicComment(TestCase, TopicMixin):
+    def create_topic_comments(self, topic_id):
+        for i in range(30):
+            c = Comment(user_id=1, topic_id=topic_id, content='haha %d' % i)
+            db.session.add(c)
+        db.session.commit()
+
+    def test_create_topic_comment(self):
+        topic = self.create_public_topic()
+        headers = self.get_authorized_header(user_id=2, scope='comment:write')
+        url = '/api/topics/%d/comments' % topic.id
+        rv = self.client.post(
+            url, data=json.dumps({'content': '**s**'}),
+            headers=headers
+        )
+        assert rv.status_code == 201
+        assert b'<strong>' in rv.data
+
+    def test_view_topic_comments(self):
+        topic = self.create_public_topic()
+        self.create_topic_comments(topic.id)
+        url = '/api/topics/%d/comments' % topic.id
+        rv = self.client.get(url)
+        assert rv.status_code == 200
+        data = json.loads(rv.data)
+        assert data['cursor']
+
+    def test_delete_topic_comment_not_found(self):
+        topic = self.create_public_topic()
+        url = '/api/topics/%d/comments/404' % topic.id
+        headers = self.get_authorized_header(user_id=1, scope='comment:write')
+        rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 404
+
+        self.create_topic_comments(topic.id + 1)
+        c = Comment.query.filter_by(topic_id=topic.id + 1).first()
+        url = '/api/topics/%d/comments/%d' % (topic.id, c.id)
+        rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 404
+
+    def test_delete_topic_comment_denied(self):
+        topic = self.create_public_topic()
+        self.create_topic_comments(topic.id)
+        c = Comment.query.filter_by(topic_id=topic.id).first()
+        url = '/api/topics/%d/comments/%d' % (topic.id, c.id)
+        headers = self.get_authorized_header(user_id=2, scope='comment:write')
+        rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 403
+
+    def test_delete_topic_comment_success(self):
+        topic = self.create_public_topic()
+        self.create_topic_comments(topic.id)
+        c = Comment.query.filter_by(topic_id=topic.id).first()
+        url = '/api/topics/%d/comments/%d' % (topic.id, c.id)
+        headers = self.get_authorized_header(user_id=1, scope='comment:write')
+        rv = self.client.delete(url, headers=headers)
+        assert rv.status_code == 204

@@ -152,7 +152,7 @@ def create_topic_comment(tid):
     rv = dict(comment)
     rv['content'] = renderer.markup(rv['content'])
     rv['user'] = dict(current_user)
-    return jsonify(rv)
+    return jsonify(rv), 201
 
 
 @api.route('/<int:tid>/likes')
