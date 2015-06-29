@@ -16,7 +16,10 @@ def get_timeline_topics(cursor=None, user_id=None, count=20):
         q = db.session.query(Cafe.id)
         q = q.filter_by(permission=Cafe.PERMISSION_PUBLIC)
         choices = {cafe_id for cafe_id, in q}
-        cafe_ids = set(random.sample(choices, 6)) | cafe_ids
+        if len(choices) > 8:
+            cafe_ids = set(random.sample(choices, 6)) | cafe_ids
+        else:
+            cafe_ids = choices | cafe_ids
     return get_cafe_topics(cafe_ids, cursor, count)
 
 

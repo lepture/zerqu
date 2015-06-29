@@ -26,17 +26,17 @@ class TestTopicTimeline(TestCase):
             name='official', slug='official', user_id=1,
             permission=Cafe.PERMISSION_PUBLIC, status=9,
         )
-        private_cafe = Cafe(
+        member_cafe = Cafe(
             name='private', slug='private', user_id=1,
-            permission=Cafe.PERMISSION_PUBLIC, status=1,
+            permission=Cafe.PERMISSION_MEMBER, status=1,
         )
         db.session.add(pub_cafe)
-        db.session.add(private_cafe)
+        db.session.add(member_cafe)
         db.session.flush()
 
         for i in range(30):
             t1 = Topic(user_id=1, cafe_id=pub_cafe.id, title='hi public')
-            t2 = Topic(user_id=2, cafe_id=private_cafe.id, title='hi private')
+            t2 = Topic(user_id=2, cafe_id=member_cafe.id, title='hi member')
             db.session.add(t1)
             db.session.add(t2)
         db.session.commit()
