@@ -20,8 +20,8 @@ def get_timeline_topics(cursor=None, user_id=None, count=20):
     return get_cafe_topics(cafe_ids, cursor, count)
 
 
-def get_public_topics(cursor=None, count=20):
-    cafe_ids = get_public_cafe_ids()
+def get_all_topics(cursor=None, count=20):
+    cafe_ids = get_all_cafe_ids()
     return get_cafe_topics(cafe_ids, cursor, count)
 
 
@@ -41,7 +41,7 @@ def get_promoted_cafe_ids():
     return {cafe_id for cafe_id, in q}
 
 
-def get_public_cafe_ids():
+def get_all_cafe_ids():
     q = db.session.query(Cafe.id)
     q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
     return {cafe_id for cafe_id, in q}

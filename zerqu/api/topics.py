@@ -11,7 +11,7 @@ from ..models import db, current_user, User
 from ..models import Cafe, CafeMember
 from ..models import Topic, TopicLike, Comment, TopicRead
 from ..models.topic import topic_list_with_statuses
-from ..rec.timeline import get_timeline_topics, get_public_topics
+from ..rec.timeline import get_timeline_topics, get_all_topics
 from ..forms import TopicForm, CommentForm
 from ..libs.renderer import markup
 
@@ -30,7 +30,7 @@ def get_topic_cafe(cafe_id):
 def timeline():
     cursor = int_or_raise('cursor', 0)
     if request.args.get('show') == 'all':
-        data, cursor = get_public_topics(cursor)
+        data, cursor = get_all_topics(cursor)
     else:
         data, cursor = get_timeline_topics(cursor, current_user.id)
     reference = {
