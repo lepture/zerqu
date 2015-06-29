@@ -117,7 +117,6 @@ class AuthSession(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, default=0)
 
-    ip = Column(String(128))
     platform = Column(String(20))
     browser = Column(String(40))
 
@@ -129,7 +128,7 @@ class AuthSession(Base):
 
     def keys(self):
         return (
-            'id', 'platform', 'browser', 'ip', 'user',
+            'id', 'platform', 'browser', 'user',
             'created_at', 'last_used',
         )
 
@@ -179,7 +178,16 @@ class AuthSession(Base):
         sid = session.get('id')
         if not sid:
             return None
-        data = cls.cache.get(sid)
+
+        ts = session.get('ts')
+        if ts and int(time.time()) - ts > 300:
+            data = cls.query.get(sid)
+            if data:
+                data.last_used = datetime.datetime.utcnow()
+                with db.auto_commit():
+                    db.session.add(data)
+        else:
+            data = cls.cache.get(sid)
         if not data or not data.is_valid():
             session.pop('id', None)
             session.pop('ts', None)
