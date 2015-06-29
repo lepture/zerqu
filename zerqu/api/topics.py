@@ -136,7 +136,7 @@ def flag_topic(tid):
     status.flags += 1
     with db.auto_commit():
         db.session.add(status)
-    cache.incr(key)
+    cache.inc(key)
     return '', 204
 
 
@@ -247,5 +247,5 @@ def flag_topic_comment(tid, cid):
     with db.auto_commit():
         db.session.add(comment)
     # one person, one flag
-    cache.incr(key)
+    cache.inc(key)
     return '', 204
