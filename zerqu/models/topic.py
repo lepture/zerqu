@@ -122,10 +122,16 @@ class TopicStatus(Base):
     topic_id = Column(Integer, primary_key=True)
     views = Column(Integer, default=1)
     reads = Column(Integer, default=1)
+    flags = Column(Integer, default=0)
     likes = Column(Integer, default=0)
     comments = Column(Integer, default=0)
     timestamp = Column(Integer, default=0)
     reputation = Column(Integer, default=0)
+
+    @classmethod
+    def get_or_create(cls, topic_id):
+        data = cls.query.get(topic_id)
+        return data or cls(topic_id=topic_id)
 
 
 class TopicLike(Base):
@@ -186,6 +192,7 @@ class Comment(Base):
     reply_to = Column(Integer)
 
     status = Column(SmallInteger, default=0)
+    flag_count = Column(Integer, default=0)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(
@@ -199,7 +206,7 @@ class Comment(Base):
     def keys(self):
         return (
             'id', 'topic_id', 'user_id', 'content',
-            'created_at', 'updated_at',
+            'created_at', 'updated_at', 'flag_count',
         )
 
     @classmethod

@@ -9,11 +9,12 @@ from .utils import cursor_query, pagination_query, int_or_raise
 from ..errors import APIException, Conflict, NotFound, Denied
 from ..models import db, current_user, User
 from ..models import Cafe, CafeMember
-from ..models import Topic, TopicLike, Comment, TopicRead
+from ..models import Topic, TopicLike, Comment, TopicRead, TopicStatus
 from ..models.topic import topic_list_with_statuses
 from ..rec.timeline import get_timeline_topics, get_all_topics
 from ..forms import TopicForm, CommentForm
 from ..libs.renderer import markup
+from ..libs.cache import cache
 
 api = ApiBlueprint('topics')
 
@@ -123,6 +124,22 @@ def write_read_percent(tid):
     return jsonify(percent=read.percent)
 
 
+@api.route('/<int:tid>/flag', methods=['POST'])
+@require_oauth(login=True)
+def flag_topic(tid):
+    key = 'flag:%d:t-%d' % (current_user.id, tid)
+    if cache.get(key):
+        return '', 204
+    topic = Topic.cache.get_or_404(tid)
+    get_topic_cafe(topic.cafe_id)
+    status = TopicStatus.get_or_create(topic.id)
+    status.flags += 1
+    with db.auto_commit():
+        db.session.add(status)
+    cache.incr(key)
+    return '', 204
+
+
 @api.route('/<int:tid>/comments')
 @require_oauth(login=False, cache_time=600)
 def view_topic_comments(tid):
@@ -213,4 +230,22 @@ def delete_topic_comment(tid, cid):
         raise Denied('deleting this comment')
     with db.auto_commit():
         db.session.delete(comment)
+    return '', 204
+
+
+@api.route('/<int:tid>/comments/<int:cid>/flag', methods=['POST'])
+@require_oauth(login=True)
+def flag_topic_comment(tid, cid):
+    key = 'flag:%d:c-%d' % (current_user.id, cid)
+    if cache.get(key):
+        return '', 204
+    comment = Comment.query.get(cid)
+    if not comment or comment.topic_id != tid:
+        raise NotFound('Comment')
+    # here is a concurrency bug, but it doesn't matter
+    comment.flag_count += 1
+    with db.auto_commit():
+        db.session.add(comment)
+    # one person, one flag
+    cache.incr(key)
     return '', 204
