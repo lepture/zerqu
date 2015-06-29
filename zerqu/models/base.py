@@ -10,19 +10,18 @@ from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.dialects.postgresql import JSON as _JSON
-from werkzeug.local import LocalProxy
 from flask_sqlalchemy import SQLAlchemy as _SQLAlchemy
 from ..libs.utils import is_json
+from ..libs.cache import cache, ONE_DAY, FIVE_MINUTES
 from ..errors import NotFound
 
-__all__ = ['db', 'cache', 'use_cache', 'CACHE_TIMES', 'Base']
+__all__ = ['db', 'CACHE_TIMES', 'Base']
 
-ONE_DAY = 86400
 CACHE_TIMES = {
     'get': ONE_DAY,
     'count': ONE_DAY,
-    'ff': 300,
-    'fc': 300,
+    'ff': FIVE_MINUTES,
+    'fc': FIVE_MINUTES,
 }
 CACHE_MODEL_PREFIX = 'db'
 
@@ -44,14 +43,6 @@ db = SQLAlchemy(session_options={
     'expire_on_commit': False,
     'autoflush': False,
 })
-
-
-def use_cache(prefix='zerqu'):
-    return current_app.extensions[prefix + '_cache']
-
-
-# default cache
-cache = LocalProxy(use_cache)
 
 
 class CacheQuery(Query):

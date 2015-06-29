@@ -14,7 +14,8 @@ from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer
 from sqlalchemy.orm.attributes import get_history
 from flask_oauthlib.utils import to_bytes
-from .base import db, cache, Base
+from .base import db, Base
+from ..libs.cache import cache
 from ..libs.utils import Empty
 
 __all__ = ['current_user', 'User', 'AuthSession']

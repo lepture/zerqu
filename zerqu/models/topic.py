@@ -6,7 +6,8 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer, Text
 from .user import User
-from .base import db, cache, Base, JSON, CACHE_TIMES
+from .base import db, Base, JSON, CACHE_TIMES
+from ..libs.cache import cache
 from ..libs.renderer import markup
 
 

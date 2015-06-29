@@ -8,8 +8,9 @@ from sqlalchemy import Column
 from sqlalchemy import String, DateTime, Boolean, Text, Integer
 from flask_oauthlib.provider import OAuth2Provider
 from flask_oauthlib.contrib.oauth2 import bind_cache_grant
-from .base import db, cache, Base, CACHE_TIMES
+from .base import db, Base, CACHE_TIMES
 from .user import User, AuthSession
+from ..libs.cache import cache
 
 __all__ = ['oauth', 'bind_oauth', 'OAuthClient', 'OAuthToken']
 
