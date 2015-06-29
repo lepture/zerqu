@@ -2,6 +2,7 @@
 
 import datetime
 from werkzeug.utils import cached_property
+from sqlalchemy import event
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer, Text
@@ -220,6 +221,31 @@ class CommentLike(Base):
     comment_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+def register_count_event(cls):
+    prefix = cls.generate_cache_prefix('fc')
+
+    def gen_key(target):
+        if hasattr(target, 'topic_id'):
+            return prefix + 'topic_id$' + str(target.topic_id)
+
+    @event.listens_for(cls, 'after_insert')
+    def receive_after_insert(mapper, conn, target):
+        key = gen_key(target)
+        if key:
+            cache.inc(key)
+
+    @event.listens_for(cls, 'after_delete')
+    def receive_after_delete(mapper, conn, target):
+        key = gen_key(target)
+        if key:
+            cache.dec(key)
+
+
+register_count_event(TopicLike)
+register_count_event(TopicRead)
+register_count_event(Comment)
 
 
 def topic_ref_counts(cls, topic_ids):
