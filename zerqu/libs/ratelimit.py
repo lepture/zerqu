@@ -2,7 +2,7 @@
 
 import time
 import logging
-from ..models import cache
+from .cache import cache
 
 
 logger = logging.getLogger('zerqu')

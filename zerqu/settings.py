@@ -7,6 +7,7 @@ SITE_YEAR = datetime.date.today().year
 
 ZERQU_CACHE_TYPE = 'simple'
 OAUTH2_CACHE_TYPE = 'simple'
+ZERQU_REDIS_URI = 'redis://localhost:6379/0'
 
 # Gravatar settings
 GRAVATAR_URL = 'https://secure.gravatar.com/avatar/'

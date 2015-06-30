@@ -4,11 +4,11 @@
 def register_model(app):
     from .models import db
     from .models.auth import bind_oauth
-    from flask_oauthlib.contrib.cache import Cache
+    from .libs import cache
 
     db.init_app(app)
     bind_oauth(app)
-    Cache(app, config_prefix='ZERQU')
+    cache.init_app(app)
 
 
 def register_base_blueprints(app):
