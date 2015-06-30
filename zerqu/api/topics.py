@@ -75,6 +75,7 @@ def view_topic(tid):
         data['content'] = escape(topic.content)
     else:
         data['content'] = topic.get_html_content()
+        TopicStatus.increase_views(tid)
 
     data['user'] = dict(topic.user)
     data['cafe'] = dict(cafe)

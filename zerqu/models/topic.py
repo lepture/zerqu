@@ -2,7 +2,7 @@
 
 import datetime
 from werkzeug.utils import cached_property
-from sqlalchemy import event
+from sqlalchemy import event, func
 from sqlalchemy import Column
 from sqlalchemy import String, DateTime
 from sqlalchemy import SmallInteger, Integer, Text
@@ -132,7 +132,30 @@ class TopicStatus(Base):
     @classmethod
     def get_or_create(cls, topic_id):
         data = cls.query.get(topic_id)
-        return data or cls(topic_id=topic_id)
+        if not data:
+            data = cls(topic_id=topic_id)
+            db.session.add(data)
+            db.session.flush()
+        return data
+
+    @classmethod
+    def increase_views(cls, topic_id):
+        # TODO: use redis
+        status = cls.get_or_create(topic_id)
+        status.views += 1
+        with db.auto_commit(False):
+            db.session.add(status)
+
+    def calculate(self):
+
+        def query_count(model):
+            q = model.query.filter_by(topic_id=self.topic_id)
+            return q.with_entities(func.count(1)).scalar()
+
+        self.likes = query_count(TopicLike)
+        self.reads = query_count(TopicRead)
+        self.comments = query_count(Comment)
+        db.session.add(self)
 
 
 class TopicLike(Base):
