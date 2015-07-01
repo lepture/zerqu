@@ -33,4 +33,5 @@ def create_app(config=None):
     app = create_app(config)
     register_model(app)
     register_base_blueprints(app)
+    register_app_blueprints(app)
     return app
