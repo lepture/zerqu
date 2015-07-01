@@ -46,6 +46,8 @@ class PrettyRenderer(Renderer):
             return '<figure>%s</figure>\n' % content
         return '<p>%s</p>\n' % content
 
+
+class HighlightRenderer(PrettyRenderer):
     def block_code(self, text, lang):
         if not lang:
             text = text.strip()
@@ -61,11 +63,14 @@ class PrettyRenderer(Renderer):
             )
 
 
-_md = Markdown(renderer=PrettyRenderer(escape=True, skip_style=True))
+_code_md = Markdown(renderer=HighlightRenderer(escape=True, skip_style=True))
+_text_md = Markdown(renderer=PrettyRenderer(escape=True, skip_style=True))
 
 
-def markdown(s):
-    return _md.render(s)
+def markdown(s, code=True):
+    if code:
+        return _code_md.render(s)
+    return _text_md.render(s)
 
 
 RE_NEWLINES = re.compile(r'\r\n|\r')

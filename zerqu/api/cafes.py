@@ -2,7 +2,7 @@
 
 import datetime
 from flask import current_app
-from flask import jsonify
+from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
 from .base import ApiBlueprint
 from .base import require_oauth, oauth_ratelimit, cache_response
@@ -46,7 +46,15 @@ def list_cafes():
     data, cursor = cursor_query(Cafe)
     users = User.cache.get_dict({o.user_id for o in data})
     data = list(Cafe.iter_dict(data, user=users))
-    return jsonify(data=data, cursor=cursor)
+
+    if not current_user or request.args.get('cursor'):
+        return jsonify(data=data, cursor=cursor)
+
+    cafe_ids = CafeMember.get_user_following_cafe_ids(current_user.id)
+    following = Cafe.cache.get_many(cafe_ids)
+    users = User.cache.get_dict({o.user_id for o in following})
+    following = list(Cafe.iter_dict(following, user=users))
+    return jsonify(following=following, data=data, cursor=cursor)
 
 
 @api.route('', methods=['POST'])
