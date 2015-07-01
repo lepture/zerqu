@@ -52,6 +52,8 @@ class Topic(Base):
         )
 
     def is_changeable(self, valid_time):
+        if not valid_time:
+            return True
         delta = datetime.datetime.utcnow() - self.created_at
         return delta.total_seconds() < valid_time
 

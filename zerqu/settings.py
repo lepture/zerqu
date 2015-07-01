@@ -23,7 +23,7 @@ ZERQU_APP_HEADER = ''
 ZERQU_APP_FOOTER = ''
 
 # user can update topic in the given seconds
-ZERQU_VALID_MODIFY_TIME = 600
+ZERQU_VALID_MODIFY_TIME = 3600
 
 # render topic content use the given renderer, other choice is `text`
 # it can also be a module string for importing

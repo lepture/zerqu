@@ -80,6 +80,10 @@ def view_topic(tid):
     data['user'] = dict(topic.user)
     data['cafe'] = dict(cafe)
     data.update(topic.get_statuses(current_user.id))
+
+    if current_user and current_user.id == topic.user_id:
+        valid = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
+        data['permission_edit'] = topic.is_changeable(valid)
     return jsonify(data)
 
 
@@ -96,7 +100,7 @@ def update_topic(tid):
 
     # update topic in the given time
     valid = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
-    if valid and not topic.is_changeable(valid):
+    if not topic.is_changeable(valid):
         msg = 'Topic can only be updated in {} seconds'.format(valid)
         raise APIException(code=403, description=msg)
 
