@@ -2,7 +2,6 @@
 
 from flask import current_app
 from flask import request, jsonify
-from markupsafe import escape
 from .base import ApiBlueprint
 from .base import require_oauth
 from .utils import cursor_query, pagination_query, int_or_raise
@@ -72,7 +71,7 @@ def view_topic(tid):
     # /api/topic/:id?content=raw vs ?content=html
     content_format = request.args.get('content')
     if content_format == 'raw':
-        data['content'] = escape(topic.content)
+        data['content'] = topic.content
     else:
         data['content'] = topic.get_html_content()
         TopicStatus.increase_views(tid)
