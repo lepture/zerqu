@@ -1,14 +1,16 @@
 # coding: utf-8
 
 
-def register_model(app):
+def register_base(app):
     from .models import db
     from .models.auth import bind_oauth
     from .libs import cache
+    from .libs.pigeon import mailer
 
     db.init_app(app)
     bind_oauth(app)
     cache.init_app(app)
+    mailer.init_app(app)
 
 
 def register_base_blueprints(app):
@@ -31,7 +33,7 @@ def register_app_blueprints(app):
 def create_app(config=None):
     from .app import create_app
     app = create_app(config)
-    register_model(app)
+    register_base(app)
     register_base_blueprints(app)
     register_app_blueprints(app)
     return app
