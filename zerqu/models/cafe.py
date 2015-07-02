@@ -151,6 +151,21 @@ class Cafe(Base):
 
         return role != CafeMember.ROLE_VISITOR
 
+    def has_admin_permission(self, user_id, membership=EMPTY):
+        if not user_id:
+            return False
+
+        if self.user_id == user_id:
+            return True
+
+        if membership is EMPTY:
+            membership = CafeMember.cache.get((self.id, user_id))
+
+        if not membership:
+            return False
+
+        return membership.role == CafeMember.ROLE_ADMIN
+
 
 class CafeMember(Base):
     __tablename__ = 'zq_cafe_member'

@@ -82,6 +82,7 @@ def view_cafe(slug):
         data['permission'] = {
             'read': cafe.has_read_permission(current_user.id, membership),
             'write': cafe.has_write_permission(current_user.id, membership),
+            'admin': cafe.has_admin_permission(current_user.id, membership),
         }
     return jsonify(data)
 
