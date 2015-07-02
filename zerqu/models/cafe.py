@@ -116,6 +116,9 @@ class Cafe(Base):
         if not user_id:
             return False
 
+        if self.user_id == user_id:
+            return True
+
         if membership is EMPTY:
             membership = CafeMember.cache.get((self.id, user_id))
 
@@ -130,6 +133,9 @@ class Cafe(Base):
             return False
 
         if self.permission == self.PERMISSION_PUBLIC:
+            return True
+
+        if self.user_id == user_id:
             return True
 
         if membership is EMPTY:
