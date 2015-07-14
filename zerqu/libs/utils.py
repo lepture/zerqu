@@ -6,6 +6,10 @@ ROBOT_BROWSERS = ('google', 'msn', 'yahoo', 'ask', 'aol')
 MOBILE_PLATFORMS = ('iphone', 'android', 'wii')
 
 
+def xmldatetime(date):
+    return date.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
 def is_robot():
     return request.user_agent.browser in ROBOT_BROWSERS
 

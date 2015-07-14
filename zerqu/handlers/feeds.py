@@ -6,6 +6,7 @@ from flask import abort, Response
 from flask import request, current_app, url_for
 from ..models import db, User, Cafe, Topic
 from ..libs.cache import cache, ONE_HOUR
+from ..libs.utils import xmldatetime
 
 bp = Blueprint('feeds', __name__)
 
@@ -59,7 +60,7 @@ def yield_feed(title, web_url, self_url, topics):
     yield u'<link href="%s" rel="self" />' % escape(self_url)
     yield u'<id><![CDATA[%s]]></id>' % web_url
     if topics:
-        yield u'<updated>%s</updated>' % strftime(topics[0].updated_at)
+        yield u'<updated>%s</updated>' % xmldatetime(topics[0].updated_at)
     users = User.cache.get_dict({o.user_id for o in topics})
     for topic in topics:
         for text in yield_entry(topic, users.get(topic.user_id)):
@@ -73,8 +74,8 @@ def yield_entry(topic, user):
     yield u'<id><![CDATA[%s]]></id>' % url
     yield u'<link href="%s" />' % escape(url)
     yield u'<title type="html"><![CDATA[%s]]></title>' % topic.title
-    yield u'<updated>%s</updated>' % strftime(topic.updated_at)
-    yield u'<published>%s</published>' % strftime(topic.created_at)
+    yield u'<updated>%s</updated>' % xmldatetime(topic.updated_at)
+    yield u'<published>%s</published>' % xmldatetime(topic.created_at)
 
     yield u'<author>'
     if user:
@@ -88,10 +89,6 @@ def yield_entry(topic, user):
     content = topic.get_html_content()
     yield u'<content type="html"><![CDATA[%s]]></content>' % content
     yield u'</entry>'
-
-
-def strftime(date):
-    return date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def full_url(endpoint, **kwargs):
