@@ -1,20 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html prefix="og: http://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{{ topic.title }}">
+  <meta property="og:url" content="">
+  <meta name="twitter:card" content="summary">
   <title>{{ topic.title }}</title>
 </head>
 <body>
   <article class="hentry" itemscope itemtype="http://schema.org/Article">
     <h1 class="entry-title" itemprop="name">{{ topic.title }}</h1>
+    <span class="author vcard">
+      <a class="fn url" itemprop="author" href="{{ url_for('.view_user', username=topic.user.username) }}">{{ topic.user }}</a>
+    </span>
+    <a href="{{ url_for('.view_cafe', slug=cafe.slug) }}" rel="tag">{{ cafe.name }}</a>
     <div class="entry-content" itemprop="articleBody">
       {{ topic.get_html_content()|safe }}
     </div>
-    <time class="published" datetime="{{ topic.created_at }}" itemprop="datePublished" pubdate>{{ topic.created_at }}</time>
-    <time class="updated" datetime="{{ topic.updated_at }}" itemprop="dateModified">{{ topic.updated_at }}</time>
-    <a href="{{ url_for('.view_cafe', slug=cafe.slug) }}" rel="tag">{{ cafe.name }}</a>
-    <div class="author vcard">
-      <a class="fn url" itemprop="author" href="{{ url_for('.view_user', username=topic.user.username) }}">{{ topic.user }}</a>
+    <time class="published" datetime="{{ topic.created_at|xmldatetime }}" itemprop="datePublished" pubdate>{{ topic.created_at|xmldatetime }}</time>
+    <time class="updated" datetime="{{ topic.updated_at|xmldatetime }}" itemprop="dateModified">{{ topic.updated_at|xmldatetime }}</time>
+    <div class="comments">
+      <div><span itemprop="commentCount">{{ comment_count }}</span> comments</div>
+      <ul>
+        {% for comment in comments %}
+        <li itemscope itemprop="comment" itemtype="http://schema.org/Comment">
+          {% set user = comment_users.get(comment.user_id|string) %}
+          {% if user %}
+          <a itemprop="author" href="{{ url_for('.view_user', username=user.username) }}">{{ user }}</a>
+          {% endif %}
+          <time datetime="{{ comment.created_at|xmldatetime }}" itemprop="datePublished">{{ comment.created_at|xmldatetime }}</time>
+          <div itemprop="text">{{ comment.content }}</div>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
   </article>
 </body>

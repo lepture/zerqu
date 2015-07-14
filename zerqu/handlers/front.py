@@ -2,11 +2,12 @@
 
 from flask import Blueprint, request
 from flask import render_template, abort
-from ..libs.utils import is_robot
+from ..libs.utils import is_robot, xmldatetime
 from ..models import db, User, Cafe, Topic, Comment
 
 
 bp = Blueprint('front', __name__, template_folder='templates')
+bp.add_app_template_filter(xmldatetime)
 
 
 # @bp.before_request
@@ -31,12 +32,14 @@ def view_topic(tid):
     q = db.session.query(Comment.id).filter_by(topic_id=tid)
     comments = Comment.cache.get_many({i for i, in q.limit(100)})
     comment_users = User.cache.get_dict({o.user_id for o in comments})
+    comment_count = Comment.cache.filter_count(topic_id=tid)
     return render_template(
         'topic.html',
         topic=topic,
         cafe=cafe,
         comments=comments,
         comment_users=comment_users,
+        comment_count=comment_count,
     )
 
 
