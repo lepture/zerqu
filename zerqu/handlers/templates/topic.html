@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ topic.title }}</title>
+</head>
+<body>
+  <article class="hentry" itemscope itemtype="http://schema.org/Article">
+    <h1 class="entry-title" itemprop="name">{{ topic.title }}</h1>
+    <div class="entry-content" itemprop="articleBody">
+      {{ topic.get_html_content()|safe }}
+    </div>
+    <time class="published" datetime="{{ topic.created_at }}" itemprop="datePublished" pubdate>{{ topic.created_at }}</time>
+    <time class="updated" datetime="{{ topic.updated_at }}" itemprop="dateModified">{{ topic.updated_at }}</time>
+    <a href="{{ url_for('.view_cafe', slug=cafe.slug) }}" rel="tag">{{ cafe.name }}</a>
+    <div class="author vcard">
+      <a class="fn url" itemprop="author" href="{{ url_for('.view_user', username=topic.user.username) }}">{{ topic.user }}</a>
+    </div>
+  </article>
+</body>
+</html>

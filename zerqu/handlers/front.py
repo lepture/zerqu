@@ -6,10 +6,10 @@ from ..libs.utils import is_robot
 from ..models import db, User, Cafe, Topic, Comment
 
 
-bp = Blueprint('front', __name__)
+bp = Blueprint('front', __name__, template_folder='templates')
 
 
-@bp.before_request
+# @bp.before_request
 def handle_app():
     if not is_robot():
         return render_template('app.html')
