@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns#">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{{ cafe.name }}">
+  <meta property="og:url" content="">
+  <meta property="og:description" content="{{ cafe.description }}">
+  <meta property="description" content="{{ cafe.description }}">
+  {% if cafe.style.cover %}
+  <meta property="og:image" content="{{ cafe.style.cover }}">
+  <meta name="twitter:card" content="summary_large_image">
+  {% else %}
+  <meta name="twitter:card" content="summary">
+  {% endif %}
+  <title>{{ cafe.name }}</title>
+</head>
+<body>
+  <header>
+    <h1>{{ cafe.name }}</h1>
+    <p>{{ cafe.description }}</p>
+  </header>
+  {% for topic in topics %}
+  {% set user = topic_users.get(topic.user_id|string) %}
+  <article class="hentry" itemscope itemtype="http://schema.org/Article">
+    <h1 class="entry-title" itemprop="name">
+      <a href="{{ url_for('.view_topic', tid=topic.id) }}" itemprop="url">{{ topic.title }}</a>
+    </h1>
+    {% if user %}
+    <span class="author vcard">
+      <a class="fn url" itemprop="author" href="{{ url_for('.view_user', username=user.username) }}">{{ user }}</a>
+    </span>
+    {% endif %}
+    <time class="published" datetime="{{ topic.created_at|xmldatetime }}" itemprop="datePublished" pubdate>{{ topic.created_at|xmldatetime }}</time>
+    <time class="updated" datetime="{{ topic.updated_at|xmldatetime }}" itemprop="dateModified">{{ topic.updated_at|xmldatetime }}</time>
+  </article>
+  {% endfor %}
+</body>
+</html>

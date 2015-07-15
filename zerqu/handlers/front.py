@@ -50,16 +50,7 @@ def view_cafe(slug):
     if cafe.permission == Cafe.PERMISSION_PRIVATE:
         abort(404)
 
-    cursor = request.args.get('cursor', 0)
-    try:
-        cursor = int(cursor)
-    except ValueError:
-        cursor = 0
-
     q = db.session.query(Topic.id).filter_by(cafe_id=cafe.id)
-    if cursor:
-        q = q.filter(Topic.id < cursor)
-
     q = q.order_by(Topic.id.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
     topic_users = User.cache.get_dict({o.user_id for o in topics})
