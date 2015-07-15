@@ -146,7 +146,7 @@ class TopicForm(Form):
             link = self.link.data
             webpage = WebPage.get_or_create(link, user_id)
             if webpage:
-                topic.webpage_id = webpage.id
+                topic.webpage = webpage.uuid
 
         feature_type = self.feature_type.data
         feature_value = self.feature_value.data

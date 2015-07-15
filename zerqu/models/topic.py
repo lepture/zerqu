@@ -23,7 +23,7 @@ class Topic(Base):
 
     id = Column(Integer, primary_key=True)
     title = Column(String(140), nullable=False)
-    webpage_id = Column(Integer)
+    webpage = Column(String(34))
     content = Column(Text, default='')
 
     # feature content
