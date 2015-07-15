@@ -1,7 +1,8 @@
 # coding: utf-8
 
-from flask import Blueprint
-from flask import render_template, abort
+from flask import Blueprint, request, session
+from flask import render_template, abort, redirect
+from werkzeug.security import gen_salt
 from ..libs.utils import is_robot, xmldatetime, full_url
 from ..rec.timeline import get_all_topics
 from ..models import db, User, Cafe, Topic, Comment
@@ -11,10 +12,32 @@ bp = Blueprint('front', __name__, template_folder='templates')
 bp.add_app_template_filter(xmldatetime)
 
 
-# @bp.before_request
+def render(template, **kwargs):
+    content = render_template(template, **kwargs)
+    if is_robot() or session.get('app') == 'no':
+        return content
+    token = gen_salt(16)
+    session['token'] = token
+    script = '<script>location.href="/app?token=%s"</script></head>' % token
+    return content.replace('</head>', script)
+
+
+@bp.before_request
 def handle_app():
-    if not is_robot():
+    if not is_robot() and session.get('app') == 'yes':
         return render_template('front/app.html')
+
+
+@bp.route('/app')
+def run_app():
+    referrer = request.referrer
+    store = session.pop('token', None)
+    token = request.args.get('token')
+    if referrer and store and token and store == token:
+        session['app'] = 'yes'
+        return redirect(referrer)
+    session['app'] = 'no'
+    return redirect(referrer or '/')
 
 
 @bp.route('/')
@@ -24,7 +47,7 @@ def home():
     topic_cafes = Cafe.cache.get_dict({o.cafe_id for o in topics})
 
     canonical_url = full_url('.home')
-    return render_template(
+    return render(
         'front/index.html',
         canonical_url=canonical_url,
         topics=topics,
@@ -47,7 +70,7 @@ def view_topic(tid):
     comment_count = Comment.cache.filter_count(topic_id=tid)
 
     canonical_url = full_url('.view_topic', tid=tid)
-    return render_template(
+    return render(
         'front/topic.html',
         canonical_url=canonical_url,
         topic=topic,
@@ -66,7 +89,7 @@ def cafe_list():
     cafes = Cafe.cache.get_many([i for i, in q.limit(100)])
 
     canonical_url = full_url('.cafe_list')
-    return render_template(
+    return render(
         'front/cafe_list.html',
         canonical_url=canonical_url,
         cafes=cafes,
@@ -86,7 +109,7 @@ def view_cafe(slug):
     topic_users = User.cache.get_dict({o.user_id for o in topics})
 
     canonical_url = full_url('.view_cafe', slug=slug)
-    return render_template(
+    return render(
         'front/cafe.html',
         canonical_url=canonical_url,
         cafe=cafe,
@@ -103,7 +126,7 @@ def view_user(username):
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
 
     canonical_url = full_url('.view_user', username=username)
-    return render_template(
+    return render(
         'front/user.html',
         canonical_url=canonical_url,
         user=user,
