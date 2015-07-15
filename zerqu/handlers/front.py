@@ -2,7 +2,7 @@
 
 from flask import Blueprint
 from flask import render_template, abort
-from ..libs.utils import is_robot, xmldatetime
+from ..libs.utils import is_robot, xmldatetime, full_url
 from ..rec.timeline import get_all_topics
 from ..models import db, User, Cafe, Topic, Comment
 
@@ -22,8 +22,11 @@ def home():
     topics, _ = get_all_topics(0)
     topic_users = User.cache.get_dict({o.user_id for o in topics})
     topic_cafes = Cafe.cache.get_dict({o.cafe_id for o in topics})
+
+    canonical_url = full_url('.home')
     return render_template(
         'front/index.html',
+        canonical_url=canonical_url,
         topics=topics,
         topic_users=topic_users,
         topic_cafes=topic_cafes,
@@ -42,8 +45,11 @@ def view_topic(tid):
     comments = Comment.cache.get_many({i for i, in q.limit(100)})
     comment_users = User.cache.get_dict({o.user_id for o in comments})
     comment_count = Comment.cache.filter_count(topic_id=tid)
+
+    canonical_url = full_url('.view_topic', tid=tid)
     return render_template(
         'front/topic.html',
+        canonical_url=canonical_url,
         topic=topic,
         cafe=cafe,
         comments=comments,
@@ -63,8 +69,11 @@ def view_cafe(slug):
     q = q.order_by(Topic.id.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
     topic_users = User.cache.get_dict({o.user_id for o in topics})
+
+    canonical_url = full_url('.view_cafe', slug=slug)
     return render_template(
         'front/cafe.html',
+        canonical_url=canonical_url,
         cafe=cafe,
         topics=topics,
         topic_users=topic_users,
@@ -77,4 +86,11 @@ def view_user(username):
     q = db.session.query(Topic.id).filter_by(user_id=user.id)
     q = q.order_by(Topic.id.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
-    return render_template('front/user.html', user=user, topics=topics)
+
+    canonical_url = full_url('.view_user', username=username)
+    return render_template(
+        'front/user.html',
+        canonical_url=canonical_url,
+        user=user,
+        topics=topics,
+    )

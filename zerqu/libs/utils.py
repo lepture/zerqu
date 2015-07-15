@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from flask import request
+from flask import request, current_app, url_for
 
 ROBOT_BROWSERS = ('google', 'msn', 'yahoo', 'ask', 'aol')
 MOBILE_PLATFORMS = ('iphone', 'android', 'wii')
@@ -8,6 +8,16 @@ MOBILE_PLATFORMS = ('iphone', 'android', 'wii')
 
 def xmldatetime(date):
     return date.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def full_url(endpoint, **kwargs):
+    baseurl = current_app.config.get('SITE_URL')
+    if baseurl:
+        baseurl = baseurl.rstrip('/')
+        urlpath = url_for(endpoint, **kwargs)
+        return '%s%s' % (baseurl, urlpath)
+    kwargs['_external'] = True
+    return url_for(endpoint, **kwargs)
 
 
 def is_robot():

@@ -3,10 +3,10 @@
 from markupsafe import escape
 from flask import Blueprint
 from flask import abort, Response
-from flask import request, current_app, url_for
+from flask import request, current_app
 from ..models import db, User, Cafe, Topic
 from ..libs.cache import cache, ONE_HOUR
-from ..libs.utils import xmldatetime
+from ..libs.utils import xmldatetime, full_url
 
 bp = Blueprint('feeds', __name__)
 
@@ -89,13 +89,3 @@ def yield_entry(topic, user):
     content = topic.get_html_content()
     yield u'<content type="html"><![CDATA[%s]]></content>' % content
     yield u'</entry>'
-
-
-def full_url(endpoint, **kwargs):
-    baseurl = current_app.config.get('SITE_URL')
-    if baseurl:
-        baseurl = baseurl.rstrip('/')
-        urlpath = url_for(endpoint, **kwargs)
-        return '%s%s' % (baseurl, urlpath)
-    kwargs['_external'] = True
-    return url_for(endpoint, **kwargs)

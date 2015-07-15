@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{ cafe.name }}">
-  <meta property="og:url" content="">
+  <meta property="og:url" content="{{ canonical_url }}">
   <meta property="og:description" content="{{ cafe.description }}">
   <meta property="description" content="{{ cafe.description }}">
   {% if cafe.style.cover %}
@@ -14,6 +14,7 @@
   {% else %}
   <meta name="twitter:card" content="summary">
   {% endif %}
+  <link rel="canonical" href="{{ canonical_url }}">
   <title>{{ cafe.name }}</title>
 </head>
 <body>
