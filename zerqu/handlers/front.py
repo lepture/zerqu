@@ -65,4 +65,7 @@ def view_cafe(slug):
 @bp.route('/u/<username>')
 def view_user(username):
     user = User.cache.first_or_404(username=username)
-    return render_template('front/user.html', user=user)
+    q = db.session.query(Topic.id).filter_by(user_id=user.id)
+    q = q.order_by(Topic.id.desc())
+    topics = Topic.cache.get_many([i for i, in q.limit(50)])
+    return render_template('front/user.html', user=user, topics=topics)
