@@ -13,12 +13,12 @@ bp.add_app_template_filter(xmldatetime)
 # @bp.before_request
 def handle_app():
     if not is_robot():
-        return render_template('app.html')
+        return render_template('front/app.html')
 
 
 @bp.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('front/index.html')
 
 
 @bp.route('/t/<int:tid>')
@@ -34,7 +34,7 @@ def view_topic(tid):
     comment_users = User.cache.get_dict({o.user_id for o in comments})
     comment_count = Comment.cache.filter_count(topic_id=tid)
     return render_template(
-        'topic.html',
+        'front/topic.html',
         topic=topic,
         cafe=cafe,
         comments=comments,
@@ -64,7 +64,7 @@ def view_cafe(slug):
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
     topic_users = User.cache.get_dict({o.user_id for o in topics})
     return render_template(
-        'cafe.html',
+        'front/cafe.html',
         cafe=cafe,
         topics=topics,
         topic_users=topic_users,
@@ -74,4 +74,4 @@ def view_cafe(slug):
 @bp.route('/u/<username>')
 def view_user(username):
     user = User.cache.first_or_404(username=username)
-    return render_template('user.html', user=user)
+    return render_template('front/user.html', user=user)
