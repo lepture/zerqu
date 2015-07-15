@@ -23,7 +23,7 @@ class Topic(Base):
 
     id = Column(Integer, primary_key=True)
     title = Column(String(140), nullable=False)
-    link = Column(String(260))
+    webpage_id = Column(Integer)
     content = Column(Text, default='')
 
     # feature content
@@ -47,7 +47,7 @@ class Topic(Base):
 
     def keys(self):
         return (
-            'id', 'title', 'link', 'info', 'label', 'status',
+            'id', 'title', 'info', 'label', 'status',
             'created_at', 'updated_at',
         )
 

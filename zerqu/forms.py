@@ -11,7 +11,7 @@ from wtforms.validators import DataRequired, Email
 from wtforms.validators import StopValidation
 from werkzeug.datastructures import MultiDict
 from .models import db, cache
-from .models import User, Cafe, Comment, Topic
+from .models import User, Cafe, Comment, Topic, WebPage
 from .errors import APIException, FormError
 from .libs import feature
 
@@ -135,18 +135,18 @@ class TopicForm(Form):
             return
 
     def create_topic(self, cafe_id, user_id):
-        if self.link.data:
-            link = self.link.data
-        else:
-            link = None
-
         topic = Topic(
             title=self.title.data,
             content=self.content.data,
-            link=link,
             cafe_id=cafe_id,
             user_id=user_id,
         )
+
+        if self.link.data:
+            link = self.link.data
+            webpage = WebPage.get_or_create(link, user_id)
+            if webpage:
+                topic.webpage_id = webpage.id
 
         feature_type = self.feature_type.data
         feature_value = self.feature_value.data

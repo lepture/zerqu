@@ -1,8 +1,14 @@
 
+import re
+import hashlib
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import String, Integer, DateTime
-from .base import Base, JSON
+from .base import db, Base, JSON
 
 
 class WebPage(Base):
@@ -22,4 +28,36 @@ class WebPage(Base):
     )
     domain = Column(String(200))
     # first created by this user
-    user_id = Column(Integer, nullable=False)
+    user_id = Column(Integer)
+
+    @classmethod
+    def get_or_create(cls, link, user_id=None):
+        link = sanitize_link(link)
+        if not link.startswith('http'):
+            return None
+
+        uuid = hashlib.md5(link.encode('utf-8')).hexdigest()
+        page = cls.query.get(uuid)
+        if not page:
+            page = cls(uuid=uuid, link=link)
+            if user_id:
+                page.user_id = user_id
+            with db.auto_commit():
+                db.session.add(page)
+        return page
+
+
+def sanitize_link(url):
+    """Sanitize link. clean utm parameters on link."""
+    if not re.match(r'^https?:\/\/', url):
+        url = 'http://%s' % url
+
+    rv = urlparse(url)
+
+    if rv.query:
+        query = re.sub(r'utm_\w+=[^&]+&?', '', rv.query)
+        url = '%s://%s%s?%s' % (rv.scheme, rv.hostname, rv.path, query)
+
+    # remove ? at the end of url
+    url = re.sub(r'\?$', '', url)
+    return url
