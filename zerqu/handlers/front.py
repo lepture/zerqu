@@ -58,6 +58,21 @@ def view_topic(tid):
     )
 
 
+@bp.route('/c/')
+def cafe_list():
+    q = db.session.query(Cafe.id)
+    q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
+    q = q.order_by(Cafe.id.desc())
+    cafes = Cafe.cache.get_many([i for i, in q.limit(100)])
+
+    canonical_url = full_url('.cafe_list')
+    return render_template(
+        'front/cafe_list.html',
+        canonical_url=canonical_url,
+        cafes=cafes,
+    )
+
+
 @bp.route('/c/<slug>')
 def view_cafe(slug):
     """Show one cafe. This handler is designed for SEO."""
