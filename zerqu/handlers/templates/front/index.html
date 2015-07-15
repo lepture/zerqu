@@ -1,10 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html prefix="og: http://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
-  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{{ config.SITE_NAME }}">
+  <meta property="og:url" content="">
+  <meta property="og:description" content="{{ config.SITE_DESCRIPTION }}">
+  <meta property="description" content="{{ config.SITE_DESCRIPTION }}">
+  <meta name="twitter:card" content="summary">
+  <title>{{ config.SITE_NAME }}</title>
 </head>
 <body>
-  hello
+  <header>
+    <h1>{{ config.SITE_NAME }}</h1>
+    <p>{{ config.SITE_DESCRIPTION }}</p>
+  </header>
+  {% for topic in topics %}
+  {% set user = topic_users.get(topic.user_id|string) %}
+  {% set cafe = topic_cafes.get(topic.cafe_id|string) %}
+  <article class="hentry" itemscope itemtype="http://schema.org/Article">
+    <h1 class="entry-title" itemprop="name">
+      <a href="{{ url_for('.view_topic', tid=topic.id) }}" itemprop="url">{{ topic.title }}</a>
+    </h1>
+    {% if user %}
+    <span class="author vcard">
+      <a class="fn url" itemprop="author" href="{{ url_for('.view_user', username=user.username) }}">{{ user }}</a>
+    </span>
+    {% endif %}
+    {% if cafe %}
+    <a href="{{ url_for('.view_cafe', slug=cafe.slug) }}" rel="tag">{{ cafe.name }}</a>
+    {% endif %}
+    <time class="published" datetime="{{ topic.created_at|xmldatetime }}" itemprop="datePublished" pubdate>{{ topic.created_at|xmldatetime }}</time>
+    <time class="updated" datetime="{{ topic.updated_at|xmldatetime }}" itemprop="dateModified">{{ topic.updated_at|xmldatetime }}</time>
+  </article>
+  {% endfor %}
 </body>
 </html>

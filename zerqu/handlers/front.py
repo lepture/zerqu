@@ -1,8 +1,9 @@
 # coding: utf-8
 
-from flask import Blueprint, request
+from flask import Blueprint
 from flask import render_template, abort
 from ..libs.utils import is_robot, xmldatetime
+from ..rec.timeline import get_all_topics
 from ..models import db, User, Cafe, Topic, Comment
 
 
@@ -18,7 +19,15 @@ def handle_app():
 
 @bp.route('/')
 def home():
-    return render_template('front/index.html')
+    topics, _ = get_all_topics(0)
+    topic_users = User.cache.get_dict({o.user_id for o in topics})
+    topic_cafes = Cafe.cache.get_dict({o.cafe_id for o in topics})
+    return render_template(
+        'front/index.html',
+        topics=topics,
+        topic_users=topic_users,
+        topic_cafes=topic_cafes,
+    )
 
 
 @bp.route('/t/<int:tid>')
