@@ -2,12 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>{{ config.SITE_NAME }}</title>
-  {{ config.ZERQU_APP_HEADER }}
+  <script>
+    ZERQU = window.ZERQU || {};
+    ZERQU.site = {name: "{{ config.SITE_NAME }}", description: "{{ config.SITE_DESCRIPTION }}", links: {{ config.SITE_LINKS|tojson }}};
+  </script>
+  {{ config.ZERQU_APP_HEADER|safe }}
 </head>
 <body>
   <div id="app"></div>
-  <noscript>Enable JavaScript</noscript>
-  {{ config.ZERQU_APP_FOOTER }}
+  <noscript>Please enable JavaScript</noscript>
+  {{ config.ZERQU_APP_FOOTER|safe }}
 </body>
 </html>

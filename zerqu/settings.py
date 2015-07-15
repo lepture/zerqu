@@ -4,6 +4,7 @@ import datetime
 
 SITE_NAME = 'ZERQU'
 SITE_DESCRIPTION = 'Welcome to ZERQU'
+SITE_LINKS = [{'name': 'About', 'url': '/c/about'}]
 SITE_YEAR = datetime.date.today().year
 
 ZERQU_CACHE_TYPE = 'simple'
