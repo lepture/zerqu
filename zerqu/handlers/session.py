@@ -1,8 +1,7 @@
 # coding: utf-8
 
 from flask import Blueprint
-from flask import request
-from flask import jsonify
+from flask import session, request, jsonify
 from ..errors import LimitExceeded
 from ..models import User, AuthSession
 
@@ -11,7 +10,7 @@ bp = Blueprint('session', __name__)
 
 
 @bp.route('', methods=['POST', 'DELETE'])
-def session():
+def login_session():
     if request.method == 'DELETE':
         if AuthSession.logout():
             return '', 204
@@ -43,11 +42,44 @@ def session():
         user = User.cache.filter_first(username=username)
 
     if not user or not user.check_password(password):
+        return handle_login_failed(username, user)
+
+    permanent = data.get('permanent', False)
+    AuthSession.login(user, permanent)
+    return jsonify(user), 201
+
+
+def handle_login_failed(username, user):
+    last_username = session.get('login.username', None)
+
+    if last_username != username:
+        session['login.username'] = username
+        session['login.count'] = 1
+        count = 1
+    else:
+        count = session['login.count']
+        count += 1
+        session['login.count'] = count
+
+    if count < 3:
         return jsonify(
             status='error',
             error_code='login_failed',
             error_description='Invalid username or password.'
         ), 400
-    permanent = data.get('permanent', False)
-    AuthSession.login(user, permanent)
-    return jsonify(user), 201
+
+    if count == 3 and user:
+        # TODO: send forget password email
+        pass
+    elif count == 3 and '@' in username:
+        # TODO: send register email
+        pass
+
+    return jsonify(
+        status='error',
+        error_code='login_failed',
+        error_description=(
+            'We have sent you an email '
+            'in case you forgot your password.'
+        )
+    ), 400
