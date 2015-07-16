@@ -47,6 +47,7 @@ class SocialUser(Base):
     info = Column(JSON, default={})
 
     status = Column(SmallInteger, default=STATUS_ACTIVE)
+    reputation = Column(Integer, default=0)
 
     user_id = Column(Integer)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -68,12 +69,15 @@ class SocialUser(Base):
         if not profile:
             return None
 
-        uuid = profile['uuid']
+        uuid = profile.pop('uuid')
+        reputation = profile.pop('reputation')
+
         service_id = cls.SERVICES.get(name)
 
         data = cls.query.get((service_id, uuid))
         if data:
             data.info = profile
+            data.reputation = reputation
             with db.auto_commit():
                 db.session.add(data)
             return data
@@ -81,6 +85,7 @@ class SocialUser(Base):
         data = cls(
             service=service_id,
             uuid=uuid,
+            reputation=reputation,
             info=profile,
         )
 
@@ -165,7 +170,7 @@ def _fetch_twitter(remote, data):
     data['avatar_url'] = avatar_url
     data['uuid'] = data['id_str']
 
-    status = data['status']
+    status = data.pop('status', None)
     if not status:
         data['reputation'] = 10
         return data

@@ -193,6 +193,9 @@ class CafeMember(Base):
     user_id = Column(Integer, primary_key=True)
     role = Column('role', SmallInteger, default=0)
 
+    reputation = Column(Integer, default=0)
+    description = Column(String(140))
+
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
