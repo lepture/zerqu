@@ -13,19 +13,19 @@ bp.add_app_template_filter(xmldatetime)
 
 
 def render(template, **kwargs):
+    use_app = session.get('app')
+
+    if not is_robot() and use_app == 'yes':
+        return render_template('front/app.html')
+
     content = render_template(template, **kwargs)
-    if is_robot() or session.get('app') == 'no':
+    if is_robot() or use_app == 'no':
         return content
+
     token = gen_salt(16)
     session['token'] = token
     script = '<script>location.href="/app?token=%s"</script></head>' % token
     return content.replace('</head>', script)
-
-
-@bp.before_request
-def handle_app():
-    if not is_robot() and session.get('app') == 'yes':
-        return render_template('front/app.html')
 
 
 @bp.route('/app')
@@ -36,8 +36,12 @@ def run_app():
     if referrer and store and token and store == token:
         session['app'] = 'yes'
         return redirect(referrer)
+
+    if not referrer:
+        return redirect('/')
+
     session['app'] = 'no'
-    return redirect(referrer or '/')
+    return redirect(referrer)
 
 
 @bp.route('/')
