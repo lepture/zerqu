@@ -7,6 +7,8 @@ SITE_DESCRIPTION = 'Welcome to ZERQU'
 SITE_LINKS = [{'name': 'About', 'url': '/c/about'}]
 SITE_YEAR = datetime.date.today().year
 
+SITE_SOCIAL_LOGINS = []
+
 ZERQU_CACHE_TYPE = 'simple'
 OAUTH2_CACHE_TYPE = 'simple'
 ZERQU_REDIS_URI = 'redis://localhost:6379/0'

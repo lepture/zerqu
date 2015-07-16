@@ -21,9 +21,10 @@ log.addHandler(handler)
 log.setLevel(logging.DEBUG)
 
 root = os.path.abspath(os.path.dirname(__file__))
+secret_file = os.path.join(root, 'etc/secret.py')
 os.environ['ZERQU_CONF'] = os.path.join(root, 'etc/development.py')
 
-app = create_app()
+app = create_app(secret_file)
 
 
 def create_database():

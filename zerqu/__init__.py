@@ -2,25 +2,27 @@
 
 
 def register_base(app):
-    from .models import db
+    from .models import db, social
     from .models.auth import bind_oauth
     from .libs import cache
     from .libs.pigeon import mailer
 
     db.init_app(app)
+    social.init_app(app)
     bind_oauth(app)
     cache.init_app(app)
     mailer.init_app(app)
 
 
 def register_base_blueprints(app):
-    from .handlers import session, oauth
+    from .handlers import session, oauth, account
 
     from .api import init_app
     init_app(app)
 
     app.register_blueprint(oauth.bp, url_prefix='/oauth')
     app.register_blueprint(session.bp, url_prefix='/session')
+    app.register_blueprint(account.bp, url_prefix='/account')
 
 
 def register_app_blueprints(app):

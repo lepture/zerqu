@@ -29,7 +29,10 @@ def create_app(config=None):
         app.config.from_envvar('ZERQU_CONF')
 
     #: load app sepcified configuration
-    if config is not None and isinstance(config, dict):
-        app.config.update(config)
+    if config is not None:
+        if isinstance(config, dict):
+            app.config.update(config)
+        elif config.endswith('.py'):
+            app.config.from_pyfile(config)
 
     return app
