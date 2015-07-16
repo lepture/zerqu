@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>{{ config.SITE_NAME }}</title>
   <script>
-    ZERQU = window.ZERQU || {};
-    ZERQU.site = {name: "{{ config.SITE_NAME }}", description: "{{ config.SITE_DESCRIPTION }}", links: {{ config.SITE_LINKS|tojson }}};
+    ZERQU = window.ZERQU || {production: true};
+    ZERQU.site = {name: "{{ config.SITE_NAME }}", description: "{{ config.SITE_DESCRIPTION }}"};
+    ZERQU.site.links = {{ config.SITE_LINKS|tojson }};
+    ZERQU.site.logins = {{ config.SITE_SOCIAL_LOGINS|tojson }};
   </script>
   {{ config.ZERQU_APP_HEADER|safe }}
 </head>
