@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ config.SITE_NAME }}</title>
+  <style>
+    .container {
+      max-width: 640px;
+      margin: 100px auto;
+      font: 400 18px/1.62 "Hevetica Neue", "Xin Gothic", "Hiragino Sans GB", "Droid Sans Fallback", "Microsoft YaHei", sans-serif;
+    }
+    .container h1 {
+      text-transform: uppercase;
+      display: inline-block;
+      border-bottom: 6px solid #eee;
+      margin: 0 0 30px;
+      color: #222223;
+      font-size: 36px;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+    .form-field {
+      margin: 40px 0;
+    }
+    .form-field label {
+      font-size: 16px;
+      color: #999;
+    }
+    .form-field input {
+      font: 400 18px/1.62 serif;
+      border: none;
+      border-bottom: 1px solid #ddd;
+      display: block;
+      width: 100%;
+      color: #343433;
+      letter-spacing: 0.4px;
+    }
+    .form-field input:focus {
+      outline: none;
+      border-color: #999;
+    }
+    .form-field .form-error {
+      color: #ff4444;
+      font-size: 14px;
+      margin: 6px 0;
+    }
+    form button {
+      cursor: pointer;
+      display: inline-block;
+      background-color: #42B983;
+      text-decoration: none;
+      padding: 0 24px;
+      color: white;
+      font: normal 500 13px/32px "Lucida Grande", "Helvetica Neue", "Arial", sans-serif;
+      border-radius: 32px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    {% if user %}{% include "account/password.html" %}{% else %}{% include "account/signup.html" %}{% endif %}
+  </div>
+</body>
+</html>

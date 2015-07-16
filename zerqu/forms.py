@@ -7,7 +7,7 @@ from flask_wtf.recaptcha import RecaptchaField
 from flask_oauthlib.utils import to_bytes
 from wtforms.fields import StringField, PasswordField
 from wtforms.fields import TextAreaField, IntegerField
-from wtforms.validators import DataRequired, Email
+from wtforms.validators import DataRequired, Email, Length, Regexp
 from wtforms.validators import StopValidation
 from werkzeug.datastructures import MultiDict
 from .models import db, cache
@@ -32,8 +32,23 @@ class Form(BaseForm):
 
 
 class UserForm(Form):
-    username = StringField(validators=[DataRequired()])
+    username = StringField(validators=[
+        DataRequired(),
+        Length(min=3, max=20),
+        Regexp(r'^[a-z0-9A-Z]+$'),
+    ])
     password = PasswordField(validators=[DataRequired()])
+
+
+class PasswordForm(Form):
+    password = PasswordField(validators=[DataRequired()])
+
+
+class SignupForm(UserForm):
+    def validate_username(self, field):
+        username = field.data.lower()
+        if User.cache.filter_first(username=username):
+            raise StopValidation('Username is not available')
 
 
 class UserProfileForm(Form):
