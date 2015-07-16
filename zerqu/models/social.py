@@ -151,6 +151,7 @@ def _fetch_google(remote, data):
     token = (data['access_token'],)
     resp = remote.get('userinfo', token=token)
     data.update(resp.data)
+    data['service'] = 'google'
     data['uuid'] = data['id']
     data['avatar_url'] = data['picture']
     # Google user has a good reputation
@@ -169,6 +170,7 @@ def _fetch_twitter(remote, data):
     avatar_url = data['profile_image_url_https'].replace('_normal.', '.')
     data['avatar_url'] = avatar_url
     data['uuid'] = data['id_str']
+    data['service'] = 'twitter'
 
     status = data.pop('status', None)
     if not status:
@@ -191,6 +193,7 @@ def _fetch_github(remote, data):
     token = (data['access_token'],)
     resp = remote.get('user', token=token)
     data.update(resp.data)
+    data['service'] = 'github'
     data['uuid'] = str(data['id'])
     data['reputation'] = data['followers'] ** 0.4 * 20 + 100
     return data

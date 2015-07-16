@@ -9,6 +9,18 @@
 {% endmacro %}
 
 <h1>Sign Up</h1>
+
+{% if social %}
+<div class="social-connect">
+  <img src="{{ social.info.avatar_url }}" width="48" height="48" style="float:left;margin-right:14px">
+  <div style="float:left;overflow:hidden;line-height:1.3">
+    <strong>{{ social.info.name }}</strong><br>
+    <span style="font-size:14px;color:#999">{{ social.info.service }}</span>
+  </div>
+</div>
+<div style="clear:both"></div>
+{% endif %}
+
 <form action="" method="post">
   {{ form.csrf_token }}
   <div class="form-field">
