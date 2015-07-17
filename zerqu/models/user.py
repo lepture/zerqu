@@ -36,6 +36,8 @@ class User(Base):
     email = Column(String(255), unique=True)
     _avatar_url = Column('avatar_url', String(260))
     _password = Column('password', String(100))
+
+    name = Column(String(40))
     description = Column(String(280))
 
     role = Column(SmallInteger, default=0)
@@ -48,11 +50,11 @@ class User(Base):
         return '<User:%s>' % self.username
 
     def __str__(self):
-        return self.username
+        return self.name or self.username
 
     def keys(self):
         return (
-            'id', 'username', 'avatar_url', 'description',
+            'id', 'username', 'name', 'avatar_url', 'description',
             'label', 'reputation', 'is_active',
             'created_at', 'updated_at',
         )
