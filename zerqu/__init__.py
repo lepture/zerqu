@@ -2,14 +2,13 @@
 
 
 def register_base(app):
-    from .models import db, social
-    from .models.auth import bind_oauth
+    from .models import db, social, auth
     from .libs import cache
     from .libs.pigeon import mailer
 
     db.init_app(app)
     social.init_app(app)
-    bind_oauth(app)
+    auth.bind_oauth(app)
     cache.init_app(app)
     mailer.init_app(app)
 

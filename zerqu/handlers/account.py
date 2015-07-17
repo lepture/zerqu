@@ -1,11 +1,14 @@
 # coding: utf-8
 
-from flask import Blueprint, url_for, request, session
+from flask import Blueprint
+from flask import current_app, url_for, request, session
 from flask import abort, redirect, render_template
 from werkzeug.security import gen_salt
 # TODO: use redis
 from ..libs.cache import cache as redis
 from ..libs.cache import ONE_DAY
+from ..libs.utils import full_url
+from ..libs.pigeon import mailer
 from ..models import db, current_user, SocialUser, User, AuthSession
 from ..forms import RegisterForm, PasswordForm
 
@@ -19,7 +22,7 @@ def social_login(name):
         abort(404)
 
     session['next_url'] = request.referrer or '/'
-    callback = url_for('.social_authorize', name=name, _external=True)
+    callback = full_url('.social_authorize', name=name)
     return remote.authorize(callback=callback)
 
 
@@ -143,13 +146,15 @@ def get_email_or_404(token):
 
 def send_signup_email(email):
     token = create_signature(email)
-    print(token)
-    # TODO: send email
-    return
+    url = full_url('account.handle_signup', token=token)
+    title = 'Sign up account for %s' % current_app.config['SITE_NAME']
+    text = '%s\n\n%s' % (title, url)
+    mailer.send_text(email, title, text)
 
 
 def send_change_password_email(email):
     token = create_signature(email)
-    print(token)
-    # TODO: send email
-    return
+    title = 'Change password for %s' % current_app.config['SITE_NAME']
+    url = full_url('account.handle_change_password', token=token)
+    text = '%s\n\n%s' % (title, url)
+    mailer.send_text(email, title, text)

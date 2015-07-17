@@ -4,7 +4,7 @@ from flask import Blueprint
 from flask import session, request, jsonify
 from ..errors import LimitExceeded
 from ..models import User, AuthSession
-from ..forms import EmailForm
+from ..forms import RegisterEmailForm
 from .account import send_signup_email, send_change_password_email
 
 
@@ -53,10 +53,7 @@ def login_session():
 
 @bp.route('/new', methods=['POST'])
 def signup_session():
-    if request.mimetype != 'application/json':
-        return jsonify(status='error'), 400
-
-    form = EmailForm.create_api_form()
+    form = RegisterEmailForm.create_api_form()
     send_signup_email(form.email.data)
     return jsonify(message='We have sent you an email for sign up.')
 
