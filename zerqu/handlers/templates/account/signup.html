@@ -1,21 +1,15 @@
-{% macro FormField(field) %}
-  <div class="form-field">
-    {{ field.label }}
-    {{ field }}
-    {% if field.errors %}
-    <div class="form-error">{{ field.errors[0] }}</div>
-    {% endif %}
-  </div>
-{% endmacro %}
+{% extends "account/layout.html" %}
+{% from "account/macro.html" import FormField %}
 
+{% block content %}
 <h1>Sign Up</h1>
 
 {% if social %}
 <div class="social-connect">
-  <img src="{{ social.info.avatar_url }}" width="48" height="48" style="float:left;margin-right:14px">
+  <img src="{{ social.avatar_url }}" width="48" height="48" style="float:left;margin-right:14px">
   <div style="float:left;overflow:hidden;line-height:1.3">
-    <strong>{{ social.info.name }}</strong><br>
-    <span style="font-size:14px;color:#999">{{ social.info.service }}</span>
+    <strong>{{ social.name }}</strong><br>
+    <span style="font-size:14px;color:#999">{{ social.service_name }}</span>
   </div>
 </div>
 <div style="clear:both"></div>
@@ -30,3 +24,4 @@
   {{ FormField(form.password) }}
   <button>Sign Up</button>
 </form>
+{% endblock %}

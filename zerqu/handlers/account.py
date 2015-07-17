@@ -7,7 +7,7 @@ from werkzeug.security import gen_salt
 from ..libs.cache import cache as redis
 from ..libs.cache import ONE_DAY
 from ..models import db, current_user, SocialUser, User, AuthSession
-from ..forms import SignupForm, PasswordForm
+from ..forms import RegisterForm, PasswordForm
 
 bp = Blueprint('account', __name__, template_folder='templates')
 
@@ -25,29 +25,29 @@ def social_login(name):
 
 @bp.route('/s/<name>/authorize')
 def social_authorize(name):
-    data = SocialUser.handle_authorized_response(name)
-    if data is None:
+    social = SocialUser.handle_authorized_response(name)
+    if social is None:
         return 'error'
 
-    if current_user and not data.user_id:
-        data.user_id = current_user.id
+    if current_user and not social.user_id:
+        social.user_id = current_user.id
         with db.auto_commit():
-            db.session.add(data)
+            db.session.add(social)
 
-    if data.user_id:
-        user = User.cache.get(data.user_id)
+    if social.user_id:
+        user = User.cache.get(social.user_id)
         AuthSession.login(user, True)
         next_url = session.pop('next_url', '/')
         return redirect(next_url)
 
-    session['social.service'] = data.service
-    session['social.uuid'] = data.uuid
+    session['social.service'] = social.service
+    session['social.uuid'] = social.uuid
 
-    if name == 'google' and data.info.get('verified_email'):
-        email = data.info.get('email')
+    if name == 'google' and social.info.get('verified_email'):
+        email = social.info.get('email')
         if email:
             token = create_signature(email)
-            url = url_for('.signup_or_change_password', token=token)
+            url = url_for('.handle_signup', token=token)
             return redirect(url)
 
     return 'TODO'
@@ -55,43 +55,71 @@ def social_authorize(name):
 
 @bp.route('/-/<token>', methods=['GET', 'POST'])
 def signup_or_change_password(token):
-    key = 'account:sig:%s' % token
-    email = redis.get(key)
-    if not email:
-        return abort(404)
-
+    email, key = get_email_or_404(token)
     user = User.query.filter_by(email=email).first()
-    social = None
     if user:
-        form = PasswordForm()
-    else:
-        form = SignupForm()
-        social_service = session.get('social.service')
-        social_uuid = session.get('social.uuid')
-        if social_service and social_uuid:
-            social = SocialUser.query.get((social_service, social_uuid))
-            if social.user_id:
-                social = None
+        return password_template(user, key)
+    return signup_template(email, key)
+
+
+@bp.route('/-/<token>/signup', methods=['GET', 'POST'])
+def handle_signup(token):
+    return signup_template(*get_email_or_404(token))
+
+
+@bp.route('/-/<token>/password', methods=['GET', 'POST'])
+def handle_change_password(token):
+    email, key = get_email_or_404(token)
+    user = User.query.filter_by(email=email).first_or_404()
+    return password_template(user, key)
+
+
+def password_template(user, key):
+    form = PasswordForm()
 
     if form.validate_on_submit():
-        if not user:
-            user = User(email=email, username=form.username.data.lower())
-
         user.password = form.password.data
         with db.auto_commit():
             db.session.add(user)
+        redis.delete(key)
+        AuthSession.login(user, True)
+        return redirect('/')
+    return render_template(
+        'account/password.html',
+        form=form,
+        user=user,
+    )
+
+
+def signup_template(email, key):
+    social_service = session.get('social.service')
+    social_uuid = session.get('social.uuid')
+    if social_service and social_uuid:
+        social = SocialUser.query.get((social_service, social_uuid))
+        if social.user_id:
+            social = None
+    else:
+        social = None
+
+    form = RegisterForm()
+    form.email.data = email
+    if form.validate_on_submit():
+        user = form.create_user()
+        redis.delete(key)
 
         if social:
-            bind_social(social, user)
+            session.pop('social.service', None)
+            session.pop('social.uuid', None)
+            social.user_id = user.id
+            with db.auto_commit():
+                db.session.add(social)
 
-        redis.delete(key)
         AuthSession.login(user, True)
         return redirect('/')
 
     return render_template(
-        'account/user.html',
+        'account/signup.html',
         form=form,
-        user=user,
         email=email,
         social=social,
     )
@@ -105,9 +133,23 @@ def create_signature(email):
     return token
 
 
-def bind_social(social, user):
-    session.pop('social.service', None)
-    session.pop('social.uuid', None)
-    social.user_id = user.id
-    with db.auto_commit():
-        db.session.add(social)
+def get_email_or_404(token):
+    key = 'account:sig:%s' % token
+    email = redis.get(key)
+    if not email:
+        return abort(404)
+    return email, key
+
+
+def send_signup_email(email):
+    token = create_signature(email)
+    print(token)
+    # TODO: send email
+    return
+
+
+def send_change_password_email(email):
+    token = create_signature(email)
+    print(token)
+    # TODO: send email
+    return

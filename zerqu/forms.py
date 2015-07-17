@@ -3,7 +3,6 @@
 import hashlib
 from flask import request
 from flask_wtf import Form as BaseForm
-from flask_wtf.recaptcha import RecaptchaField
 from flask_oauthlib.utils import to_bytes
 from wtforms.fields import StringField, PasswordField
 from wtforms.fields import TextAreaField, IntegerField
@@ -44,11 +43,8 @@ class PasswordForm(Form):
     password = PasswordField(validators=[DataRequired()])
 
 
-class SignupForm(UserForm):
-    def validate_username(self, field):
-        username = field.data.lower()
-        if User.cache.filter_first(username=username):
-            raise StopValidation('Username is not available')
+class EmailForm(Form):
+    email = StringField(validators=[DataRequired(), Email()])
 
 
 class UserProfileForm(Form):
@@ -72,13 +68,10 @@ class RegisterForm(UserForm):
             email=self.email.data,
         )
         user.password = self.password.data
+        user.role = User.ROLE_ACTIVE
         with db.auto_commit():
             db.session.add(user)
         return user
-
-
-class RecaptchaForm(RegisterForm):
-    recaptcha = RecaptchaField()
 
 
 class CafeForm(Form):

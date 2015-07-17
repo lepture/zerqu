@@ -1,0 +1,9 @@
+{% macro FormField(field) %}
+  <div class="form-field">
+    {{ field.label }}
+    {{ field }}
+    {% if field.errors %}
+    <div class="form-error">{{ field.errors[0] }}</div>
+    {% endif %}
+  </div>
+{% endmacro %}

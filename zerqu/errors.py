@@ -6,6 +6,7 @@ from werkzeug._compat import text_type
 
 class APIException(HTTPException):
     code = 400
+    status = 'error'
     error = 'invalid_request'
 
     def __init__(self, code=None, error=None, description=None, response=None):
@@ -17,6 +18,7 @@ class APIException(HTTPException):
 
     def get_body(self, environ=None):
         return text_type(json.dumps(dict(
+            status=self.status,
             error=self.error,
             error_description=self.description,
         )))
@@ -87,6 +89,7 @@ class InvalidClient(APIException):
 
 class LimitExceeded(APIException):
     code = 429
+    status = 'warn'
     error = 'limit_exceeded'
 
     @classmethod

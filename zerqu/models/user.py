@@ -29,6 +29,7 @@ class User(Base):
     ROLE_STAFF = 7
     ROLE_VERIFIED = 4
     ROLE_SPAMMER = -9
+    ROLE_ACTIVE = 1
 
     id = Column(Integer, primary_key=True)
     username = Column(String(24), unique=True)

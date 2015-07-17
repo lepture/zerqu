@@ -41,6 +41,13 @@ class SocialUser(Base):
         'github': GITHUB,
         'weibo': WEIBO,
     }
+    SERVICE_NAMES = {
+        GOOGLE: 'google',
+        TWITTER: 'twitter',
+        FACEBOOK: 'facebook',
+        GITHUB: 'github',
+        WEIBO: 'weibo'
+    }
 
     service = Column(SmallInteger, primary_key=True)
     uuid = Column(String(64), primary_key=True)
@@ -52,6 +59,23 @@ class SocialUser(Base):
     user_id = Column(Integer)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    @property
+    def name(self):
+        return self.info.get('name')
+
+    @property
+    def service_name(self):
+        return self.SERVICE_NAMES.get(self.service)
+
+    @property
+    def avatar_url(self):
+        return self.info.get('avatar_url')
+
+    @property
+    def link(self):
+        if self.service == self.TWITTER:
+            return 'https://twitter.com/%s' % self.info.get('screen_name')
 
     @staticmethod
     def get_remote_app(name):
@@ -150,8 +174,8 @@ def fetch_profile(remote, data):
 def _fetch_google(remote, data):
     token = (data['access_token'],)
     resp = remote.get('userinfo', token=token)
+    # has name
     data.update(resp.data)
-    data['service'] = 'google'
     data['uuid'] = data['id']
     data['avatar_url'] = data['picture']
     # Google user has a good reputation
@@ -166,11 +190,11 @@ def _fetch_twitter(remote, data):
         '?include_email=true&include_entities=false'
     )
     resp = remote.get(url, token=token)
+    # has name
     data.update(resp.data)
     avatar_url = data['profile_image_url_https'].replace('_normal.', '.')
     data['avatar_url'] = avatar_url
     data['uuid'] = data['id_str']
-    data['service'] = 'twitter'
 
     status = data.pop('status', None)
     if not status:
@@ -192,8 +216,8 @@ def _fetch_twitter(remote, data):
 def _fetch_github(remote, data):
     token = (data['access_token'],)
     resp = remote.get('user', token=token)
+    # has name
     data.update(resp.data)
-    data['service'] = 'github'
     data['uuid'] = str(data['id'])
     data['reputation'] = data['followers'] ** 0.4 * 20 + 100
     return data

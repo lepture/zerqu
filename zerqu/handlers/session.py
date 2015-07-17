@@ -4,6 +4,8 @@ from flask import Blueprint
 from flask import session, request, jsonify
 from ..errors import LimitExceeded
 from ..models import User, AuthSession
+from ..forms import EmailForm
+from .account import send_signup_email, send_change_password_email
 
 
 bp = Blueprint('session', __name__)
@@ -49,6 +51,16 @@ def login_session():
     return jsonify(user), 201
 
 
+@bp.route('/new', methods=['POST'])
+def signup_session():
+    if request.mimetype != 'application/json':
+        return jsonify(status='error'), 400
+
+    form = EmailForm.create_api_form()
+    send_signup_email(form.email.data)
+    return jsonify(message='We have sent you an email for sign up.')
+
+
 def handle_login_failed(username, user):
     last_username = session.get('login.username', None)
 
@@ -69,11 +81,9 @@ def handle_login_failed(username, user):
         ), 400
 
     if count == 3 and user:
-        # TODO: send forget password email
-        pass
+        send_change_password_email(user.email)
     elif count == 3 and '@' in username:
-        # TODO: send register email
-        pass
+        send_signup_email(username)
 
     return jsonify(
         status='error',
