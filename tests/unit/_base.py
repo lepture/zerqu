@@ -10,6 +10,7 @@ class TestCase(unittest.TestCase):
         app = create_app({
             'SQLALCHEMY_DATABASE_URI': 'sqlite://',
             'ZERQU_CACHE_TYPE': 'simple',
+            'OAUTH_CACHE_TYPE': 'simple',
             'SECRET_KEY': 'secret',
         })
         app.testing = True

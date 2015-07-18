@@ -11,8 +11,10 @@ SITE_LOGINS = []
 SITE_HEADER = ''
 SITE_FOOTER = ''
 
-ZERQU_CACHE_TYPE = 'simple'
-OAUTH2_CACHE_TYPE = 'simple'
+OAUTH2_CACHE_TYPE = 'redis'
+OAUTH2_CACHE_REDIS_DB = 1
+ZERQU_CACHE_TYPE = 'redis'
+ZERQU_CACHE_REDIS_DB = 2
 ZERQU_REDIS_URI = 'redis://localhost:6379/0'
 
 # Gravatar settings

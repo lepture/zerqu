@@ -1,5 +1,6 @@
 
 import random
+from werkzeug.security import gen_salt
 from zerqu.models import User
 
 
@@ -22,22 +23,10 @@ def iter_admin_users():
 
 
 def iter_normal_users():
-    names = []
     domains = ['gmail.com', 'hotmail.com', 'yahoo.com', 'outlook.com']
 
-    with open('/usr/share/dict/words', 'rb') as f:
-        for word in f:
-            word = word.strip()
-            if 4 < len(word) < 8:
-                names.append(word)
-
-    def pick_name():
-        name = random.choice(names)
-        names.remove(name)
-        return name
-
     for i in range(3, 1024):
-        name = pick_name()
+        name = gen_salt(random.randint(4, 20)).lower()
         yield {
             "id": i,
             "username": name,

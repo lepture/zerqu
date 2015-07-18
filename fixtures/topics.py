@@ -67,7 +67,7 @@ def iter_comments():
             "id": i,
             "topic_id": random.randint(400, 600),
             "user_id": random.randint(2, 1000),
-            "content": content
+            "content": content[:400]
         }
 
 

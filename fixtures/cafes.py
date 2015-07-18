@@ -1,5 +1,6 @@
 
 import random
+from werkzeug.security import gen_salt
 from zerqu.models import Cafe
 
 TYPEWRITER = (
@@ -43,16 +44,9 @@ def iter_site_cafes():
 
 
 def iter_user_cafes():
-    names = []
-    with open('/usr/share/dict/words', 'rb') as f:
-        for word in f:
-            word = word.strip()
-            if 4 < len(word) < 8:
-                names.append(word)
-
     def pick_name():
-        first = random.choice(names)
-        last = random.choice(names)
+        first = gen_salt(random.randint(4, 10))
+        last = gen_salt(random.randint(4, 15))
         return '%s %s' % (first, last)
 
     for i in range(3, 68):
