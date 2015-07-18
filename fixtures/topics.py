@@ -13,13 +13,7 @@ for name in os.listdir(DATADIR):
             markdown_contents.append(content.encode('utf-8'))
 
 
-TYPEWRITER = (
-    'https://d262ilb51hltx0.cloudfront.net/max/1600/'
-    '1*TI7VtPCCe6bPi9xc-k_W1w.jpeg'
-)
-
-
-def create_topic(i, cafe_id, user_id):
+def create_topic(cafe_id, user_id):
     title = loremipsum.generate_sentence()[2]
     paragraphs = loremipsum.generate_paragraphs(random.randint(3, 7))
     paragraphs = [p[2] for p in paragraphs]
@@ -28,8 +22,7 @@ def create_topic(i, cafe_id, user_id):
     paragraphs.insert(index, md_content)
     content = '\n\n'.join(paragraphs)
     return {
-        "id": i,
-        "title": title,
+        "title": title[:135],
         "content": content,
         "cafe_id": cafe_id,
         "user_id": user_id,
@@ -39,9 +32,9 @@ def create_topic(i, cafe_id, user_id):
 def iter_user_topics():
     print('Creating topics')
     for i in range(1, 500):
-        yield create_topic(i, random.randint(1, 16), random.randint(1, 500))
+        yield create_topic(random.randint(1, 16), random.randint(1, 500))
     for i in range(500, 620):
-        yield create_topic(i, random.randint(1, 3), random.randint(1, 3))
+        yield create_topic(random.randint(1, 3), random.randint(1, 3))
 
 
 def iter_topic_likes():
@@ -64,7 +57,6 @@ def iter_comments():
         paragraphs = loremipsum.generate_paragraphs(random.randint(1, 3))
         content = '\n\n'.join(sub(p[2]) for p in paragraphs)
         yield {
-            "id": i,
             "topic_id": random.randint(400, 600),
             "user_id": random.randint(2, 1000),
             "content": content[:400]
@@ -73,9 +65,6 @@ def iter_comments():
 
 def iter_data():
     for data in iter_user_topics():
-        if data['id'] == 1:
-            data['cafe_id'] = 1
-            data['info'] = {'cover': TYPEWRITER}
         yield Topic(**data)
 
     for data in iter_topic_likes():

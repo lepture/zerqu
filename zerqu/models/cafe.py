@@ -64,7 +64,7 @@ class Cafe(Base):
 
     # meta data
     status = Column(SmallInteger, default=1)
-    user_id = Column(Integer, nullable=False)
+    user_id = Column(Integer, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 

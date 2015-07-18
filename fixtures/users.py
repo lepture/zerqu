@@ -6,7 +6,6 @@ from zerqu.models import User
 
 def iter_admin_users():
     yield {
-        "id": 1,
         "username": "root",
         "email": "root@zerqu.com",
         "reputation": 1000,
@@ -14,7 +13,6 @@ def iter_admin_users():
     }
 
     yield {
-        "id": 2,
         "username": "lepture",
         "email": "me@lepture.com",
         "reputation": 1000,
@@ -28,7 +26,6 @@ def iter_normal_users():
     for i in range(3, 1024):
         name = gen_salt(random.randint(4, 20)).lower()
         yield {
-            "id": i,
             "username": name,
             "email": "%s@%s" % (name, random.choice(domains)),
             "reputation": random.randint(0, 100),

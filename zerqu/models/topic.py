@@ -29,8 +29,8 @@ class Topic(Base):
     # feature content
     info = Column(JSON, default={})
 
-    cafe_id = Column(Integer)
-    user_id = Column(Integer, nullable=False)
+    cafe_id = Column(Integer, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
     # A topic copied from another topic
     fork_id = Column(Integer)
 
@@ -212,8 +212,8 @@ class Comment(Base):
     id = Column(Integer, primary_key=True)
     content = Column(String(480), nullable=False)
 
-    topic_id = Column(Integer, nullable=False)
-    user_id = Column(Integer, nullable=False)
+    topic_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
     # comment reply to another comment
     reply_to = Column(Integer)
 

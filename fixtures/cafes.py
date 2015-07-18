@@ -11,7 +11,6 @@ TYPEWRITER = (
 
 def iter_site_cafes():
     yield {
-        "id": 1,
         "name": "Site",
         "slug": "site",
         "description": "Things about this site. This very site is something",
@@ -26,7 +25,6 @@ def iter_site_cafes():
     }
 
     yield {
-        "id": 2,
         "name": "About",
         "slug": "about",
         "description": (
@@ -58,7 +56,6 @@ def iter_user_cafes():
             random.randint(0, 256),
         )
         yield {
-            "id": i,
             "name": name,
             "slug": slug,
             "permission": random.choice([0, 3, 6, 9]),
