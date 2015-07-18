@@ -195,7 +195,7 @@ def create_cafe_topic(slug):
     cafe = get_and_protect_cafe(slug, ['topic:write'])
 
     if not current_user.is_active:
-        raise InvalidAccount('Your account is not active')
+        raise InvalidAccount(description='Your account is not active')
 
     if cafe.permission == Cafe.PERMISSION_PUBLIC:
         CafeMember.get_or_create(cafe.id, current_user.id)
@@ -208,4 +208,4 @@ def create_cafe_topic(slug):
     data = dict(topic)
     data['user'] = dict(current_user)
     data['content'] = topic.get_html_content()
-    return jsonify(data)
+    return jsonify(data), 201

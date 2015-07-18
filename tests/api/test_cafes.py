@@ -40,6 +40,13 @@ class TestListCafes(TestCase, CafeMixin):
         value = json.loads(rv.data)
         assert not value['cursor']
 
+    def test_list_cafes_with_login(self):
+        headers = self.get_authorized_header()
+        self.create_cafes()
+        rv = self.client.get('/api/cafes', headers=headers)
+        assert rv.status_code == 200
+        assert b'following' in rv.data
+
 
 class TestCreateCafe(TestCase):
     def test_no_permission(self):
@@ -162,6 +169,30 @@ class TestViewCafe(TestCase, CafeMixin):
         rv = self.client.get('/api/cafes/%s' % cafe.slug)
         value = json.loads(rv.data)
         assert 'user' in value
+
+    def test_view_cafe_with_login(self):
+        headers = self.get_authorized_header(user_id=6)
+        self.create_cafes(2)
+        cafe = Cafe.query.get(1)
+
+        rv = self.client.get('/api/cafes/%s' % cafe.slug, headers=headers)
+        value = json.loads(rv.data)
+        assert 'permission' in value
+        assert not value['permission'].get('admin')
+
+    def test_view_cafe_with_membership(self):
+        headers = self.get_authorized_header(user_id=1)
+        member = CafeMember(user_id=1, cafe_id=1, role=CafeMember.ROLE_ADMIN)
+        db.session.add(member)
+        self.create_cafes(2)
+        cafe = Cafe.query.get(1)
+
+        rv = self.client.get('/api/cafes/%s' % cafe.slug, headers=headers)
+        value = json.loads(rv.data)
+        assert 'permission' in value
+        assert value['permission']['read']
+        assert value['permission']['write']
+        assert value['permission']['admin']
 
 
 class TestCafeMembers(TestCase, CafeMixin):
@@ -333,3 +364,42 @@ class TestCafeTopics(TestCase):
 
         rv = self.client.get('/api/cafes/hello/topics')
         assert b'data' in rv.data
+
+
+class TestCafeCreateTopic(TestCase):
+    def create_private_cafe(self):
+        item = Cafe(
+            name='hello', slug='hello', user_id=2,
+            permission=Cafe.PERMISSION_PRIVATE
+        )
+        db.session.add(item)
+        db.session.commit()
+
+    def test_has_no_permission(self):
+        self.create_private_cafe()
+        scope = 'cafe:private topic:write'
+        headers = self.get_authorized_header(user_id=1, scope=scope)
+        rv = self.client.post('/api/cafes/hello/topics', headers=headers)
+        assert rv.status_code == 403
+
+    def test_invalid_account(self):
+        self.create_private_cafe()
+        scope = 'cafe:private topic:write'
+        headers = self.get_authorized_header(user_id=2, scope=scope)
+        user = User.query.get(2)
+        user.role = 0
+        rv = self.client.post('/api/cafes/hello/topics', headers=headers)
+        assert rv.status_code == 403
+        assert b'account' in rv.data
+
+    def test_create_topic_success(self):
+        self.create_private_cafe()
+        scope = 'cafe:private topic:write'
+        headers = self.get_authorized_header(user_id=2, scope=scope)
+        rv = self.client.post(
+            '/api/cafes/hello/topics',
+            data=json.dumps({'title': 'Created', 'content': 'Hello World'}),
+            headers=headers,
+        )
+        assert rv.status_code == 201
+        assert b'Created' in rv.data

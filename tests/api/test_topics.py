@@ -87,6 +87,13 @@ class TestViewTopic(TestCase):
         data = json.loads(rv.data)
         assert '<strong>' not in data['content']
 
+    def test_view_topic_with_login(self):
+        t = self.create_topic()
+        headers = self.get_authorized_header(user_id=1)
+        rv = self.client.get('/api/topics/%d' % t.id, headers=headers)
+        data = json.loads(rv.data)
+        assert data['permission']['write']
+
     def test_view_topic_without_permission(self):
         cafe = Cafe(name='official', slug='official', user_id=1)
         cafe.permission = Cafe.PERMISSION_PRIVATE
@@ -95,6 +102,36 @@ class TestViewTopic(TestCase):
         t = self.create_topic(cafe)
         rv = self.client.get('/api/topics/%d' % t.id)
         assert rv.status_code == 403
+
+
+class TestUpdateTopic(TestCase, TopicMixin):
+    def test_not_found(self):
+        headers = self.get_authorized_header(user_id=1, scope='topic:write')
+        rv = self.client.post('/api/topics/404', headers=headers)
+        assert rv.status_code == 404
+
+    def test_permission_denied(self):
+        t = self.create_public_topic()
+        headers = self.get_authorized_header(
+            user_id=t.user_id + 1,
+            scope='topic:write',
+        )
+        rv = self.client.post('/api/topics/%d' % t.id, headers=headers)
+        assert rv.status_code == 403
+
+    def test_update_success(self):
+        t = self.create_public_topic()
+        headers = self.get_authorized_header(
+            user_id=t.user_id,
+            scope='topic:write',
+        )
+        rv = self.client.post(
+            '/api/topics/%d' % t.id,
+            data=json.dumps({'title': 'Changed', 'content': '**strong**'}),
+            headers=headers,
+        )
+        assert rv.status_code == 200
+        assert t.title == 'Changed'
 
 
 class TestTopicLikes(TestCase, TopicMixin):
@@ -176,6 +213,19 @@ class TestTopicLikes(TestCase, TopicMixin):
         rv = self.client.get(url, headers=headers)
         data = json.loads(rv.data)
         assert data['data'][0]['id'] == 12
+
+
+class TestTopicFlag(TestCase, TopicMixin):
+    def test_flag_topic(self):
+        headers = self.get_authorized_header()
+        t = self.create_public_topic()
+        url = '/api/topics/%d/flag' % t.id
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 204
+
+        url = '/api/topics/%d/flag' % t.id
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 204
 
 
 class TestTopicsStatuses(TestCase):
@@ -294,3 +344,18 @@ class TestTopicComment(TestCase, TopicMixin):
         headers = self.get_authorized_header(user_id=1, scope='comment:write')
         rv = self.client.delete(url, headers=headers)
         assert rv.status_code == 204
+
+    def test_flag_topic_comment(self):
+        topic = self.create_public_topic()
+        self.create_topic_comments(topic.id)
+        c = Comment.query.filter_by(topic_id=topic.id).first()
+        url = '/api/topics/%d/comments/%d/flag' % (topic.id, c.id)
+        headers = self.get_authorized_header(user_id=1, scope='comment:write')
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 204
+        assert c.flag_count == 1
+
+        # keep the same
+        rv = self.client.post(url, headers=headers)
+        assert rv.status_code == 204
+        assert c.flag_count == 1

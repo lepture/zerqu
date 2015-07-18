@@ -230,9 +230,7 @@ def unlike_topic(tid):
 @api.route('/<int:tid>/comments/<int:cid>', methods=['DELETE'])
 @require_oauth(login=True, scopes=['comment:write'])
 def delete_topic_comment(tid, cid):
-    comment = Comment.query.get(cid)
-    if not comment or comment.topic_id != tid:
-        raise NotFound('Comment')
+    comment = get_comment_or_404(tid, cid)
     if comment.user_id != current_user.id:
         raise Denied('deleting this comment')
     with db.auto_commit():
@@ -246,9 +244,7 @@ def flag_topic_comment(tid, cid):
     key = 'flag:%d:c-%d' % (current_user.id, cid)
     if cache.get(key):
         return '', 204
-    comment = Comment.query.get(cid)
-    if not comment or comment.topic_id != tid:
-        raise NotFound('Comment')
+    comment = get_comment_or_404(tid, cid)
     # here is a concurrency bug, but it doesn't matter
     comment.flag_count += 1
     with db.auto_commit():
@@ -256,3 +252,10 @@ def flag_topic_comment(tid, cid):
     # one person, one flag
     cache.inc(key)
     return '', 204
+
+
+def get_comment_or_404(tid, cid):
+    comment = Comment.query.get(cid)
+    if not comment or comment.topic_id != tid:
+        raise NotFound('Comment')
+    return comment
