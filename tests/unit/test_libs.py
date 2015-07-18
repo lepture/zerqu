@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from zerqu.libs import renderer
 from zerqu.libs.ratelimit import ratelimit
 from zerqu.libs.utils import is_robot, is_mobile
 from ._base import TestCase
@@ -47,3 +48,24 @@ class TestUserAgent(TestCase):
 
         rv = self.client.get('/test-is-mobile', headers={'User-Agent': ua})
         assert b'yes' == rv.data
+
+
+class TestRenderer(TestCase):
+    def test_markdown_image(self):
+        img = 'hello ![alt](http://path.to/img)'
+        assert '<figure>' not in renderer.markdown(img, code=False)
+
+        img = 'hello ![alt](http://path.to/img "has title")'
+        assert '<figure>' in renderer.markdown(img, code=False)
+
+    def test_markdown_code(self):
+        s = '```\nprint()\n```'
+        assert 'highlight' not in renderer.markdown(s, code=True)
+
+        s = '```python\nprint()\n```'
+        assert 'highlight' in renderer.markdown(s, code=True)
+
+    def test_text(self):
+        s = 'hello\nword\n\nnewline'
+        assert '<p>' in renderer.text(s)
+        assert '<br>' in renderer.text(s)
