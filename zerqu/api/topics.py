@@ -80,9 +80,12 @@ def view_topic(tid):
     data['cafe'] = dict(cafe)
     data.update(topic.get_statuses(current_user.id))
 
+    permission = {}
     if current_user and current_user.id == topic.user_id:
         valid = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
-        data['permission_edit'] = topic.is_changeable(valid)
+        permission['write'] = topic.is_changeable(valid)
+
+    data['permission'] = permission
     return jsonify(data)
 
 

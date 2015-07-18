@@ -74,16 +74,22 @@ def view_cafe(slug):
     cafe = Cafe.cache.first_or_404(slug=slug)
     data = dict(cafe)
     data['user'] = cafe.user
-    if current_user:
-        membership = CafeMember.cache.get((cafe.id, current_user.id))
-        if membership:
-            data['membership'] = membership.label
 
-        data['permission'] = {
-            'read': cafe.has_read_permission(current_user.id, membership),
-            'write': cafe.has_write_permission(current_user.id, membership),
-            'admin': cafe.has_admin_permission(current_user.id, membership),
+    if current_user:
+        user_id = current_user.id
+        m = CafeMember.cache.get((cafe.id, user_id))
+        if m:
+            data['membership'] = dict(m)
+
+        permission = {
+            'read': cafe.has_read_permission(user_id, m),
+            'write': cafe.has_write_permission(user_id, m),
+            'admin': cafe.has_admin_permission(user_id, m),
         }
+    else:
+        permission = {}
+
+    data['permission'] = permission
     return jsonify(data)
 
 

@@ -204,7 +204,10 @@ class CafeMember(Base):
         return self.ROLE_LABELS.get(self.role)
 
     def keys(self):
-        return ['cafe_id', 'user_id', 'label', 'created_at', 'updated_at']
+        return [
+            'cafe_id', 'user_id', 'reputation', 'description',
+            'label', 'created_at', 'updated_at',
+        ]
 
     @classmethod
     def get_or_create(cls, cafe_id, user_id):

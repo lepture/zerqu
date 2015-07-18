@@ -1,6 +1,6 @@
 
 import unittest
-from zerqu import register_model
+from zerqu import register_base
 from zerqu.app import create_app
 from zerqu.models import db
 
@@ -14,7 +14,7 @@ class TestCase(unittest.TestCase):
         })
         app.testing = True
 
-        register_model(app)
+        register_base(app)
 
         self._ctx = app.app_context()
         self._ctx.push()
