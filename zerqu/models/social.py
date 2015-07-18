@@ -126,7 +126,7 @@ class SocialUser(Base):
 
 
 def init_app(app):
-    logins = app.config.get('SITE_SOCIAL_LOGINS')
+    logins = app.config.get('SITE_LOGINS')
     if not logins:
         return
 

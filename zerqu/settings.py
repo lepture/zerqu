@@ -7,7 +7,9 @@ SITE_DESCRIPTION = 'Welcome to ZERQU'
 SITE_LINKS = [{'name': 'About', 'url': '/c/about'}]
 SITE_YEAR = datetime.date.today().year
 
-SITE_SOCIAL_LOGINS = []
+SITE_LOGINS = []
+SITE_HEADER = ''
+SITE_FOOTER = ''
 
 ZERQU_CACHE_TYPE = 'simple'
 OAUTH2_CACHE_TYPE = 'simple'
@@ -22,9 +24,6 @@ GRAVATAR_PARAMETERS = {
 
 # ZERQU settings
 ZERQU_VERIFY_SESSION = True
-
-ZERQU_APP_HEADER = ''
-ZERQU_APP_FOOTER = ''
 
 # user can update topic in the given seconds
 ZERQU_VALID_MODIFY_TIME = 3600

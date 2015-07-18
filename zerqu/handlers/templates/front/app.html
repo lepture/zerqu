@@ -8,13 +8,13 @@
     ZERQU = window.ZERQU || {production: true};
     ZERQU.site = {name: "{{ config.SITE_NAME }}", description: "{{ config.SITE_DESCRIPTION }}"};
     ZERQU.site.links = {{ config.SITE_LINKS|tojson }};
-    ZERQU.site.logins = {{ config.SITE_SOCIAL_LOGINS|tojson }};
+    ZERQU.site.logins = {{ config.SITE_LOGINS|tojson }};
   </script>
-  {{ config.ZERQU_APP_HEADER|safe }}
+  {{ config.SITE_HEADER|safe }}
 </head>
 <body>
   <div id="app"></div>
   <noscript>Please enable JavaScript</noscript>
-  {{ config.ZERQU_APP_FOOTER|safe }}
+  {{ config.SITE_FOOTER|safe }}
 </body>
 </html>
