@@ -8,7 +8,7 @@ from werkzeug.security import gen_salt
 from ..libs.cache import cache as redis
 from ..libs.cache import ONE_DAY
 from ..libs.utils import full_url
-from ..libs.pigeon import mailer
+from ..libs.pigeon import send_text
 from ..models import db, current_user, SocialUser, User, AuthSession
 from ..forms import RegisterForm, PasswordForm
 
@@ -149,7 +149,7 @@ def send_signup_email(email):
     url = full_url('account.handle_signup', token=token)
     title = 'Sign up account for %s' % current_app.config['SITE_NAME']
     text = '%s\n\n%s' % (title, url)
-    mailer.send_text(email, title, text)
+    send_text(email, title, text)
 
 
 def send_change_password_email(email):
@@ -157,4 +157,4 @@ def send_change_password_email(email):
     title = 'Change password for %s' % current_app.config['SITE_NAME']
     url = full_url('account.handle_change_password', token=token)
     text = '%s\n\n%s' % (title, url)
-    mailer.send_text(email, title, text)
+    send_text(email, title, text)

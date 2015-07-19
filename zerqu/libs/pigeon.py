@@ -8,36 +8,29 @@
 """
 
 import requests
+from flask import current_app
 from itsdangerous import json
 
 
-class Pigeon(object):
-    def __init__(self, url=None, secret=None):
-        self.url = url
-        self.secret = secret
+def send(user, title, **kwargs):
+    url = current_app.config.get('PIGEON_URL')
+    secret = current_app.config.get('PIGEON_SECRET')
+    if not url or secret:
+        raise RuntimeError('PIGEON_URL and PIGEON_SECRET are missing')
 
-    def init_app(self, app):
-        self.url = app.config.get('PIGEON_URL')
-        self.secret = app.config.get('PIGEON_SECRET')
-
-    def send(self, user, title, **kwargs):
-        if not self.url or not self.secret:
-            raise RuntimeError('PIGEON_URL and PIGEON_SECRET are missing')
-
-        kwargs['user'] = user
-        kwargs['title'] = title
-        payload = json.dumps(kwargs)
-        headers = {
-            'Content-Type': 'application/json',
-            'X-Pigeon-Secret': self.secret,
-        }
-        return requests.post(self.url, data=payload, headers=headers)
-
-    def send_text(self, user, title, content):
-        return self.send(user, title, text=content)
-
-    def send_html(self, user, title, content):
-        return self.send(user, title, html=content)
+    kwargs['user'] = user
+    kwargs['title'] = title
+    payload = json.dumps(kwargs)
+    headers = {
+        'Content-Type': 'application/json',
+        'X-Pigeon-Secret': secret,
+    }
+    return requests.post(url, data=payload, headers=headers)
 
 
-mailer = Pigeon()
+def send_text(user, title, content):
+    return send(user, title, text=content)
+
+
+def send_html(user, title, content):
+    return send(user, title, html=content)
