@@ -57,7 +57,7 @@ class Cafe(Base):
     })
 
     # available features
-    _features = Column(Integer, default=0)
+    _features = Column('features', Integer, default=0)
 
     # defined above
     permission = Column(SmallInteger, default=0)
@@ -189,8 +189,8 @@ class CafeMember(Base):
         ROLE_ADMIN: 'admin',
     }
 
-    cafe_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, primary_key=True)
+    cafe_id = Column(Integer, primary_key=True, autoincrement=False)
+    user_id = Column(Integer, primary_key=True, autoincrement=False)
     role = Column('role', SmallInteger, default=0)
 
     reputation = Column(Integer, default=0)

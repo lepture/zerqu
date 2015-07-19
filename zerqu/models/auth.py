@@ -87,8 +87,8 @@ def receive_oauth_client_after_delete(mapper, conn, target):
 class OAuthToken(Base):
     __tablename__ = 'zq_oauth_token'
 
-    client_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, default=0, primary_key=True)
+    client_id = Column(Integer, primary_key=True, autoincrement=False)
+    user_id = Column(Integer, default=0, primary_key=True, autoincrement=False)
 
     access_token = Column(String(34), unique=True, index=True)
     refresh_token = Column(String(34), unique=True, index=True)

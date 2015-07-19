@@ -122,7 +122,7 @@ class Topic(Base):
 class TopicStatus(Base):
     __tablename__ = 'zq_topic_status'
 
-    topic_id = Column(Integer, primary_key=True)
+    topic_id = Column(Integer, primary_key=True, autoincrement=False)
     views = Column(Integer, default=1)
     reads = Column(Integer, default=1)
     flags = Column(Integer, default=0)
@@ -163,8 +163,8 @@ class TopicStatus(Base):
 class TopicLike(Base):
     __tablename__ = 'zq_topic_like'
 
-    topic_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, primary_key=True)
+    topic_id = Column(Integer, primary_key=True, autoincrement=False)
+    user_id = Column(Integer, primary_key=True, autoincrement=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     @classmethod
@@ -179,8 +179,8 @@ class TopicLike(Base):
 class TopicRead(Base):
     __tablename__ = 'zq_topic_read'
 
-    topic_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, primary_key=True)
+    topic_id = Column(Integer, primary_key=True, autoincrement=False)
+    user_id = Column(Integer, primary_key=True, autoincrement=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     # reading status
     _percent = Column('percent', SmallInteger, default=0)
@@ -243,8 +243,8 @@ class Comment(Base):
 class CommentLike(Base):
     __tablename__ = 'zq_comment_like'
 
-    comment_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, primary_key=True)
+    comment_id = Column(Integer, primary_key=True, autoincrement=False)
+    user_id = Column(Integer, primary_key=True, autoincrement=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 

@@ -49,7 +49,7 @@ class SocialUser(Base):
         WEIBO: 'weibo'
     }
 
-    service = Column(SmallInteger, primary_key=True)
+    service = Column(SmallInteger, primary_key=True, autoincrement=False)
     uuid = Column(String(64), primary_key=True)
     info = Column(JSON, default={})
 
