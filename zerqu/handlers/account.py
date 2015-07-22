@@ -10,7 +10,7 @@ from ..libs.cache import cache, ONE_DAY
 from ..libs.utils import full_url
 from ..libs.pigeon import send_text
 from ..models import db, current_user, SocialUser, User, AuthSession
-from ..forms import RegisterForm, PasswordForm
+from ..forms import RegisterForm, PasswordForm, EmailForm
 
 bp = Blueprint('account', __name__, template_folder='templates')
 
@@ -49,52 +49,17 @@ def social_authorize(name):
     if name == 'google' and social.info.get('verified_email'):
         email = social.info.get('email')
         if email:
-            token = create_signature(email)
+            token = create_signature(email, 'signup')
             url = url_for('.handle_signup', token=token)
             return redirect(url)
 
     return 'TODO'
 
 
-@bp.route('/-/<token>', methods=['GET', 'POST'])
-def signup_or_change_password(token):
-    email, key = get_email_or_404(token)
-    user = User.query.filter_by(email=email).first()
-    if user:
-        return password_template(user, key)
-    return signup_template(email, key)
-
-
 @bp.route('/-/<token>/signup', methods=['GET', 'POST'])
 def handle_signup(token):
-    return signup_template(*get_email_or_404(token))
+    email, key = get_email_or_404(token, 'signup')
 
-
-@bp.route('/-/<token>/password', methods=['GET', 'POST'])
-def handle_change_password(token):
-    email, key = get_email_or_404(token)
-    user = User.query.filter_by(email=email).first_or_404()
-    return password_template(user, key)
-
-
-def password_template(user, key):
-    form = PasswordForm()
-
-    if form.validate_on_submit():
-        user.password = form.password.data
-        with db.auto_commit():
-            db.session.add(user)
-        redis.delete(key)
-        AuthSession.login(user, True)
-        return redirect('/')
-    return render_template(
-        'account/password.html',
-        form=form,
-        user=user,
-    )
-
-
-def signup_template(email, key):
     social_service = session.get('social.service')
     social_uuid = session.get('social.uuid')
     if social_service and social_uuid:
@@ -128,16 +93,53 @@ def signup_template(email, key):
     )
 
 
-def create_signature(email):
+@bp.route('/-/<token>/password', methods=['GET', 'POST'])
+def handle_change_password(token):
+    email, key = get_email_or_404(token, 'password')
+    user = User.query.filter_by(email=email).first_or_404()
+    form = PasswordForm()
+
+    if form.validate_on_submit():
+        user.password = form.password.data
+        with db.auto_commit():
+            db.session.add(user)
+        redis.delete(key)
+        return redirect('/')
+    return render_template(
+        'account/password.html',
+        form=form,
+        user=user,
+    )
+
+
+@bp.route('/-/<token>/email', methods=['GET', 'POST'])
+def handle_change_email(token):
+    email, key = get_email_or_404(token, 'email')
+    user = User.query.filter_by(email=email).first_or_404()
+    form = EmailForm()
+    if form.validate_on_submit():
+        user.email = form.email.data
+        with db.auto_commit():
+            db.session.add(user)
+        redis.delete(key)
+        return redirect('/')
+    return render_template(
+        'account/email.html',
+        form=form,
+        user=user,
+    )
+
+
+def create_signature(email, alt='signup'):
     # save email to redis
     token = gen_salt(16)
-    key = 'account:sig:%s' % token
+    key = 'account:%s:%s' % (alt, token)
     redis.set(key, email.lower(), ONE_DAY)
     return token
 
 
-def get_email_or_404(token):
-    key = 'account:sig:%s' % token
+def get_email_or_404(token, alt='signup'):
+    key = 'account:%s:%s' % (alt, token)
     email = redis.get(key)
     if not email:
         return abort(404)
@@ -155,7 +157,7 @@ def is_duplicated_email(key):
 def send_signup_email(email):
     if is_duplicated_email('signup:%s' % email):
         return
-    token = create_signature(email)
+    token = create_signature(email, 'signup')
     url = full_url('account.handle_signup', token=token)
     title = 'Sign up account for %s' % current_app.config['SITE_NAME']
     text = '%s\n\n%s' % (title, url)
@@ -165,7 +167,7 @@ def send_signup_email(email):
 def send_change_password_email(email):
     if is_duplicated_email('password:%s' % email):
         return
-    token = create_signature(email)
+    token = create_signature(email, 'password')
     title = 'Change password for %s' % current_app.config['SITE_NAME']
     url = full_url('account.handle_change_password', token=token)
     text = '%s\n\n%s' % (title, url)

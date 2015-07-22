@@ -43,7 +43,7 @@ class PasswordForm(Form):
     password = PasswordField(validators=[DataRequired()])
 
 
-class RegisterEmailForm(Form):
+class EmailForm(Form):
     email = StringField(validators=[DataRequired(), Email()])
 
     def validate_email(self, field):
@@ -55,7 +55,7 @@ class UserProfileForm(Form):
     description = StringField()
 
 
-class RegisterForm(UserForm, RegisterEmailForm):
+class RegisterForm(UserForm, EmailForm):
     def validate_username(self, field):
         if User.cache.filter_first(username=field.data):
             raise StopValidation('Username has been registered.')
