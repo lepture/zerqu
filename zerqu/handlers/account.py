@@ -6,7 +6,7 @@ from flask import abort, redirect, render_template
 from werkzeug.security import gen_salt
 # TODO: use redis
 from ..libs.cache import cache as redis
-from ..libs.cache import ONE_DAY
+from ..libs.cache import cache, ONE_DAY
 from ..libs.utils import full_url
 from ..libs.pigeon import send_text
 from ..models import db, current_user, SocialUser, User, AuthSession
@@ -144,7 +144,17 @@ def get_email_or_404(token):
     return email, key
 
 
+def is_duplicated_email(key):
+    key = 'email:%s' % key
+    if cache.get(key):
+        return True
+    cache.set(key, 1, 300)
+    return False
+
+
 def send_signup_email(email):
+    if is_duplicated_email('signup:%s' % email):
+        return
     token = create_signature(email)
     url = full_url('account.handle_signup', token=token)
     title = 'Sign up account for %s' % current_app.config['SITE_NAME']
@@ -153,6 +163,8 @@ def send_signup_email(email):
 
 
 def send_change_password_email(email):
+    if is_duplicated_email('password:%s' % email):
+        return
     token = create_signature(email)
     title = 'Change password for %s' % current_app.config['SITE_NAME']
     url = full_url('account.handle_change_password', token=token)

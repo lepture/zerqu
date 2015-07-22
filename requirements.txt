@@ -4,6 +4,7 @@ Flask==0.10.1
 Flask-WTF==0.11
 Flask-OAuthlib==0.9.1
 Flask-SQLAlchemy==2.0
+Flask-Mail==0.9.1
 mistune==0.7
 Pygments==2.0.2
 redis==2.10.3
