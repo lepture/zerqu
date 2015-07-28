@@ -1,15 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 
 def fread(filename):
     with open(filename) as f:
         return f.read()
+
+flask_requires = [
+    'Flask',
+    'Flask-WTF',
+    'Flask-OAuthlib',
+    'Flask-SQLAlchemy',
+    'Flask-Mail',
+]
+zerqu_requires = [
+    'Pygments',
+    'mistune',
+    'redis',
+    'psycopg2',
+]
 
 
 setup(
@@ -17,21 +28,14 @@ setup(
     version='0.1',
     author='Hsiaoming Yang',
     author_email='me@lepture.com',
-    packages=[
-        "zerqu",
-    ],
-    description="An API based forum",
+    packages=find_packages(exclude=['tests', 'tests.*']),
+    description="An API based forum-like application",
     zip_safe=False,
     include_package_data=True,
     platforms='any',
     long_description=fread('README.rst'),
     license='unknown',
-    install_requires=[
-        'Flask',
-        'Flask-OAuthlib',
-        'Flask-WTF',
-        'Flask-SQLAlchemy',
-    ],
+    install_requires=flask_requires + zerqu_requires,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',

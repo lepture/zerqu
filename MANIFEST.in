@@ -1,0 +1,3 @@
+recursive-include zerqu/handlers/templates *.*
+recursive-include zerqu/templates *.*
+recursive-include zerqu/translations *.*
