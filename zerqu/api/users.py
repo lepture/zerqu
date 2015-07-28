@@ -4,6 +4,7 @@ from flask import jsonify
 from .base import ApiBlueprint
 from .base import require_oauth, require_confidential
 from ..models import db, User, current_user
+from ..models import Cafe, CafeMember, Topic
 from ..forms import RegisterForm, UserProfileForm
 
 api = ApiBlueprint('users')
@@ -30,6 +31,21 @@ def list_users():
 def view_user(username):
     user = User.cache.first_or_404(username=username)
     return jsonify(user)
+
+
+@api.route('/<username>/cafes')
+@require_oauth(login=False, cache_time=600)
+def view_user_cafes(username):
+    user = User.cache.first_or_404(username=username)
+    if current_user.id == user.id:
+        cafe_ids = CafeMember.get_user_following_cafe_ids(user.id)
+    else:
+        cafe_ids = CafeMember.get_user_following_public_cafe_ids(user.id)
+
+    cafes = Cafe.cache.get_many(cafe_ids)
+    users = User.cache.get_dict({o.user_id for o in cafes})
+    data = list(Cafe.iter_dict(cafes, user=users))
+    return jsonify(data=data)
 
 
 @api.route('/me')
