@@ -22,6 +22,8 @@ class Cafe(Base):
         6: 'verified',
         9: 'official',
     }
+    STATUS_CLOSED = 0
+    STATUS_ACTIVE = 1
     STATUS_VERIFIED = 6
     STATUS_OFFICIAL = 9
 
@@ -60,10 +62,10 @@ class Cafe(Base):
     _features = Column('features', Integer, default=0)
 
     # defined above
-    permission = Column(SmallInteger, default=0)
+    permission = Column(SmallInteger, default=PERMISSION_PUBLIC)
 
     # meta data
-    status = Column(SmallInteger, default=1)
+    status = Column(SmallInteger, default=STATUS_ACTIVE)
     user_id = Column(Integer, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
