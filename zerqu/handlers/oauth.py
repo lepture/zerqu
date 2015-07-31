@@ -10,7 +10,7 @@ from ..models import current_user
 from ..models.auth import oauth
 
 
-bp = Blueprint('oauth', __name__)
+bp = Blueprint('oauth', __name__, template_folder='templates')
 
 
 class OAuthForm(Form):
