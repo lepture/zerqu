@@ -67,7 +67,7 @@ def upgrade():
     op.create_table(
         'zq_comment',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('content', sa.Unicode(length=480), nullable=False),
+        sa.Column('content', sa.UnicodeText(), nullable=False),
         sa.Column('topic_id', sa.Integer(), nullable=False),
         sa.Column('user_id', sa.Integer(), nullable=False),
         sa.Column('reply_to', sa.Integer(), nullable=True),

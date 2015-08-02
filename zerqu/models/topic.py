@@ -24,7 +24,7 @@ class Topic(Base):
     id = Column(Integer, primary_key=True)
     title = Column(Unicode(140), nullable=False)
     webpage = Column(String(34))
-    content = Column(UnicodeText, default='')
+    content = Column(UnicodeText, default=u'')
 
     # feature content
     info = Column(JSON, default={})
@@ -210,7 +210,7 @@ class Comment(Base):
     __tablename__ = 'zq_comment'
 
     id = Column(Integer, primary_key=True)
-    content = Column(Unicode(480), nullable=False)
+    content = Column(UnicodeText, nullable=False)
 
     topic_id = Column(Integer, nullable=False, index=True)
     user_id = Column(Integer, nullable=False, index=True)
