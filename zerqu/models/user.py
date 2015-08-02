@@ -10,7 +10,7 @@ from werkzeug.utils import cached_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import event
 from sqlalchemy import Column
-from sqlalchemy import String, DateTime
+from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer
 from sqlalchemy.orm.attributes import get_history
 from flask_oauthlib.utils import to_bytes
@@ -37,8 +37,8 @@ class User(Base):
     _avatar_url = Column('avatar_url', String(260))
     _password = Column('password', String(100))
 
-    name = Column(String(40))
-    description = Column(String(280))
+    name = Column(Unicode(40))
+    description = Column(Unicode(280))
 
     role = Column(SmallInteger, default=0)
     reputation = Column(Integer, default=0)

@@ -4,7 +4,7 @@ import datetime
 from flask import current_app
 from werkzeug.utils import cached_property
 from sqlalchemy import Column
-from sqlalchemy import String, DateTime
+from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer
 from .user import User
 from .base import db, Base, JSON
@@ -47,8 +47,8 @@ class Cafe(Base):
 
     # basic information
     slug = Column(String(30), nullable=False, unique=True, index=True)
-    name = Column(String(30), nullable=False, unique=True)
-    description = Column(String(140))
+    name = Column(Unicode(30), nullable=False, unique=True)
+    description = Column(Unicode(140))
     # refer to a topic ID as introduction
     intro = Column(Integer)
 
@@ -196,7 +196,7 @@ class CafeMember(Base):
     role = Column('role', SmallInteger, default=0)
 
     reputation = Column(Integer, default=0)
-    description = Column(String(140))
+    description = Column(Unicode(140))
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)

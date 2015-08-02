@@ -7,7 +7,7 @@ except ImportError:
     from urllib.parse import urlparse
 from datetime import datetime
 from sqlalchemy import Column
-from sqlalchemy import String, Integer, DateTime
+from sqlalchemy import String, Unicode, Integer, DateTime
 from .base import db, Base, JSON
 
 
@@ -16,9 +16,9 @@ class WebPage(Base):
 
     uuid = Column(String(34), primary_key=True)
     link = Column(String(400), nullable=False)
-    title = Column(String(80))
+    title = Column(Unicode(80))
     image = Column(String(256))
-    description = Column(String(140))
+    description = Column(Unicode(140))
     info = Column(JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(

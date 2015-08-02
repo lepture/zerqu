@@ -4,8 +4,8 @@ import datetime
 from werkzeug.utils import cached_property
 from sqlalchemy import event, func
 from sqlalchemy import Column
-from sqlalchemy import String, DateTime
-from sqlalchemy import SmallInteger, Integer, Text
+from sqlalchemy import String, Unicode, DateTime
+from sqlalchemy import SmallInteger, Integer, UnicodeText
 from .user import User
 from .base import db, Base, JSON, CACHE_TIMES
 from ..libs.cache import cache
@@ -22,9 +22,9 @@ class Topic(Base):
     }
 
     id = Column(Integer, primary_key=True)
-    title = Column(String(140), nullable=False)
+    title = Column(Unicode(140), nullable=False)
     webpage = Column(String(34))
-    content = Column(Text, default='')
+    content = Column(UnicodeText, default='')
 
     # feature content
     info = Column(JSON, default={})
@@ -210,7 +210,7 @@ class Comment(Base):
     __tablename__ = 'zq_comment'
 
     id = Column(Integer, primary_key=True)
-    content = Column(String(480), nullable=False)
+    content = Column(Unicode(480), nullable=False)
 
     topic_id = Column(Integer, nullable=False, index=True)
     user_id = Column(Integer, nullable=False, index=True)

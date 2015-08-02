@@ -5,7 +5,7 @@ from werkzeug.utils import cached_property
 from werkzeug.security import gen_salt
 from sqlalchemy import event
 from sqlalchemy import Column
-from sqlalchemy import String, DateTime, Boolean, Text, Integer
+from sqlalchemy import String, Unicode, DateTime, Boolean, Text, Integer
 from flask_oauthlib.provider import OAuth2Provider
 from flask_oauthlib.contrib.oauth2 import bind_cache_grant
 from .base import db, Base, CACHE_TIMES
@@ -22,9 +22,9 @@ class OAuthClient(Base):
 
     id = Column(Integer, primary_key=True)
 
-    name = Column(String(40), nullable=False, unique=True)
+    name = Column(Unicode(40), nullable=False, unique=True)
     avatar_url = Column(String(260))
-    description = Column(String(140))
+    description = Column(Unicode(140))
 
     user_id = Column(Integer, nullable=False, index=True)
 
