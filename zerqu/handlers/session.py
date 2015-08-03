@@ -2,6 +2,7 @@
 
 from flask import Blueprint
 from flask import session, request, jsonify
+from flask_oauthlib.utils import decode_base64
 from ..errors import LimitExceeded
 from ..models import User, AuthSession
 from ..forms import EmailForm
@@ -21,9 +22,7 @@ def login_session():
     if request.mimetype != 'application/json':
         return jsonify(status='error'), 400
 
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    username, password = parse_auth_headers()
     if not username or not password:
         return jsonify(
             status='error',
@@ -46,6 +45,7 @@ def login_session():
     if not user or not user.check_password(password):
         return handle_login_failed(username, user)
 
+    data = request.get_json()
     permanent = data.get('permanent', False)
     AuthSession.login(user, permanent)
     return jsonify(user), 201
@@ -77,9 +77,9 @@ def handle_login_failed(username, user):
             error_description='Invalid username or password.'
         ), 400
 
-    if count == 3 and user:
+    if user:
         send_change_password_email(user.email)
-    elif count == 3 and '@' in username:
+    elif '@' in username:
         send_signup_email(username)
 
     return jsonify(
@@ -90,3 +90,11 @@ def handle_login_failed(username, user):
             'in case you forgot your password.'
         )
     ), 400
+
+
+def parse_auth_headers():
+    data = request.headers.get('Authorization')
+    if not data:
+        return None, None
+    data = data.replace('Basic ', '').strip()
+    return decode_base64(data).split(':')
