@@ -21,9 +21,6 @@ sys.path.insert(0, cwd)
 from zerqu.app import create_app
 from zerqu.models import db
 
-if 'ZERQU_CONF' not in os.environ:
-    os.environ['ZERQU_CONF'] = os.path.join(cwd, 'etc/secret.py')
-
 app = create_app()
 db.init_app(app)
 
