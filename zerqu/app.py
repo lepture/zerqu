@@ -4,6 +4,18 @@ from datetime import datetime
 from flask import Flask as _Flask
 from flask.json import JSONEncoder as _JSONEncoder
 
+try:
+    from raven.contrib.flask import Sentry
+
+    class FlaskSentry(Sentry):
+        def get_user_info(self, request):
+            from .models import current_user
+            if not current_user:
+                return
+            return dict(current_user)
+except ImportError:
+    FlaskSentry = None
+
 
 class JSONEncoder(_JSONEncoder):
     def default(self, o):
@@ -35,4 +47,6 @@ def create_app(config=None):
         elif config.endswith('.py'):
             app.config.from_pyfile(config)
 
+    if not app.debug and not app.testing and FlaskSentry:
+        FlaskSentry(app)
     return app
