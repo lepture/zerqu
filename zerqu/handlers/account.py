@@ -4,9 +4,7 @@ from flask import Blueprint
 from flask import current_app, url_for, request, session
 from flask import abort, redirect, render_template
 from werkzeug.security import gen_salt
-# TODO: use redis
-from ..libs.cache import cache as redis
-from ..libs.cache import cache, ONE_DAY
+from ..libs.cache import redis, cache, ONE_DAY
 from ..libs.utils import full_url
 from ..libs.pigeon import send_text
 from ..models import db, current_user, SocialUser, User, AuthSession

@@ -2,7 +2,7 @@
 
 import time
 import logging
-from .cache import cache
+from .cache import redis
 
 
 logger = logging.getLogger('zerqu')
@@ -44,7 +44,7 @@ class Ratelimiter(object):
         return remaining, expires
 
 
-class RedisRateLimiter(Ratelimiter):
+class RedisRatelimiter(Ratelimiter):
     def get_data(self):
         return self.db.mget(self.count_key, self.reset_key)
 
@@ -58,4 +58,4 @@ class RedisRateLimiter(Ratelimiter):
         self.db.set(self.count_key, remaining, ex=expires, xx=True)
 
 
-ratelimit = Ratelimiter(cache)
+ratelimit = RedisRatelimiter(redis)
