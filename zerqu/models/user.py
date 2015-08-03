@@ -5,7 +5,6 @@ import datetime
 import hashlib
 from flask import request, session, current_app
 from werkzeug.urls import url_encode
-from werkzeug.local import LocalProxy
 from werkzeug.utils import cached_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import event
@@ -16,9 +15,8 @@ from sqlalchemy.orm.attributes import get_history
 from flask_oauthlib.utils import to_bytes
 from .base import db, Base
 from ..libs.cache import cache
-from ..libs.utils import Empty
 
-__all__ = ['current_user', 'User', 'AuthSession']
+__all__ = ['User', 'AuthSession']
 
 
 class User(Base):
@@ -199,29 +197,3 @@ class AuthSession(Base):
             session.pop('ts', None)
             return None
         return data.user
-
-
-class Anonymous(Empty):
-    id = None
-
-    def __str__(self):
-        return "Anonymous User"
-
-    def __repr__(self):
-        return "<User: Anonymous>"
-
-ANONYMOUS = Anonymous()
-
-
-def _get_current_user():
-    user = getattr(request, '_current_user', None)
-    if user:
-        return user
-    user = AuthSession.get_current_user()
-    if user is None:
-        return ANONYMOUS
-    request._current_user = user
-    return user
-
-
-current_user = LocalProxy(_get_current_user)
