@@ -16,4 +16,5 @@ def upload():
 
     with cd('/var/zerqu'):
         run('tar xzf /var/zerqu/pack.tar.gz')
+        sudo('rm -fr /var/zerqu/src')
         sudo('mv %s src' % dist)
