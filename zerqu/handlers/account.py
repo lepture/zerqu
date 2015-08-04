@@ -8,7 +8,7 @@ from ..libs.cache import redis, cache, ONE_DAY
 from ..libs.utils import full_url
 from ..libs.pigeon import send_text
 from ..models import db, current_user, SocialUser, User, AuthSession
-from ..forms import RegisterForm, PasswordForm, EmailForm
+from ..forms import RegisterForm, PasswordForm, EmailForm, FindPasswordForm
 
 bp = Blueprint('account', __name__, template_folder='templates')
 
@@ -52,6 +52,20 @@ def social_authorize(name):
             return redirect(url)
 
     return 'TODO'
+
+
+@bp.route('/find-password', methods=['GET', 'POST'])
+def find_password():
+    form = FindPasswordForm()
+    message = None
+    if form.validate_on_submit():
+        send_change_password_email(form.user.email)
+        message = 'We have sent you an email, check your inbox'
+    return render_template(
+        'account/find-password.html',
+        form=form,
+        message=message,
+    )
 
 
 @bp.route('/-/<token>/signup', methods=['GET', 'POST'])

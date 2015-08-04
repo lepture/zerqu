@@ -43,6 +43,22 @@ class PasswordForm(Form):
     password = PasswordField(validators=[DataRequired()])
 
 
+class FindPasswordForm(Form):
+    username = StringField('Username or Email', validators=[DataRequired()])
+
+    def validate_username(self, field):
+        username = field.data
+        if '@' in username:
+            user = User.cache.filter_first(email=username)
+        else:
+            user = User.cache.filter_first(username=username)
+
+        if not user:
+            raise StopValidation('User not found.')
+
+        self.user = user
+
+
 class EmailForm(Form):
     email = StringField(validators=[DataRequired(), Email()])
 
