@@ -15,9 +15,6 @@ bp.add_app_template_filter(xmldatetime)
 def render(template, **kwargs):
     use_app = session.get('app')
 
-    if not is_robot() and use_app == 'yes':
-        return render_template('front/app.html')
-
     content = render_template(template, **kwargs)
     if is_robot() or use_app == 'no':
         return content
@@ -26,6 +23,14 @@ def render(template, **kwargs):
     session['token'] = token
     script = '<script>location.href="/app?token=%s"</script></head>' % token
     return content.replace('</head>', script)
+
+
+@bp.before_request
+def hook_for_render():
+    use_app = session.get('app')
+
+    if not is_robot() and use_app == 'yes':
+        return render_template('front/app.html')
 
 
 @bp.route('/app')
