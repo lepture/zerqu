@@ -28,7 +28,7 @@ setup(
     version='0.1',
     author='Hsiaoming Yang',
     author_email='me@lepture.com',
-    packages=find_packages(exclude=['tests', 'tests.*']),
+    packages=find_packages(exclude=['tests', 'tests.*', 'fixtures']),
     description="An API based forum-like application",
     zip_safe=False,
     include_package_data=True,
