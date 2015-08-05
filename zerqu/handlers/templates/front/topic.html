@@ -7,6 +7,7 @@
   <meta property="og:title" content="{{ topic.title }}">
   <meta property="og:url" content="{{ canonical_url }}">
   <meta name="twitter:card" content="summary">
+  {% if config.SITE_TWITTER %}<meta name="twitter:site" content="@{{ config.SITE_TWITTER }}" />{% endif %}
   <link rel="canonical" href="{{ canonical_url }}">
   <title>{{ topic.title }}</title>
 </head>
