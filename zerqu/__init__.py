@@ -4,13 +4,14 @@
 def register_base(app):
     from .models import db, social, auth
     from .libs.pigeon import mail
-    from .libs import cache
+    from .libs import cache, ratelimit
 
     db.init_app(app)
     social.init_app(app)
     auth.bind_oauth(app)
     cache.init_app(app)
     mail.init_app(app)
+    ratelimit.init_app(app)
 
 
 def register_base_blueprints(app):

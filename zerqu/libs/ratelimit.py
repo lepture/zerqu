@@ -2,7 +2,8 @@
 
 import time
 import logging
-from .cache import redis
+from flask import current_app
+from .cache import cache, redis
 from .errors import LimitExceeded
 
 
@@ -66,8 +67,16 @@ class RedisRatelimiter(Ratelimiter):
         self.db.set(self.count_key, remaining, ex=expires, xx=True)
 
 
+def init_app(app):
+    if app.config.get('RATE_LIMITER_TYPE') == 'redis':
+        limiter = RedisRatelimiter(redis)
+    else:
+        limiter = Ratelimiter(cache)
+    app.extensions['rate_limiter'] = limiter
+
+
 def ratelimit(prefix, count=600, duration=300):
-    func = RedisRatelimiter(redis)
+    func = current_app.extensions['rate_limiter']
     remaining, expires = func(prefix, count, duration)
     if remaining <= 0 and expires:
         description = 'Rate limit exceeded, retry in %is' % expires
