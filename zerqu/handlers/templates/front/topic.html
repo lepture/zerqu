@@ -6,6 +6,10 @@
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{ topic.title }}">
   <meta property="og:url" content="{{ canonical_url }}">
+  {% set content = topic.get_html_content() %}
+  {% set description = content|striptags|truncate(120) %}
+  <meta name="description" content="{{ description }}">
+  <meta property="og:description" content="{{ description }}">
   <meta name="twitter:card" content="summary">
   {% if config.SITE_TWITTER %}<meta name="twitter:site" content="@{{ config.SITE_TWITTER }}" />{% endif %}
   <link rel="canonical" href="{{ canonical_url }}">
@@ -19,7 +23,7 @@
     </span>
     <a href="{{ url_for('.view_cafe', slug=cafe.slug) }}" rel="tag">{{ cafe.name }}</a>
     <div class="entry-content" itemprop="articleBody">
-      {{ topic.get_html_content()|safe }}
+      {{ content|safe }}
     </div>
     <time class="published" datetime="{{ topic.created_at|xmldatetime }}" itemprop="datePublished" pubdate>{{ topic.created_at|xmldatetime }}</time>
     <time class="updated" datetime="{{ topic.updated_at|xmldatetime }}" itemprop="dateModified">{{ topic.updated_at|xmldatetime }}</time>
