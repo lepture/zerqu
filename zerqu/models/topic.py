@@ -47,7 +47,7 @@ class Topic(Base):
 
     def keys(self):
         return (
-            'id', 'title', 'info', 'label', 'status',
+            'id', 'title', 'info', 'label',
             'created_at', 'updated_at',
         )
 
@@ -69,9 +69,15 @@ class Topic(Base):
         return User.cache.get(self.user_id)
 
     def get_statuses(self, user_id=None):
+        status = TopicStatus.cache.get(self.topic_id)
+        if not status:
+            status = TopicStatus.get_or_create(self.topic_id)
+
         rv = {
-            'like_count': TopicLike.cache.filter_count(topic_id=self.id),
-            'comment_count': Comment.cache.filter_count(topic_id=self.id),
+            'view_count': status.views,
+            'like_count': status.likes,
+            'read_count': status.reads,
+            'comment_count': status.comments,
         }
         if not user_id:
             return rv
@@ -91,17 +97,24 @@ class Topic(Base):
     @staticmethod
     def get_multi_statuses(tids, user_id):
         rv = {}
-        likes = TopicLike.topics_like_counts(tids)
-        comments = Comment.topics_comment_counts(tids)
-        reading = TopicRead.topics_read_counts(tids)
+
+        statuses = TopicStatus.cache.get_dict(tids)
 
         for tid in tids:
             tid = str(tid)
-            rv[tid] = {
-                'like_count': likes.get(tid, 0),
-                'comment_count': comments.get(tid, 0),
-                'read_count': reading.get(tid, 0),
-            }
+            status = statuses.get(tid)
+            if status:
+                rv[tid] = {
+                    'like_count': status.likes,
+                    'comment_count': status.comments,
+                    'read_count': status.reads,
+                }
+            else:
+                rv[tid] = {
+                    'like_count': 0,
+                    'comment_count': 0,
+                    'read_count': 0,
+                }
 
         if not user_id:
             return rv
@@ -131,6 +144,12 @@ class TopicStatus(Base):
     timestamp = Column(Integer, default=0)
     reputation = Column(Integer, default=0)
 
+    def keys(self):
+        return (
+            'views', 'reads', 'flags', 'likes',
+            'comments', 'reputation',
+        )
+
     @classmethod
     def get_or_create(cls, topic_id):
         data = cls.query.get(topic_id)
@@ -141,10 +160,11 @@ class TopicStatus(Base):
         return data
 
     @classmethod
-    def increase_views(cls, topic_id):
+    def increase(cls, topic_id, key):
         # TODO: use redis
         status = cls.get_or_create(topic_id)
-        status.views += 1
+        count = getattr(status, key, 0)
+        setattr(status, key, count + 1)
         with db.auto_commit(False):
             db.session.add(status)
 
