@@ -36,7 +36,14 @@ class Ratelimiter(object):
             self.create(remaining, expires_at, duration)
             expires = duration
         else:
-            expires = int(resetting) - int(time.time())
+            if resetting is None:
+                expires = 5
+            else:
+                expires = int(resetting) - int(time.time())
+
+            if remaining is None:
+                remaining = 5
+
             if remaining <= 0 and expires:
                 return remaining, expires
             remaining = int(remaining) - 1

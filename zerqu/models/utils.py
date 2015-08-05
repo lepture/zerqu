@@ -25,7 +25,7 @@ def _get_current_user():
 
     user = AuthSession.get_current_user()
 
-    if user is None:
+    if user is None and request.path.startswith('/api/'):
         _, req = oauth.verify_request([])
         user = req.user
 
