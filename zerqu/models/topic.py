@@ -105,12 +105,14 @@ class Topic(Base):
             status = statuses.get(tid)
             if status:
                 rv[tid] = {
+                    'view_count': status.views,
                     'like_count': status.likes,
                     'comment_count': status.comments,
                     'read_count': status.reads,
                 }
             else:
                 rv[tid] = {
+                    'view_count': 0,
                     'like_count': 0,
                     'comment_count': 0,
                     'read_count': 0,
