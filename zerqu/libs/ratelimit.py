@@ -3,6 +3,7 @@
 import time
 import logging
 from .cache import redis
+from .errors import LimitExceeded
 
 
 logger = logging.getLogger('zerqu')
@@ -65,4 +66,10 @@ class RedisRatelimiter(Ratelimiter):
         self.db.set(self.count_key, remaining, ex=expires, xx=True)
 
 
-ratelimit = RedisRatelimiter(redis)
+def ratelimit(prefix, count=600, duration=300):
+    func = RedisRatelimiter(redis)
+    remaining, expires = func(prefix, count, duration)
+    if remaining <= 0 and expires:
+        description = 'Rate limit exceeded, retry in %is' % expires
+        raise LimitExceeded(description=description)
+    return remaining, expires

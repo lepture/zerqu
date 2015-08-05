@@ -1,11 +1,13 @@
 # coding: utf-8
 
 from functools import wraps
+
 from flask import request, session
 from oauthlib.common import to_unicode
 from flask_oauthlib.utils import decode_base64
-from ..errors import NotAuth, NotConfidential
-from ..errors import LimitExceeded, InvalidClient
+
+from zerqu.libs.errors import NotAuth, NotConfidential, InvalidClient
+from zerqu.libs.ratelimit import ratelimit
 from ..models import oauth, cache, current_user
 from ..models import AuthSession, OAuthClient
 
@@ -65,7 +67,7 @@ def oauth_limit_params(login, scopes):
 
 def oauth_ratelimit(login, scopes):
     prefix, count, duration = oauth_limit_params(login, scopes)
-    rv = LimitExceeded.raise_on_limit(prefix, count, duration)
+    rv = ratelimit(prefix, count, duration)
     request._rate_remaining, request._rate_expires = rv
 
 

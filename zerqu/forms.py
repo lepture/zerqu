@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import hashlib
+
 from flask import request
 from flask_wtf import Form as BaseForm
 from flask_oauthlib.utils import to_bytes
@@ -9,9 +10,10 @@ from wtforms.fields import TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Email, Length, Regexp
 from wtforms.validators import StopValidation
 from werkzeug.datastructures import MultiDict
+from zerqu.libs.errors import APIException, FormError
+
 from .models import db, cache
 from .models import User, Cafe, Comment, Topic, WebPage
-from .errors import APIException, FormError
 from .libs import feature
 
 

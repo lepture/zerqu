@@ -88,12 +88,3 @@ class InvalidClient(APIException):
 class LimitExceeded(APIException):
     code = 429
     error = 'limit_exceeded'
-
-    @classmethod
-    def raise_on_limit(cls, prefix, count, duration):
-        from .libs.ratelimit import ratelimit
-        remaining, expires = ratelimit(prefix, count, duration)
-        if remaining <= 0 and expires:
-            description = 'Rate limit exceeded, retry in %is' % expires
-            raise cls(description=description)
-        return remaining, expires
