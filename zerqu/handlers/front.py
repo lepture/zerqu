@@ -3,6 +3,7 @@
 from flask import Blueprint, request, session
 from flask import render_template, abort, redirect
 from werkzeug.security import gen_salt
+from ..libs.cache import cache, ONE_HOUR
 from ..libs.utils import is_robot, xmldatetime, full_url
 from ..rec.timeline import get_all_topics
 from ..models import db, User, Cafe, Topic, Comment
@@ -13,9 +14,14 @@ bp.add_app_template_filter(xmldatetime)
 
 
 def render(template, **kwargs):
-    use_app = session.get('app')
-
+    key = 'front:page:%s' % request.path
     content = render_template(template, **kwargs)
+    cache.set(key, content, timeout=ONE_HOUR)
+    return render_content(content)
+
+
+def render_content(content):
+    use_app = session.get('app')
     if is_robot() or use_app == 'no':
         return content
 
@@ -31,6 +37,11 @@ def hook_for_render():
 
     if not is_robot() and use_app == 'yes':
         return render_template('front/app.html')
+
+    key = 'front:page:%s' % request.path
+    content = cache.get(key)
+    if content:
+        return render_content(content)
 
 
 @bp.route('/app')
