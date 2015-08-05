@@ -12,7 +12,10 @@ try:
             from .models import current_user
             if not current_user:
                 return
-            return dict(current_user)
+            return {
+                'id': current_user.id,
+                'username': current_user.username,
+            }
 except ImportError:
     FlaskSentry = None
 
@@ -48,5 +51,5 @@ def create_app(config=None):
             app.config.from_pyfile(config)
 
     if not app.debug and not app.testing and FlaskSentry:
-        FlaskSentry(app)
+        FlaskSentry(app, logging=False, wrap_wsgi=False)
     return app
