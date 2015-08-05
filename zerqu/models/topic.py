@@ -2,7 +2,7 @@
 
 import datetime
 from werkzeug.utils import cached_property
-from sqlalchemy import event, func
+from sqlalchemy import func
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer, UnicodeText
@@ -69,7 +69,7 @@ class Topic(Base):
         return User.cache.get(self.user_id)
 
     def get_statuses(self, user_id=None):
-        status = TopicStatus.cache.get(self.topic_id)
+        status = TopicStatus.cache.get(self.id)
         if not status:
             status = TopicStatus.get_or_create(self.topic_id)
 
