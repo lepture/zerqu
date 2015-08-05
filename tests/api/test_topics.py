@@ -146,11 +146,6 @@ class TestTopicLikes(TestCase, TopicMixin):
             db.session.add(TopicLike(topic_id=3, user_id=i))
 
         db.session.commit()
-        rv = TopicLike.topics_like_counts([1, 2, 3])
-        assert rv['1'] == 9
-
-        rv = TopicLike.topics_like_counts([1, 2, 3])
-        assert rv['2'] == 8
 
     def test_topics_liked_by_user(self):
         db.session.add(TopicLike(topic_id=1, user_id=1))

@@ -188,10 +188,6 @@ class TopicLike(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     @classmethod
-    def topics_like_counts(cls, topic_ids):
-        return topic_ref_counts(cls, topic_ids)
-
-    @classmethod
     def topics_liked_by_user(cls, user_id, topic_ids):
         return topic_ref_current_user(cls, user_id, topic_ids)
 
@@ -216,10 +212,6 @@ class TopicRead(Base):
             return
         if 0 < num <= 100:
             self._percent = num
-
-    @classmethod
-    def topics_read_counts(cls, topic_ids):
-        return topic_ref_counts(cls, topic_ids)
 
     @classmethod
     def topics_read_by_user(cls, user_id, topic_ids):
@@ -255,10 +247,6 @@ class Comment(Base):
             'created_at', 'updated_at', 'flag_count',
         )
 
-    @classmethod
-    def topics_comment_counts(cls, topic_ids):
-        return topic_ref_counts(cls, topic_ids)
-
 
 class CommentLike(Base):
     __tablename__ = 'zq_comment_like'
@@ -266,47 +254,6 @@ class CommentLike(Base):
     comment_id = Column(Integer, primary_key=True, autoincrement=False)
     user_id = Column(Integer, primary_key=True, autoincrement=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-
-
-def register_count_event(cls):
-    prefix = cls.generate_cache_prefix('fc')
-
-    def gen_key(target):
-        if hasattr(target, 'topic_id'):
-            return prefix + 'topic_id$' + str(target.topic_id)
-
-    @event.listens_for(cls, 'after_insert')
-    def receive_after_insert(mapper, conn, target):
-        key = gen_key(target)
-        if key:
-            cache.inc(key)
-
-    @event.listens_for(cls, 'after_delete')
-    def receive_after_delete(mapper, conn, target):
-        key = gen_key(target)
-        if key:
-            cache.dec(key)
-
-
-register_count_event(TopicLike)
-register_count_event(TopicRead)
-register_count_event(Comment)
-
-
-def topic_ref_counts(cls, topic_ids):
-    prefix = cls.generate_cache_prefix('fc') + 'topic_id$'
-    rv = cache.get_dict(*[prefix + str(i) for i in topic_ids])
-
-    missed = {i for i in topic_ids if rv[prefix + str(i)] is None}
-    rv = {k.lstrip(prefix): rv[k] for k in rv}
-
-    if not missed:
-        return rv
-
-    for tid in missed:
-        rv[str(tid)] = cls.cache.filter_count(topic_id=tid)
-
-    return rv
 
 
 def topic_ref_current_user(cls, user_id, topic_ids):
