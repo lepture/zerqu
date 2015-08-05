@@ -21,6 +21,9 @@ def full_url(endpoint, **kwargs):
 
 
 def is_robot():
+    ua = str(request.user_agent)
+    if 'spider' in ua.lower():
+        return True
     return request.user_agent.browser in ROBOT_BROWSERS
 
 

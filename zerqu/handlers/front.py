@@ -35,6 +35,9 @@ def hook_for_render():
 
 @bp.route('/app')
 def run_app():
+    if is_robot():
+        abort(404)
+
     referrer = request.referrer
     store = session.pop('token', None)
     token = request.args.get('token')
