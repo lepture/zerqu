@@ -11,6 +11,7 @@ class TestCase(unittest.TestCase):
             'SQLALCHEMY_DATABASE_URI': 'sqlite://',
             'ZERQU_CACHE_TYPE': 'simple',
             'OAUTH_CACHE_TYPE': 'simple',
+            'RATE_LIMITER_TYPE': 'cache',
             'SECRET_KEY': 'secret',
         })
         app.testing = True

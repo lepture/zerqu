@@ -3,6 +3,7 @@
 from zerqu.libs import renderer
 from zerqu.libs.ratelimit import ratelimit
 from zerqu.libs.utils import is_robot, is_mobile
+from zerqu.libs.errors import LimitExceeded
 from ._base import TestCase
 
 
@@ -12,9 +13,11 @@ class TestRateLimit(TestCase):
         assert remaining == 19
         assert expires == 20
 
-        for i in range(20):
+        for i in range(18):
             remaining, expires = ratelimit('test:ratelimit', 20, 20)
-        assert remaining == 0
+
+        with self.assertRaises(LimitExceeded):
+            ratelimit('test:ratelimit', 20, 20)
 
 
 class TestUserAgent(TestCase):

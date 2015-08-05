@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from flask import json
-from zerqu.models import db, User, Topic, TopicLike, TopicRead
+from zerqu.models import db, User, Topic, TopicLike, TopicRead, TopicStatus
 from zerqu.models import Cafe, Comment
 from ._base import TestCase
 
@@ -231,10 +231,8 @@ class TestTopicsStatuses(TestCase):
         assert rv.status_code == 400
 
     def test_get_statuses(self):
-        for i in range(1, 10):
-            db.session.add(TopicLike(topic_id=1, user_id=i))
-        for i in range(1, 9):
-            db.session.add(TopicLike(topic_id=2, user_id=i))
+        db.session.add(TopicStatus(topic_id=1, likes=9))
+        db.session.add(TopicStatus(topic_id=2, likes=8))
         db.session.commit()
         rv = self.client.get('/api/topics/statuses?topics=1,2')
         data = json.loads(rv.data)

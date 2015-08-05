@@ -71,7 +71,7 @@ class Topic(Base):
     def get_statuses(self, user_id=None):
         status = TopicStatus.cache.get(self.id)
         if not status:
-            status = TopicStatus.get_or_create(self.topic_id)
+            status = TopicStatus.get_or_create(self.id)
 
         rv = {
             'view_count': status.views,
