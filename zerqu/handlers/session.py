@@ -97,4 +97,4 @@ def parse_auth_headers():
     if not data:
         return None, None
     data = data.replace('Basic ', '').strip()
-    return decode_base64(data).split(':')
+    return decode_base64(data).split(':', 1)
