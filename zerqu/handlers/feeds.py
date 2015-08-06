@@ -7,8 +7,17 @@ from flask import request, current_app
 from ..models import db, User, Cafe, Topic
 from ..libs.cache import cache, ONE_HOUR
 from ..libs.utils import xmldatetime, full_url
+from ..rec.timeline import get_all_topics
 
 bp = Blueprint('feeds', __name__)
+
+
+@bp.before_request
+def hook_for_render():
+    key = 'feed:xml:%s' % request.path
+    xml = cache.get(key)
+    if xml:
+        return Response(xml, content_type='text/xml; charset=UTF-8')
 
 
 @bp.route('/sitemap.xml')
@@ -16,28 +25,26 @@ def sitemap():
     return ''
 
 
+@bp.route('/feed')
+def site_feed():
+    topics, _ = get_all_topics()
+    title = current_app.config.get('SITE_NAME')
+    web_url = full_url('front.home')
+    self_url = full_url('.site_feed')
+    xml = u''.join(yield_feed(title, web_url, self_url, topics))
+    key = 'feed:xml:%s' % request.path
+    cache.set(key, xml, ONE_HOUR)
+    return Response(xml, content_type='text/xml; charset=UTF-8')
+
+
 @bp.route('/c/<slug>/feed')
 def cafe_feed(slug):
     """Show one cafe. This handler is designed for SEO."""
-    key = 'feed:xml:{}'.format(slug)
-    xml = cache.get(key)
-    if xml:
-        return Response(xml, content_type='text/xml; charset=UTF-8')
-
     cafe = Cafe.cache.first_or_404(slug=slug)
     if cafe.permission == Cafe.PERMISSION_PRIVATE:
         abort(404)
 
-    cursor = request.args.get('cursor', 0)
-    try:
-        cursor = int(cursor)
-    except ValueError:
-        cursor = 0
-
     q = db.session.query(Topic.id).filter_by(cafe_id=cafe.id)
-    if cursor:
-        q = q.filter(Topic.id < cursor)
-
     q = q.order_by(Topic.id.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
 
@@ -48,6 +55,7 @@ def cafe_feed(slug):
     self_url = full_url('.cafe_feed', slug=slug)
 
     xml = u''.join(yield_feed(title, web_url, self_url, topics))
+    key = 'feed:xml:{}'.format(slug)
     cache.set(key, xml, ONE_HOUR)
     return Response(xml, content_type='text/xml; charset=UTF-8')
 
