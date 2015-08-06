@@ -1,10 +1,13 @@
 # coding: utf-8
 
 from flask import jsonify
+from collections import defaultdict
 from .base import ApiBlueprint
 from .base import require_oauth, require_confidential
+from .utils import int_or_raise
 from ..models import db, User, current_user
 from ..models import Cafe, CafeMember, Topic
+from ..models.topic import topic_list_with_statuses
 from ..forms import RegisterForm, UserProfileForm
 
 api = ApiBlueprint('users')
@@ -46,6 +49,47 @@ def view_user_cafes(username):
     users = User.cache.get_dict({o.user_id for o in cafes})
     data = list(Cafe.iter_dict(cafes, user=users))
     return jsonify(data=data)
+
+
+@api.route('/<username>/topics')
+@require_oauth(login=False, cache_time=600)
+def view_user_topics(username):
+    cursor = int_or_raise('cursor', 0)
+    count = int_or_raise('count', 20, 100)
+
+    user = User.cache.first_or_404(username=username)
+    q = db.session.query(Topic.id, Topic.cafe_id).filter_by(user_id=user.id)
+    if cursor:
+        q = q.filter(Topic.id < cursor)
+
+    pairs = q.order_by(Topic.id.desc()).limit(count).all()
+    cafe_topics = defaultdict(list)
+    for tid, cid in pairs:
+        cafe_topics[cid].append(tid)
+
+    cafes = Cafe.cache.get_dict(cafe_topics.keys())
+    if current_user.id != user.id:
+        # filter private cafes
+        for k in cafes:
+            cafe = cafes[k]
+            if cafe.permission == Cafe.PERMISSION_PRIVATE:
+                cafe_topics.pop(cafe.id)
+                cafes.pop(k)
+
+    topic_ids = []
+    for cid in cafe_topics:
+        topic_ids.extend(cafe_topics[cid])
+
+    topics = Topic.cache.get_many(topic_ids)
+    users = {str(user.id): user}
+    data = list(Topic.iter_dict(topics, cafe=cafes, user=users))
+    data = topic_list_with_statuses(data, current_user.id)
+
+    if len(pairs) < count:
+        cursor = 0
+    else:
+        cursor = pairs[-1][0]
+    return jsonify(data=data, cursor=cursor)
 
 
 @api.route('/me')
