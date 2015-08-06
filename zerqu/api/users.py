@@ -63,6 +63,9 @@ def view_user_topics(username):
         q = q.filter(Topic.id < cursor)
 
     pairs = q.order_by(Topic.id.desc()).limit(count).all()
+    if not len(pairs):
+        return jsonify(data=[], cursor=0)
+
     cafe_topics = defaultdict(list)
     for tid, cid in pairs:
         cafe_topics[cid].append(tid)
@@ -80,7 +83,7 @@ def view_user_topics(username):
     for cid in cafe_topics:
         topic_ids.extend(cafe_topics[cid])
 
-    topics = Topic.cache.get_many(topic_ids)
+    topics = Topic.cache.get_many(sorted(topic_ids, reverse=True))
     users = {str(user.id): user}
     data = list(Topic.iter_dict(topics, cafe=cafes, user=users))
     data = topic_list_with_statuses(data, current_user.id)
