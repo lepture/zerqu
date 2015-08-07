@@ -70,9 +70,6 @@ class Topic(Base):
 
     def get_statuses(self, user_id=None):
         status = TopicStatus.cache.get(self.id)
-        if not status:
-            status = TopicStatus.get_or_create(self.id)
-
         rv = {
             'view_count': status.views,
             'like_count': status.likes,
@@ -139,7 +136,7 @@ class TopicStatus(Base):
 
     topic_id = Column(Integer, primary_key=True, autoincrement=False)
     views = Column(Integer, default=1)
-    reads = Column(Integer, default=1)
+    reads = Column(Integer, default=0)
     flags = Column(Integer, default=0)
     likes = Column(Integer, default=0)
     comments = Column(Integer, default=0)
