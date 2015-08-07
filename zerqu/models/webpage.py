@@ -1,14 +1,25 @@
 
 import re
 import hashlib
+import requests
+from datetime import datetime
+from sqlalchemy import Column
+from sqlalchemy import String, Unicode, Integer, DateTime
+from flask import current_app, copy_current_request_context
+from .base import db, Base, JSON
+
 try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-from datetime import datetime
-from sqlalchemy import Column
-from sqlalchemy import String, Unicode, Integer, DateTime
-from .base import db, Base, JSON
+
+try:
+    import gevent
+except ImportError:
+    gevent = None
+
+
+UA = 'Mozilla/5.0 (compatible; Zerqu)'
 
 
 class WebPage(Base):
@@ -30,6 +41,29 @@ class WebPage(Base):
     # first created by this user
     user_id = Column(Integer)
 
+    def fetch_update(self):
+        headers = {'User-Agent': UA}
+        resp = requests.get(self.link, timeout=5, headers=headers)
+        if resp.status_code != 200:
+            self.info = {'error': 'status_code_error'}
+        elif not resp.content:
+            self.info = {'error': 'content_not_found'}
+        else:
+            info = parse_meta(resp.content)
+            self.title = info.pop('title', None)
+            self.image = info.pop('image', None)
+            self.description = info.pop('description', None)
+            self.info = info
+
+        with db.auto_commit():
+            db.session.add(self)
+
+    def init_fetch(self):
+        if gevent and current_app.config.get('ZERQU_ASYNC'):
+            gevent.spawn(copy_current_request_context(self.fetch_update))
+        else:
+            self.fetch_update()
+
     @classmethod
     def get_or_create(cls, link, user_id=None):
         link = sanitize_link(link)
@@ -44,6 +78,8 @@ class WebPage(Base):
                 page.user_id = user_id
             with db.auto_commit():
                 db.session.add(page)
+
+        page.init_fetch()
         return page
 
 
@@ -61,3 +97,49 @@ def sanitize_link(url):
     # remove ? at the end of url
     url = re.sub(r'\?$', '', url)
     return url
+
+
+meta_pattern = re.compile(r'<meta[^>]+content=[^>]+>')
+value_pattern = re.compile(r'(name|property|content)=(?:\'|\")(.*?)(?:\'|\")')
+
+
+def parse_meta(content):
+    head = content.split('</head>', 1)[0]
+    rv = {}
+
+    def get_value(key, name, content):
+        if name not in ['og:%s' % key, 'twitter:%s' % key]:
+            return False
+        if key not in rv:
+            rv[key] = content
+        return True
+
+    def parse_pair(kv):
+        name = kv.get('name')
+        if not name:
+            name = kv.get('property')
+        if not name:
+            return None
+
+        content = kv.get('content')
+        if not content:
+            return None
+
+        if name == 'twitter:creator':
+            rv['twitter'] = content
+            return
+
+        for key in ['title', 'image', 'description', 'url']:
+            if get_value(key, name, content):
+                return
+
+    for text in meta_pattern.findall(head):
+        kv = value_pattern.findall(text)
+        if kv:
+            parse_pair(dict(kv))
+
+    if 'title' not in rv:
+        m = re.findall(r'<title>(.*?)</title>', head)
+        if m:
+            rv['title'] = m[0]
+    return rv

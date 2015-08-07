@@ -26,6 +26,11 @@ GRAVATAR_PARAMETERS = {
 }
 
 # ZERQU settings
+
+# ZERQU_AVATAR_BASE = 'https://secure.gravatar.com/'
+
+# async fetching mode
+ZERQU_ASYNC = False
 ZERQU_VERIFY_SESSION = True
 
 # user can update topic in the given seconds
