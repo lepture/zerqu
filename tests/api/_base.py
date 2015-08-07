@@ -50,7 +50,7 @@ class TestCase(unittest.TestCase):
 
         client = OAuthClient(
             user_id=1,
-            name='iOS App',
+            name=u'iOS App',
             client_id='ios',
             client_secret='secret',
             is_confidential=True,

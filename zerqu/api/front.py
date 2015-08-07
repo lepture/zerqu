@@ -2,7 +2,8 @@
 
 from flask import jsonify
 from flask import current_app, request
-from .base import ApiBlueprint
+from .base import ApiBlueprint, require_oauth
+from ..libs.renderer import markup
 from ..versions import VERSION, API_VERSION
 
 api = ApiBlueprint('')
@@ -19,3 +20,13 @@ def index():
         description=config.get('SITE_DESCRIPTION'),
         remote_addr=request.remote_addr,
     )
+
+
+@api.route('preview', methods=['POST'])
+@require_oauth(login=True)
+def preview_text():
+    data = request.get_json()
+    text = data.get('text')
+    if not text:
+        return ''
+    return markup(text)
