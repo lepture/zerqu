@@ -32,10 +32,22 @@ def register_app_blueprints(app):
     app.register_blueprint(front.bp, url_prefix='')
 
 
+def register_not_found(app):
+    from flask import request
+    from .libs.errors import NotFound
+
+    @app.errorhandler(404)
+    def handle_not_found(e):
+        if request.path.startswith('/api/'):
+            return NotFound('URL')
+        return e
+
+
 def create_app(config=None):
     from .app import create_app
     app = create_app(config)
     register_base(app)
     register_base_blueprints(app)
     register_app_blueprints(app)
+    register_not_found(app)
     return app
