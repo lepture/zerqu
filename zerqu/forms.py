@@ -36,7 +36,7 @@ class UserForm(Form):
     username = StringField(validators=[
         DataRequired(),
         Length(min=3, max=20),
-        Regexp(r'^[a-z0-9A-Z]+$'),
+        Regexp(r'^[a-z0-9]+$'),
     ])
     password = PasswordField(validators=[DataRequired()])
 

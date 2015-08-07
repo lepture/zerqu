@@ -245,7 +245,7 @@ class Comment(Base):
 
     def keys(self):
         return (
-            'id', 'topic_id', 'user_id', 'content',
+            'id', 'topic_id', 'user_id', 'content', 'reply_to',
             'created_at', 'updated_at', 'flag_count',
         )
 
