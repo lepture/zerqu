@@ -184,10 +184,12 @@ class AuthSession(Base):
             return None
 
         ts = session.get('ts')
-        if ts and int(time.time()) - ts > 300:
+        now = int(time.time())
+        if ts and now - ts > 600:
             data = cls.query.get(sid)
             if data:
                 data.last_used = datetime.datetime.utcnow()
+                session['ts'] = now
                 with db.auto_commit():
                     db.session.add(data)
         else:
