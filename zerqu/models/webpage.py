@@ -1,3 +1,4 @@
+# coding: utf-8
 
 import re
 import hashlib
@@ -46,10 +47,10 @@ class WebPage(Base):
         resp = requests.get(self.link, timeout=5, headers=headers)
         if resp.status_code != 200:
             self.info = {'error': 'status_code_error'}
-        elif not resp.content:
+        elif not resp.text:
             self.info = {'error': 'content_not_found'}
         else:
-            info = parse_meta(resp.content)
+            info = parse_meta(resp.text)
             self.title = info.pop('title', None)
             self.image = info.pop('image', None)
             self.description = info.pop('description', None)
@@ -78,8 +79,7 @@ class WebPage(Base):
                 page.user_id = user_id
             with db.auto_commit():
                 db.session.add(page)
-
-        page.init_fetch()
+            page.init_fetch()
         return page
 
 
@@ -99,8 +99,11 @@ def sanitize_link(url):
     return url
 
 
-meta_pattern = re.compile(r'<meta[^>]+content=[^>]+>')
-value_pattern = re.compile(r'(name|property|content)=(?:\'|\")(.*?)(?:\'|\")')
+meta_pattern = re.compile(ur'<meta[^>]+content=[^>]+>', re.U)
+value_pattern = re.compile(
+    ur'(name|property|content)=(?:\'|\")(.*?)(?:\'|\")',
+    re.U
+)
 
 
 def parse_meta(content):
@@ -139,7 +142,7 @@ def parse_meta(content):
             parse_pair(dict(kv))
 
     if 'title' not in rv:
-        m = re.findall(r'<title>(.*?)</title>', head)
+        m = re.findall(ur'<title>(.*?)</title>', head, flags=re.U)
         if m:
             rv['title'] = m[0]
     return rv
