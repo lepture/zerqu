@@ -9,7 +9,8 @@ from .base import require_oauth
 from .utils import cursor_query, pagination_query, int_or_raise
 from ..models import db, current_user, User
 from ..models import Cafe, CafeMember
-from ..models import Topic, TopicLike, Comment, TopicRead, TopicStatus
+from ..models import Topic, TopicLike, TopicRead, TopicStatus
+from ..models import WebPage, Comment
 from ..models.topic import topic_list_with_statuses
 from ..rec.timeline import get_timeline_topics, get_all_topics
 from ..forms import TopicForm, CommentForm
@@ -65,6 +66,12 @@ def view_statuses():
 @require_oauth(login=False, cache_time=600)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
+    if topic.webpage and not topic.info:
+        page = WebPage.cache.get(topic.webpage)
+        topic = Topic.query.get(tid)
+        with db.auto_commit(False):
+            page.update_topic(topic)
+
     cafe = get_topic_cafe(topic.cafe_id)
 
     data = dict(topic)
