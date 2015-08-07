@@ -87,7 +87,10 @@ class User(Base):
     @property
     def avatar_url(self):
         if self._avatar_url:
-            return self._avatar_url
+            if self._avatar_url.startswith('http'):
+                return self._avatar_url
+            base = current_app.config['ZERQU_AVATAR_BASE']
+            return '%s%s' % (base, self._avatar_url)
         md5email = hashlib.md5(to_bytes(self.email)).hexdigest()
         params = current_app.config['GRAVATAR_PARAMETERS']
         url = current_app.config['GRAVATAR_URL']
