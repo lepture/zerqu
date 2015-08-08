@@ -165,8 +165,18 @@ def view_topic_comments(tid):
     )
     reference = {'user': User.cache.get_dict({o.user_id for o in comments})}
     data = []
+
+    if current_user:
+        statuses = Comment.get_multi_statuses(
+            [c['id'] for c in comments],
+            current_user.id
+        )
+    else:
+        statuses = {}
     for d in Comment.iter_dict(comments, **reference):
         d['content'] = markup(d['content'])
+        # update status
+        d.update(statuses.get(str(d['id']), {}))
         data.append(d)
     return jsonify(data=data, cursor=cursor)
 

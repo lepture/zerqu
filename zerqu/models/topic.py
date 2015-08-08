@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import datetime
+from collections import defaultdict
 from werkzeug.utils import cached_property
 from sqlalchemy import func
 from sqlalchemy import Column
@@ -122,9 +123,7 @@ class Topic(Base):
         reads = TopicRead.topics_read_by_user(user_id, tids)
         for tid in tids:
             tid = str(tid)
-            item = liked.get(tid)
-            if item:
-                rv[tid]['liked_by_me'] = item.created_at
+            rv[tid]['liked_by_me'] = bool(liked.get(tid))
             item = reads.get(tid)
             if item:
                 rv[tid]['read_by_me'] = item.percent
@@ -188,7 +187,7 @@ class TopicLike(Base):
 
     @classmethod
     def topics_liked_by_user(cls, user_id, topic_ids):
-        return topic_ref_current_user(cls, user_id, topic_ids)
+        return fetch_current_user_items(cls, user_id, topic_ids)
 
 
 class TopicRead(Base):
@@ -214,7 +213,7 @@ class TopicRead(Base):
 
     @classmethod
     def topics_read_by_user(cls, user_id, topic_ids):
-        return topic_ref_current_user(cls, user_id, topic_ids)
+        return fetch_current_user_items(cls, user_id, topic_ids)
 
 
 class Comment(Base):
@@ -253,6 +252,16 @@ class Comment(Base):
         db.session.add(self)
         return self.like_count
 
+    @staticmethod
+    def get_multi_statuses(comment_ids, user_id):
+        liked = CommentLike.comments_liked_by_user(user_id, comment_ids)
+        rv = defaultdict(dict)
+        for cid in comment_ids:
+            cid = str(cid)
+            item = liked.get(cid)
+            rv[cid]['liked_by_me'] = bool(item)
+        return rv
+
 
 class CommentLike(Base):
     __tablename__ = 'zq_comment_like'
@@ -261,8 +270,14 @@ class CommentLike(Base):
     user_id = Column(Integer, primary_key=True, autoincrement=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+    @classmethod
+    def comments_liked_by_user(cls, user_id, comment_ids):
+        return fetch_current_user_items(
+            cls, user_id, comment_ids, key='comment_id'
+        )
 
-def topic_ref_current_user(cls, user_id, topic_ids):
+
+def fetch_current_user_items(cls, user_id, ref_ids, key='topic_id'):
     prefix = cls.generate_cache_prefix('get')
 
     def gen_key(tid):
@@ -271,17 +286,17 @@ def topic_ref_current_user(cls, user_id, topic_ids):
     def get_key(key):
         return key.lstrip(prefix).split('-')[0]
 
-    rv = cache.get_dict(*[gen_key(tid) for tid in topic_ids])
-    missed = {i for i in topic_ids if rv[gen_key(i)] is None}
+    rv = cache.get_dict(*[gen_key(tid) for tid in ref_ids])
+    missed = {i for i in ref_ids if rv[gen_key(i)] is None}
     rv = {get_key(k): rv[k] for k in rv}
     if not missed:
         return rv
 
     to_cache = {}
     q = cls.cache.filter_by(user_id=user_id)
-    for item in q.filter(cls.topic_id.in_(missed)):
-        rv[str(item.topic_id)] = item
-        to_cache[gen_key(item.topic_id)] = item
+    for item in q.filter(getattr(cls, key).in_(missed)):
+        rv[str(getattr(item, key))] = item
+        to_cache[gen_key(getattr(item, key))] = item
 
     cache.set_many(to_cache, CACHE_TIMES['get'])
     return rv
