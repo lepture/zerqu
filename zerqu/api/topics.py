@@ -303,7 +303,7 @@ def like_topic_comment(tid, cid):
     return '', 204
 
 
-@api.route('/<int:tid>/comments/<int:cid>/likes', methods=['POST'])
+@api.route('/<int:tid>/comments/<int:cid>/likes', methods=['DELETE'])
 @require_oauth(login=True)
 def unlike_topic_comment(tid, cid):
     like = CommentLike.query.get((cid, current_user.id))
