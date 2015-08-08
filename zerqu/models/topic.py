@@ -230,6 +230,7 @@ class Comment(Base):
 
     status = Column(SmallInteger, default=0)
     flag_count = Column(Integer, default=0)
+    like_count = Column(Integer, default=0)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(
@@ -243,7 +244,7 @@ class Comment(Base):
     def keys(self):
         return (
             'id', 'topic_id', 'user_id', 'content', 'reply_to',
-            'created_at', 'updated_at', 'flag_count',
+            'created_at', 'updated_at', 'flag_count', 'like_count',
         )
 
 
