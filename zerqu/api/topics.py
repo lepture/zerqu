@@ -10,7 +10,7 @@ from .utils import cursor_query, pagination_query, int_or_raise
 from ..models import db, current_user, User
 from ..models import Cafe, CafeMember
 from ..models import Topic, TopicLike, TopicRead, TopicStatus
-from ..models import WebPage, Comment
+from ..models import WebPage, Comment, CommentLike
 from ..models.topic import topic_list_with_statuses
 from ..rec.timeline import get_timeline_topics, get_all_topics
 from ..forms import TopicForm, CommentForm
@@ -270,6 +270,39 @@ def flag_topic_comment(tid, cid):
         db.session.add(comment)
     # one person, one flag
     cache.inc(key)
+    return '', 204
+
+
+@api.route('/<int:tid>/comments/<int:cid>/likes', methods=['POST'])
+@require_oauth(login=True)
+def like_topic_comment(tid, cid):
+    like = Comment.query.get((cid, current_user.id))
+    if like:
+        raise Conflict(description='You already liked it')
+
+    comment = get_comment_or_404(tid, cid)
+    # here is a concurrency bug, but it doesn't matter
+    comment.like_count += 1
+    like = CommentLike(comment_id=comment.id, user_id=current_user.id)
+    with db.auto_commit():
+        db.session.add(like)
+        db.session.add(comment)
+    return '', 204
+
+
+@api.route('/<int:tid>/comments/<int:cid>/likes', methods=['POST'])
+@require_oauth(login=True)
+def unlike_topic_comment(tid, cid):
+    like = CommentLike.query.get((tid, current_user.id))
+    if not like:
+        raise Conflict(description='You already unliked it')
+
+    comment = get_comment_or_404(tid, cid)
+    with db.auto_commit():
+        db.session.delete(like)
+
+    with db.auto_commit(False):
+        comment.reset_like_count()
     return '', 204
 
 

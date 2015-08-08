@@ -247,6 +247,12 @@ class Comment(Base):
             'created_at', 'updated_at', 'flag_count', 'like_count',
         )
 
+    def reset_like_count(self):
+        q = CommentLike.query.filter_by(comment_id=self.id)
+        self.like_count = q.with_entities(func.count(1)).scalar()
+        db.session.add(self)
+        return self.like_count
+
 
 class CommentLike(Base):
     __tablename__ = 'zq_comment_like'
