@@ -3,10 +3,10 @@
 from flask import Blueprint, request, session
 from flask import render_template, abort, redirect
 from werkzeug.security import gen_salt
-from ..libs.cache import cache, ONE_HOUR
-from ..libs.utils import is_robot, xmldatetime, full_url
-from ..rec.timeline import get_all_topics
-from ..models import db, User, Cafe, Topic, Comment
+from zerqu.libs.cache import cache, ONE_HOUR
+from zerqu.libs.utils import is_robot, xmldatetime, full_url
+from zerqu.rec.timeline import get_all_topics
+from zerqu.models import db, User, Cafe, Topic, Comment
 
 
 bp = Blueprint('front', __name__, template_folder='templates')

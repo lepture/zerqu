@@ -4,10 +4,10 @@ from markupsafe import escape
 from flask import Blueprint
 from flask import abort, Response
 from flask import request, current_app
-from ..models import db, User, Cafe, Topic
-from ..libs.cache import cache, ONE_HOUR
-from ..libs.utils import xmldatetime, full_url
-from ..rec.timeline import get_all_topics
+from zerqu.models import db, User, Cafe, Topic
+from zerqu.libs.cache import cache, ONE_HOUR
+from zerqu.libs.utils import xmldatetime, full_url
+from zerqu.rec.timeline import get_all_topics
 
 bp = Blueprint('feeds', __name__)
 

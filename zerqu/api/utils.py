@@ -3,8 +3,8 @@
 from flask import request
 
 from zerqu.libs.errors import APIException
-from ..models import db
-from ..libs.utils import Pagination
+from zerqu.libs.utils import Pagination
+from zerqu.models import db
 
 
 def int_or_raise(key, value=0, maxvalue=None):

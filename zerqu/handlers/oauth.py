@@ -5,9 +5,9 @@ from flask import request
 from flask import render_template, jsonify, redirect
 from flask_wtf import Form
 from wtforms.fields import HiddenField
-from ..scopes import extend_scopes, SCOPES, CHOICES
-from ..models import current_user
-from ..models.auth import oauth
+from zerqu.scopes import extend_scopes, SCOPES, CHOICES
+from zerqu.models import current_user
+from zerqu.models.auth import oauth
 
 
 bp = Blueprint('oauth', __name__, template_folder='templates')

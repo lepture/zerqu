@@ -2,13 +2,13 @@
 
 from flask import jsonify
 from collections import defaultdict
+from zerqu.models import db, User, current_user
+from zerqu.models import Cafe, CafeMember, Topic
+from zerqu.models.topic import topic_list_with_statuses
+from zerqu.forms import RegisterForm, UserProfileForm
 from .base import ApiBlueprint
 from .base import require_oauth, require_confidential
 from .utils import int_or_raise
-from ..models import db, User, current_user
-from ..models import Cafe, CafeMember, Topic
-from ..models.topic import topic_list_with_statuses
-from ..forms import RegisterForm, UserProfileForm
 
 api = ApiBlueprint('users')
 

@@ -4,11 +4,16 @@ from flask import Blueprint
 from flask import current_app, url_for, request, session
 from flask import abort, redirect, render_template
 from werkzeug.security import gen_salt
-from ..libs.cache import redis, cache, ONE_DAY
-from ..libs.utils import full_url
-from ..libs.pigeon import send_text
-from ..models import db, current_user, SocialUser, User, AuthSession
-from ..forms import RegisterForm, PasswordForm, EmailForm, FindPasswordForm
+from zerqu.libs.cache import redis, cache, ONE_DAY
+from zerqu.libs.utils import full_url
+from zerqu.libs.pigeon import send_text
+from zerqu.models import db, current_user, SocialUser, User, AuthSession
+from zerqu.forms import (
+    RegisterForm,
+    PasswordForm,
+    FindPasswordForm,
+    EmailForm,
+)
 
 bp = Blueprint('account', __name__, template_folder='templates')
 

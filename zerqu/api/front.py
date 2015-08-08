@@ -2,9 +2,9 @@
 
 from flask import jsonify
 from flask import current_app, request
+from zerqu.libs.renderer import markup
+from zerqu.versions import VERSION, API_VERSION
 from .base import ApiBlueprint, require_oauth
-from ..libs.renderer import markup
-from ..versions import VERSION, API_VERSION
 
 api = ApiBlueprint('')
 

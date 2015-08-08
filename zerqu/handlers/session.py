@@ -5,8 +5,8 @@ from flask import session, request, jsonify
 from flask_oauthlib.utils import decode_base64
 
 from zerqu.libs.ratelimit import ratelimit
-from ..models import User, AuthSession
-from ..forms import EmailForm
+from zerqu.models import User, AuthSession
+from zerqu.forms import EmailForm
 from .account import send_signup_email, send_change_password_email
 
 bp = Blueprint('session', __name__)

@@ -6,9 +6,9 @@ from werkzeug.utils import cached_property
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer
+from zerqu.libs.utils import EMPTY
 from .user import User
 from .base import db, Base, JSON
-from ..libs.utils import EMPTY
 
 __all__ = ['Cafe', 'CafeMember']
 
