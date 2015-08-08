@@ -276,13 +276,16 @@ def flag_topic_comment(tid, cid):
 @api.route('/<int:tid>/comments/<int:cid>/likes', methods=['POST'])
 @require_oauth(login=True)
 def like_topic_comment(tid, cid):
-    like = Comment.query.get((cid, current_user.id))
+    like = CommentLike.query.get((cid, current_user.id))
     if like:
         raise Conflict(description='You already liked it')
 
     comment = get_comment_or_404(tid, cid)
     # here is a concurrency bug, but it doesn't matter
-    comment.like_count += 1
+    if comment.like_count:
+        comment.like_count += 1
+    else:
+        comment.like_count = 1
     like = CommentLike(comment_id=comment.id, user_id=current_user.id)
     with db.auto_commit():
         db.session.add(like)
@@ -293,7 +296,7 @@ def like_topic_comment(tid, cid):
 @api.route('/<int:tid>/comments/<int:cid>/likes', methods=['POST'])
 @require_oauth(login=True)
 def unlike_topic_comment(tid, cid):
-    like = CommentLike.query.get((tid, current_user.id))
+    like = CommentLike.query.get((cid, current_user.id))
     if not like:
         raise Conflict(description='You already unliked it')
 
