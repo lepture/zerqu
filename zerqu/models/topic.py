@@ -278,6 +278,9 @@ class CommentLike(Base):
 
 
 def fetch_current_user_items(cls, user_id, ref_ids, key='topic_id'):
+    if not ref_ids:
+        return {}
+
     prefix = cls.generate_cache_prefix('get')
 
     def gen_key(tid):
