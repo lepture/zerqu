@@ -101,7 +101,7 @@ def view_current_user():
     return jsonify(current_user)
 
 
-@api.route('/me', methods=['PATCH'])
+@api.route('/me', methods=['POST', 'PATCH'])
 @require_oauth(login=True, scopes=['user:write'])
 def update_current_user():
     user = User.query.get(current_user.id)
@@ -109,7 +109,7 @@ def update_current_user():
     form.populate_obj(user)
     with db.auto_commit():
         db.session.add(user)
-    return jsonify(user)
+    return jsonify(dict(user))
 
 
 @api.route('/me/email')

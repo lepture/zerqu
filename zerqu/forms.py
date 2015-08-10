@@ -70,7 +70,8 @@ class EmailForm(Form):
 
 
 class UserProfileForm(Form):
-    description = StringField()
+    name = StringField(validators=[Length(min=0, max=24)])
+    description = StringField(validators=[Length(min=0, max=280)])
 
 
 class RegisterForm(UserForm, EmailForm):
