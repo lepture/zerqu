@@ -45,20 +45,6 @@ class WebPage(Base):
     def keys(self):
         return ['title', 'image', 'description', 'info']
 
-    def update_topic(self, topic):
-        if self.title:
-            info = {
-                'title': self.title,
-                'image': self.image,
-                'link': self.link,
-                'description': self.description,
-            }
-            info.update(self.info)
-            topic.info = info
-        elif self.info:
-            topic.info = self.info
-        db.session.add(topic)
-
     def fetch_update(self):
         headers = {'User-Agent': UA}
         resp = requests.get(self.link, timeout=5, headers=headers)

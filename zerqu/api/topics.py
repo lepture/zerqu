@@ -66,15 +66,11 @@ def view_statuses():
 @require_oauth(login=False, cache_time=600)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
-    if topic.webpage and not topic.info:
-        page = WebPage.cache.get(topic.webpage)
-        topic = Topic.query.get(tid)
-        with db.auto_commit(False):
-            page.update_topic(topic)
-
     cafe = get_topic_cafe(topic.cafe_id)
 
     data = dict(topic)
+    if topic.webpage:
+        data['webpage'] = dict(WebPage.cache.get(topic.webpage))
 
     # /api/topic/:id?content=raw vs ?content=html
     content_format = request.args.get('content')
