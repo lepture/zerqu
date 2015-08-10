@@ -253,9 +253,9 @@ class TestTopicsStatuses(TestCase):
             headers=headers
         )
         data = json.loads(rv.data)
-        assert 'liked_by_me' in data['1']
+        assert data['1']['liked_by_me']
+        assert not data['2']['liked_by_me']
         assert 'read_by_me' not in data['2']
-        assert 'liked_by_me' not in data['2']
 
 
 class TestTopicRead(TestCase, TopicMixin):
