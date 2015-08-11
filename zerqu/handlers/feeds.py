@@ -6,7 +6,7 @@ from flask import abort, Response
 from flask import request, current_app
 from zerqu.models import db, User, Cafe, Topic
 from zerqu.libs.cache import cache, ONE_HOUR
-from zerqu.libs.utils import xmldatetime, full_url
+from zerqu.libs.utils import xmldatetime, canonical_url
 from zerqu.rec.timeline import get_all_topics
 
 bp = Blueprint('feeds', __name__)
@@ -29,8 +29,8 @@ def sitemap():
 def site_feed():
     topics, _ = get_all_topics()
     title = current_app.config.get('SITE_NAME')
-    web_url = full_url('front.home')
-    self_url = full_url('.site_feed')
+    web_url = canonical_url('front.home')
+    self_url = canonical_url('.site_feed')
     xml = u''.join(yield_feed(title, web_url, self_url, topics))
     key = 'feed:xml:%s' % request.path
     cache.set(key, xml, ONE_HOUR)
@@ -51,8 +51,8 @@ def cafe_feed(slug):
     site_name = current_app.config.get('SITE_NAME')
     title = u'%s - %s' % (site_name, cafe.name)
 
-    web_url = full_url('front.view_cafe', slug=slug)
-    self_url = full_url('.cafe_feed', slug=slug)
+    web_url = canonical_url('front.view_cafe', slug=slug)
+    self_url = canonical_url('.cafe_feed', slug=slug)
 
     xml = u''.join(yield_feed(title, web_url, self_url, topics))
     key = 'feed:xml:{}'.format(slug)
@@ -77,7 +77,7 @@ def yield_feed(title, web_url, self_url, topics):
 
 
 def yield_entry(topic, user):
-    url = full_url('front.view_topic', tid=topic.id)
+    url = canonical_url('front.view_topic', tid=topic.id)
     yield u'<entry>'
     yield u'<id><![CDATA[%s]]></id>' % url
     yield u'<link href="%s" />' % escape(url)
@@ -88,7 +88,7 @@ def yield_entry(topic, user):
     yield u'<author>'
     if user:
         yield u'<name>%s</name>' % escape(user.username)
-        url = full_url('front.view_user', username=user.username)
+        url = canonical_url('front.view_user', username=user.username)
         yield u'<uri>%s</uri>' % url
     else:
         yield u'<name>Anonymous</name>'

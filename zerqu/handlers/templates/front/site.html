@@ -1,10 +1,10 @@
-{% if config.SITE_URL %}
+{% if config.SITE_CANONICAL_URL %}
 <script type="application/ld+json">
 {
   "@context" : "http://schema.org",
   "@type" : "WebSite",
   "name" : "{{ config.SITE_NAME }}",
-  "url" : "{{ config.SITE_URL }}"
+  "url" : "{{ config.SITE_CANONICAL_URL }}"
 }
 </script>
 {% endif %}

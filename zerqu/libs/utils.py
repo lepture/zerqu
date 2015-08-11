@@ -10,14 +10,25 @@ def xmldatetime(date):
     return date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def full_url(endpoint, **kwargs):
-    baseurl = current_app.config.get('SITE_URL')
+def build_url(baseurl, endpoint, **kwargs):
     if baseurl:
         baseurl = baseurl.rstrip('/')
         urlpath = url_for(endpoint, **kwargs)
         return '%s%s' % (baseurl, urlpath)
     kwargs['_external'] = True
     return url_for(endpoint, **kwargs)
+
+
+def full_url(endpoint, **kwargs):
+    baseurl = current_app.config.get('SITE_URL')
+    return build_url(baseurl, endpoint, **kwargs)
+
+
+def canonical_url(endpoint, **kwargs):
+    baseurl = current_app.config.get('SITE_CANONICAL_URL')
+    if not baseurl:
+        baseurl = current_app.config.get('SITE_URL')
+    return build_url(baseurl, endpoint, **kwargs)
 
 
 def is_robot():

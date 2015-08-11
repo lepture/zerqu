@@ -63,7 +63,7 @@ def view_statuses():
 
 
 @api.route('/<int:tid>')
-@require_oauth(login=False, cache_time=600)
+@require_oauth(login=False)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
     cafe = get_topic_cafe(topic.cafe_id)

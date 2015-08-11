@@ -4,7 +4,7 @@ from flask import Blueprint, request, session
 from flask import render_template, abort, redirect
 from werkzeug.security import gen_salt
 from zerqu.libs.cache import cache, ONE_HOUR
-from zerqu.libs.utils import is_robot, xmldatetime, full_url
+from zerqu.libs.utils import is_robot, xmldatetime, canonical_url
 from zerqu.rec.timeline import get_all_topics
 from zerqu.models import db, User, Cafe, Topic, Comment
 
@@ -68,11 +68,9 @@ def home():
     topics, _ = get_all_topics(0)
     topic_users = User.cache.get_dict({o.user_id for o in topics})
     topic_cafes = Cafe.cache.get_dict({o.cafe_id for o in topics})
-
-    canonical_url = full_url('.home')
     return render(
         'front/index.html',
-        canonical_url=canonical_url,
+        canonical_url=canonical_url('.home'),
         topics=topics,
         topic_users=topic_users,
         topic_cafes=topic_cafes,
@@ -92,10 +90,9 @@ def view_topic(tid):
     comment_users = User.cache.get_dict({o.user_id for o in comments})
     comment_count = Comment.cache.filter_count(topic_id=tid)
 
-    canonical_url = full_url('.view_topic', tid=tid)
     return render(
         'front/topic.html',
-        canonical_url=canonical_url,
+        canonical_url=canonical_url('.view_topic', tid=tid),
         topic=topic,
         cafe=cafe,
         comments=comments,
@@ -110,11 +107,9 @@ def cafe_list():
     q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
     q = q.order_by(Cafe.id.desc())
     cafes = Cafe.cache.get_many([i for i, in q.limit(100)])
-
-    canonical_url = full_url('.cafe_list')
     return render(
         'front/cafe_list.html',
-        canonical_url=canonical_url,
+        canonical_url=canonical_url('.cafe_list'),
         cafes=cafes,
     )
 
@@ -130,11 +125,9 @@ def view_cafe(slug):
     q = q.order_by(Topic.id.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
     topic_users = User.cache.get_dict({o.user_id for o in topics})
-
-    canonical_url = full_url('.view_cafe', slug=slug)
     return render(
         'front/cafe.html',
-        canonical_url=canonical_url,
+        canonical_url=canonical_url('.view_cafe', slug=slug),
         cafe=cafe,
         topics=topics,
         topic_users=topic_users,
@@ -147,11 +140,9 @@ def view_user(username):
     q = db.session.query(Topic.id).filter_by(user_id=user.id)
     q = q.order_by(Topic.id.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
-
-    canonical_url = full_url('.view_user', username=username)
     return render(
         'front/user.html',
-        canonical_url=canonical_url,
+        canonical_url=canonical_url('.view_user', username=username),
         user=user,
         topics=topics,
     )
