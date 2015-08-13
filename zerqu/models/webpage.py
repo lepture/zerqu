@@ -7,17 +7,13 @@ from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, Integer, DateTime
 from flask import current_app, copy_current_request_context
+from zerqu.libs.utils import run_task
 from .base import db, Base, JSON
 
 try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-
-try:
-    import gevent
-except ImportError:
-    gevent = None
 
 
 UA = 'Mozilla/5.0 (compatible; Zerqu)'
@@ -62,12 +58,6 @@ class WebPage(Base):
         with db.auto_commit():
             db.session.add(self)
 
-    def init_fetch(self):
-        if gevent and current_app.config.get('ZERQU_ASYNC'):
-            gevent.spawn(copy_current_request_context(self.fetch_update))
-        else:
-            self.fetch_update()
-
     @classmethod
     def get_or_create(cls, link, user_id=None):
         link = sanitize_link(link)
@@ -82,7 +72,7 @@ class WebPage(Base):
                 page.user_id = user_id
             with db.auto_commit():
                 db.session.add(page)
-            page.init_fetch()
+            run_task(page.fetch_update)
         return page
 
 

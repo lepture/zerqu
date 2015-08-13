@@ -1,9 +1,22 @@
 # coding: utf-8
 
 from flask import request, current_app, url_for
+from flask import copy_current_request_context
+try:
+    import gevent
+except ImportError:
+    gevent = None
+
 
 ROBOT_BROWSERS = ('google', 'msn', 'yahoo', 'ask', 'aol')
 MOBILE_PLATFORMS = ('iphone', 'android', 'wii')
+
+
+def run_task(func, *args, **kwargs):
+    if gevent and current_app.config.get('ZERQU_ASYNC'):
+        gevent.spawn(copy_current_request_context(func), *args, **kwargs)
+    else:
+        func(*args, **kwargs)
 
 
 def xmldatetime(date):
