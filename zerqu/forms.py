@@ -155,6 +155,13 @@ class TopicForm(Form):
     feature_type = StringField()
     feature_value = StringField()
 
+    def validate_title(self, field):
+        key = hashlib.md5(to_bytes(field.data)).hexdigest()
+        if cache.get(key):
+            raise StopValidation("Duplicate requesting")
+        # avoid duplicate requesting
+        cache.set(key, 1, 100)
+
     def validate_link(self, field):
         if not field.data:
             return
