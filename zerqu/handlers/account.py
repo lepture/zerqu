@@ -5,7 +5,7 @@ from flask import current_app, url_for, request, session
 from flask import abort, redirect, render_template
 from werkzeug.security import gen_salt
 from zerqu.libs.cache import redis, cache, ONE_DAY
-from zerqu.libs.utils import full_url
+from zerqu.libs.utils import full_url, run_task
 from zerqu.libs.pigeon import send_text
 from zerqu.models import db, current_user, SocialUser, User, AuthSession
 from zerqu.forms import (
@@ -178,7 +178,7 @@ def send_signup_email(email):
     url = full_url('account.handle_signup', token=token)
     title = 'Sign up account for %s' % current_app.config['SITE_NAME']
     text = '%s\n\n%s' % (title, url)
-    send_text(email, title, text)
+    run_task(send_text, email, title, text)
 
 
 def send_change_password_email(email):
@@ -188,4 +188,4 @@ def send_change_password_email(email):
     title = 'Change password for %s' % current_app.config['SITE_NAME']
     url = full_url('account.handle_change_password', token=token)
     text = '%s\n\n%s' % (title, url)
-    send_text(email, title, text)
+    run_task(send_text, email, title, text)
