@@ -13,6 +13,7 @@ from zerqu.rec.timeline import get_timeline_topics, get_all_topics
 from zerqu.forms import TopicForm, CommentForm
 from zerqu.libs.renderer import markup
 from zerqu.libs.cache import cache
+from zerqu.libs.utils import run_task
 from .base import ApiBlueprint
 from .base import require_oauth
 from .utils import cursor_query, pagination_query, int_or_raise
@@ -78,7 +79,7 @@ def view_topic(tid):
         data['content'] = topic.content
     else:
         data['content'] = topic.get_html_content()
-        TopicStatus.increase(topic.id, 'views')
+        run_task(TopicStatus.increase, topic.id, 'views')
 
     data['user'] = dict(topic.user)
     data['cafe'] = dict(cafe)
