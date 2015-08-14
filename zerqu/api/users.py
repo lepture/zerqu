@@ -121,7 +121,7 @@ def view_current_user_email():
 
 @api.route('/me/notification')
 @require_oauth(login=True)
-def view_current_user_notification():
+def view_notification():
     page, perpage = get_pagination_query()
     items, pagination = Notification(current_user.id).paginate(page, perpage)
     data = Notification.process_notifications(items)
@@ -130,13 +130,13 @@ def view_current_user_notification():
 
 @api.route('/me/notification', methods=['DELETE'])
 @require_oauth(login=True)
-def delete_current_user_notification():
+def clear_notification():
     Notification(current_user.id).flush()
     return '', 204
 
 
 @api.route('/me/notification/count')
 @require_oauth(login=True)
-def view_current_user_notification_count():
+def view_notification_count():
     count = Notification(current_user.id).count()
     return jsonify(count=count)
