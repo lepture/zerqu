@@ -9,4 +9,5 @@ from .topic import Topic, TopicLike, TopicRead, TopicStatus
 from .topic import Comment, CommentLike
 from .webpage import WebPage
 from .social import SocialUser
+from .notification import Notification
 from .utils import current_user
