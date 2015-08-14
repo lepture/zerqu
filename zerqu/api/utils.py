@@ -50,7 +50,7 @@ def cursor_query(model, filter_func=None):
     return data, cursor
 
 
-def pagination_query(model, key, **filters):
+def get_pagination_query():
     page = int_or_raise('page', 1)
     if page < 1:
         raise APIException(description='page should be larger than 1')
@@ -58,6 +58,11 @@ def pagination_query(model, key, **filters):
     perpage = int_or_raise('perpage', 20, 100)
     if perpage < 10:
         raise APIException(description='perpage should be larger than 10')
+    return page, perpage
+
+
+def pagination_query(model, key, **filters):
+    page, perpage = get_pagination_query()
 
     total = model.cache.filter_count(**filters)
     rv = Pagination(total, page, perpage)

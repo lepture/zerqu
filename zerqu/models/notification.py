@@ -47,6 +47,25 @@ class Notification(object):
         stop = start + p.perpage
         return redis.lrange(self.key, start, stop), p
 
+    @staticmethod
+    def process_notifications(items):
+        topic_ids = set()
+        user_ids = set()
+        data = []
+        for d in items:
+            d = json.loads(d)
+            user_ids.add(d['sender_id'])
+            topic_ids.add(d['topic_id'])
+            data.append(d)
+
+        topics = Topic.cache.get_dict(topic_ids)
+        users = User.cache.get_dict(user_ids)
+
+        for d in data:
+            d['sender'] = users.get(str(d.pop('sender_id')))
+            d['topic'] = topics.get(str(d.pop('topic_id')))
+        return data
+
 
 def add_notification_event_listener():
 
@@ -93,7 +112,7 @@ def _record_like_topic(like):
 
 
 def _record_like_comment(like):
-    comment = Topic.cache.get(like.comment_id)
+    comment = Comment.cache.get(like.comment_id)
     Notification(comment.user_id).add(
         like.user_id,
         Notification.CATEGORY_LIKE_COMMENT,

@@ -4,11 +4,12 @@ from flask import jsonify
 from collections import defaultdict
 from zerqu.models import db, User, current_user
 from zerqu.models import Cafe, CafeMember, Topic
+from zerqu.models import Notification
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.forms import RegisterForm, UserProfileForm
 from .base import ApiBlueprint
 from .base import require_oauth, require_confidential
-from .utils import int_or_raise
+from .utils import int_or_raise, get_pagination_query
 
 api = ApiBlueprint('users')
 
@@ -116,3 +117,19 @@ def update_current_user():
 @require_oauth(login=True, scopes=['user:email'])
 def view_current_user_email():
     return jsonify(email=current_user.email)
+
+
+@api.route('/me/notification')
+@require_oauth(login=True)
+def view_current_user_notification():
+    page, perpage = get_pagination_query()
+    items, pagination = Notification(current_user.id).paginate(page, perpage)
+    data = Notification.process_notifications(items)
+    return jsonify(data=data, pagination=dict(pagination))
+
+
+@api.route('/me/notification/count')
+@require_oauth(login=True)
+def view_current_user_notification_count():
+    count = Notification(current_user.id).count()
+    return jsonify(count=count)
