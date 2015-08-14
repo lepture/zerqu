@@ -59,6 +59,9 @@ def run_app():
     if not referrer:
         return redirect('/')
 
+    if not store:
+        return 'Please Enable Cookie'
+
     session['app'] = 'no'
     return redirect(referrer)
 
