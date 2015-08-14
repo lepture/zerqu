@@ -95,7 +95,7 @@ def _record_comment(comment):
     for username in names:
         user = User.cache.filter_first(username=username)
         Notification(user.id).add(
-            user.id,
+            comment.user_id,
             Notification.CATEGORY_MENTION,
             comment.topic_id,
             comment_id=comment.id,
