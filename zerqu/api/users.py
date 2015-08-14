@@ -128,6 +128,13 @@ def view_current_user_notification():
     return jsonify(data=data, pagination=dict(pagination))
 
 
+@api.route('/me/notification', methods=['DELETE'])
+@require_oauth(login=True)
+def delete_current_user_notification():
+    Notification(current_user.id).flush()
+    return '', 204
+
+
 @api.route('/me/notification/count')
 @require_oauth(login=True)
 def view_current_user_notification_count():
