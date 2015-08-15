@@ -16,6 +16,7 @@ cover/
 *.bak
 *.c
 *.so
+*.mo
 venv/
 htmlcov/
 etc/secret.py

@@ -1,0 +1,40 @@
+# Chinese translations for PROJECT.
+# Copyright (C) 2015 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2015-08-15 12:37+0800\n"
+"PO-Revision-Date: 2015-08-15 12:30+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: zh <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.0\n"
+
+#: zerqu/handlers/templates/account/find-password.html:5
+msgid "Find Password"
+msgstr "找回密码"
+
+#: zerqu/handlers/templates/account/find-password.html:14
+msgid "Send"
+msgstr "发送"
+
+#: zerqu/handlers/templates/account/password.html:5
+msgid "Password"
+msgstr "密码"
+
+#: zerqu/handlers/templates/account/password.html:12
+msgid "Update"
+msgstr "更新"
+
+#: zerqu/handlers/templates/account/signup.html:5
+#: zerqu/handlers/templates/account/signup.html:25
+msgid "Sign Up"
+msgstr "注册"
+

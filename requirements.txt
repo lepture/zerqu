@@ -10,6 +10,11 @@ Pygments==2.0.2
 redis==2.10.3
 psycopg2==2.6.1
 
+# Babel
+Flask-Babel==0.9
+Babel==2.0
+pytz==2015.4
+
 # fix security issues
 pyOpenSSL==0.15.1
 ndg-httpsclient==0.4.0

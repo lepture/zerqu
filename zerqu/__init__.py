@@ -2,6 +2,9 @@
 
 
 def register_base(app):
+    from flask import request
+    from flask_babel import Babel
+
     from .models import db, social, auth
     from .libs import cache, ratelimit
     from .libs.pigeon import mail
@@ -14,6 +17,13 @@ def register_base(app):
     mail.init_app(app)
     ratelimit.init_app(app)
     add_notification_event_listener()
+
+    babel = Babel(app)
+    supported_locales = app.config.get('BABEL_LOCALES', ['en'])
+
+    @babel.localeselector
+    def choose_locale():
+        return request.accept_languages.best_match(supported_locales)
 
 
 def register_base_blueprints(app):

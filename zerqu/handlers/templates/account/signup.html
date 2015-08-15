@@ -2,7 +2,7 @@
 {% from "account/macro.html" import FormField %}
 
 {% block content %}
-<h1>Sign Up</h1>
+<h1>{{ _('Sign Up') }}</h1>
 
 {% if social %}
 <div class="social-connect">
@@ -22,6 +22,6 @@
   </div>
   {{ FormField(form.username) }}
   {{ FormField(form.password) }}
-  <button>Sign Up</button>
+  <button type="submit">{{ _('Sign Up') }}</button>
 </form>
 {% endblock %}
