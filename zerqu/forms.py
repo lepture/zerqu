@@ -7,7 +7,8 @@ from flask_wtf import Form as BaseForm
 from flask_oauthlib.utils import to_bytes
 from wtforms.fields import StringField, PasswordField
 from wtforms.fields import TextAreaField, IntegerField
-from wtforms.validators import DataRequired, Email, Length, Regexp
+from wtforms.validators import DataRequired, Optional
+from wtforms.validators import Email, Length, Regexp, URL
 from wtforms.validators import StopValidation
 from werkzeug.datastructures import MultiDict
 from zerqu.libs.errors import APIException, FormError
@@ -97,7 +98,21 @@ class CafeForm(Form):
     slug = StringField()
     description = TextAreaField()
     permission = StringField()
-    # TODO: multiple choices features
+
+    cover = StringField(validators=[Optional(), URL()])
+    color = StringField(validators=[
+        Optional(),
+        Regexp(r'^#[a-f0-9]{6}$'),
+    ])
+    logo = StringField(validators=[Optional(), URL()])
+
+    @property
+    def style(self):
+        return {
+            'color': self.color.data,
+            'cover': self.cover.data,
+            'logo': self.logo.data,
+        }
 
     def validate_slug(self, field):
         if self._validate_obj('slug', field.data):
@@ -124,6 +139,7 @@ class CafeForm(Form):
             description=self.description.data,
             permission=Cafe.PERMISSIONS[self.permission.data],
             user_id=user_id,
+            style=self.style,
         )
         with db.auto_commit():
             db.session.add(cafe)
@@ -140,6 +156,7 @@ class CafeForm(Form):
             if value:
                 setattr(cafe, k, value)
 
+        cafe.style = self.style
         if self.permission.data:
             cafe.permission = Cafe.PERMISSIONS[self.permission.data]
         with db.auto_commit():
