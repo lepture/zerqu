@@ -81,16 +81,16 @@ def view_topic(tid):
         data['content'] = topic.get_html_content()
         run_task(TopicStatus.increase, topic.id, 'views')
 
-    data['user'] = dict(topic.user)
+    if topic.user:
+        data['user'] = dict(topic.user)
     data['cafe'] = dict(cafe)
     data.update(topic.get_statuses(current_user.id))
 
-    permission = {}
     if current_user and current_user.id == topic.user_id:
         valid = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
-        permission['write'] = topic.is_changeable(valid)
-
-    data['permission'] = permission
+        data['editable'] = topic.is_changeable(valid)
+    else:
+        data['editable'] = False
     return jsonify(data)
 
 
