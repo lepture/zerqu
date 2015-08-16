@@ -84,6 +84,8 @@ def add_notification_event_listener():
 
 def _record_comment(comment):
     topic = Topic.cache.get(comment.topic_id)
+    if not topic:
+        return
     if topic.user_id != comment.user_id:
         Notification(topic.user_id).add(
             comment.user_id,
@@ -108,6 +110,8 @@ def _record_comment(comment):
 
 def _record_like_topic(like):
     topic = Topic.cache.get(like.topic_id)
+    if not topic:
+        return
     if topic.user_id != like.user_id:
         Notification(topic.user_id).add(
             like.user_id,
@@ -118,6 +122,8 @@ def _record_like_topic(like):
 
 def _record_like_comment(like):
     comment = Comment.cache.get(like.comment_id)
+    if not comment:
+        return
     if comment.user_id != like.user_id:
         Notification(comment.user_id).add(
             like.user_id,
