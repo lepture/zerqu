@@ -3,13 +3,14 @@
 import datetime
 from collections import defaultdict
 from werkzeug.utils import cached_property
+from werkzeug.security import gen_salt
 from sqlalchemy import func
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer, UnicodeText
 from .user import User
 from .base import db, Base, JSON, CACHE_TIMES
-from ..libs.cache import cache
+from ..libs.cache import cache, redis, ONE_DAY
 from ..libs.renderer import markup
 
 
@@ -130,6 +131,24 @@ class Topic(Base):
             if item:
                 rv[tid]['read_by_me'] = item.percent
         return rv
+
+    def request_delete_token(self):
+        token = gen_salt(16)
+        key = 'delete-topic:%s' % token
+        redis.set(key, self.id, ONE_DAY)
+        return token
+
+    @classmethod
+    def delete_topic(cls, token):
+        key = 'delete-topic:%s' % token
+        # pop from redis
+        topic_id = redis.get(key)
+        topic = cls.query.get(int(topic_id))
+        if topic:
+            with db.auto_commit():
+                db.session.delete(topic)
+            return True
+        return False
 
 
 class TopicStatus(Base):
