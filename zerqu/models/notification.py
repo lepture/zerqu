@@ -84,16 +84,20 @@ def add_notification_event_listener():
 
 def _record_comment(comment):
     topic = Topic.cache.get(comment.topic_id)
-    Notification(topic.user_id).add(
-        comment.user_id,
-        Notification.CATEGORY_COMMENT,
-        comment.topic_id,
-        comment_id=comment.id,
-    )
+    if topic.user_id != comment.user_id:
+        Notification(topic.user_id).add(
+            comment.user_id,
+            Notification.CATEGORY_COMMENT,
+            comment.topic_id,
+            comment_id=comment.id,
+        )
 
     names = re.findall(r'(?:^|\s)@([0-9a-z]+)', comment.content)
     for username in names:
         user = User.cache.filter_first(username=username)
+        if user.id == comment.user_id:
+            continue
+
         Notification(user.id).add(
             comment.user_id,
             Notification.CATEGORY_MENTION,
@@ -104,18 +108,20 @@ def _record_comment(comment):
 
 def _record_like_topic(like):
     topic = Topic.cache.get(like.topic_id)
-    Notification(topic.user_id).add(
-        like.user_id,
-        Notification.CATEGORY_LIKE_TOPIC,
-        like.topic_id,
-    )
+    if topic.user_id != like.user_id:
+        Notification(topic.user_id).add(
+            like.user_id,
+            Notification.CATEGORY_LIKE_TOPIC,
+            like.topic_id,
+        )
 
 
 def _record_like_comment(like):
     comment = Comment.cache.get(like.comment_id)
-    Notification(comment.user_id).add(
-        like.user_id,
-        Notification.CATEGORY_LIKE_COMMENT,
-        comment.topic_id,
-        comment_id=like.comment_id,
-    )
+    if comment.user_id != like.user_id:
+        Notification(comment.user_id).add(
+            like.user_id,
+            Notification.CATEGORY_LIKE_COMMENT,
+            comment.topic_id,
+            comment_id=like.comment_id,
+        )
