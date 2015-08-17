@@ -3,15 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>{{ config.SITE_NAME }}</title>
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{ config.SITE_NAME }}">
-  <meta property="og:url" content="{{ canonical_url }}">
   <meta property="og:description" content="{{ config.SITE_DESCRIPTION }}">
   <meta property="description" content="{{ config.SITE_DESCRIPTION }}">
   <meta name="twitter:card" content="summary">
-  {% if config.SITE_TWITTER %}<meta name="twitter:site" content="@{{ config.SITE_TWITTER }}" />{% endif %}
-  <title>{{ config.SITE_NAME }}</title>
-  {% include "front/site.html" %}
 </head>
 <body>
   <ul>

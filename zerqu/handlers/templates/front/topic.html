@@ -3,18 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>{{ topic.title }}</title>
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{ topic.title }}">
-  <meta property="og:url" content="{{ canonical_url }}">
   {% set content = topic.get_html_content() %}
   {% set description = content|striptags|truncate(120) %}
   <meta name="description" content="{{ description }}">
   <meta property="og:description" content="{{ description }}">
   <meta name="twitter:card" content="summary">
-  {% if config.SITE_TWITTER %}<meta name="twitter:site" content="@{{ config.SITE_TWITTER }}" />{% endif %}
-  <link rel="canonical" href="{{ canonical_url }}">
-  <title>{{ topic.title }}</title>
-  {% include "front/site.html" %}
 </head>
 <body>
   <article class="hentry" itemscope itemtype="http://schema.org/Article">

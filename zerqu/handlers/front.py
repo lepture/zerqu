@@ -1,10 +1,10 @@
 # coding: utf-8
 
-from flask import Blueprint, request, session
+from flask import Blueprint, request, session, current_app
 from flask import render_template, abort, redirect
 from werkzeug.security import gen_salt
 from zerqu.libs.cache import cache, ONE_HOUR
-from zerqu.libs.utils import is_robot, xmldatetime, canonical_url
+from zerqu.libs.utils import is_robot, xmldatetime
 from zerqu.rec.timeline import get_all_topics
 from zerqu.models import db, User, Cafe, Topic, Comment
 
@@ -22,13 +22,41 @@ def render(template, **kwargs):
 
 def render_content(content):
     use_app = session.get('app')
-    if is_robot() or use_app == 'no':
-        return content
 
-    token = gen_salt(16)
-    session['token'] = token
-    script = '<script>location.href="/app?token=%s"</script></head>' % token
-    return content.replace('</head>', script)
+    base_url = current_app.config.get('SITE_CANONICAL_URL')
+    if not base_url:
+        base_url = current_app.config.get('SITE_URL')
+
+    if base_url:
+        link = '%s%s' % (base_url.rstrip('/'), request.path)
+    else:
+        link = request.base_url
+
+    extra_head = ['<meta property="og:url" content="%s">' % link]
+    twitter = current_app.config.get('SITE_TWITTER')
+    if twitter:
+        extra_head.append(
+            '<meta name="twitter:site" content="@%s" />' % twitter
+        )
+
+    extra_head.append('<link rel="canonical" href="%s">' % link)
+
+    if base_url:
+        schema = (
+            '<script type="application/ld+json">'
+            '{"@context":"http://schema.org","@type":"WebSite",'
+            '"name":"%s","url":"%s}"'
+            '</script>'
+        ) % (current_app.config.get('SITE_NAME'), base_url)
+        extra_head.append(schema)
+
+    if not is_robot() and use_app != 'no':
+        token = gen_salt(16)
+        session['token'] = token
+        script = '<script>location.href="/app?token=%s"</script>' % token
+        extra_head.append(script)
+
+    return content.replace(u'</head>', u''.join(extra_head) + u'</head>')
 
 
 @bp.before_request
@@ -73,7 +101,6 @@ def home():
     topic_cafes = Cafe.cache.get_dict({o.cafe_id for o in topics})
     return render(
         'front/index.html',
-        canonical_url=canonical_url('.home'),
         topics=topics,
         topic_users=topic_users,
         topic_cafes=topic_cafes,
@@ -95,7 +122,6 @@ def view_topic(tid):
 
     return render(
         'front/topic.html',
-        canonical_url=canonical_url('.view_topic', tid=tid),
         topic=topic,
         cafe=cafe,
         comments=comments,
@@ -112,7 +138,6 @@ def cafe_list():
     cafes = Cafe.cache.get_many([i for i, in q.limit(100)])
     return render(
         'front/cafe_list.html',
-        canonical_url=canonical_url('.cafe_list'),
         cafes=cafes,
     )
 
@@ -130,7 +155,6 @@ def view_cafe(slug):
     topic_users = User.cache.get_dict({o.user_id for o in topics})
     return render(
         'front/cafe.html',
-        canonical_url=canonical_url('.view_cafe', slug=slug),
         cafe=cafe,
         topics=topics,
         topic_users=topic_users,
@@ -145,7 +169,6 @@ def view_user(username):
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
     return render(
         'front/user.html',
-        canonical_url=canonical_url('.view_user', username=username),
         user=user,
         topics=topics,
     )
