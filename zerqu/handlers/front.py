@@ -45,7 +45,7 @@ def render_content(content):
         schema = (
             '<script type="application/ld+json">'
             '{"@context":"http://schema.org","@type":"WebSite",'
-            '"name":"%s","url":"%s}"'
+            '"name":"%s","url":"%s"}'
             '</script>'
         ) % (current_app.config.get('SITE_NAME'), base_url)
         extra_head.append(schema)
