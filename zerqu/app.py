@@ -50,6 +50,14 @@ class JSONEncoder(_JSONEncoder):
 
 class Flask(_Flask):
     json_encoder = JSONEncoder
+    jinja_options = dict(
+        trim_blocks=True,
+        lstrip_blocks=True,
+        extensions=[
+            'jinja2.ext.autoescape',
+            'jinja2.ext.with_',
+        ]
+    )
 
 
 def create_app(config=None):
