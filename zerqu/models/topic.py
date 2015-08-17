@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import re
 import datetime
 from collections import defaultdict
 from werkzeug.utils import cached_property
@@ -9,9 +10,12 @@ from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer, UnicodeText
 from .user import User
+from .webpage import WebPage
 from .base import db, Base, JSON, CACHE_TIMES
 from ..libs.cache import cache, redis, ONE_DAY
 from ..libs.renderer import markup
+
+URL_PATTERN = re.compile(r'''^https?:\/\/[^\s<]+[^<.,:;"')\]\s]''')
 
 
 class Topic(Base):
@@ -149,6 +153,29 @@ class Topic(Base):
                 db.session.delete(topic)
             return True
         return False
+
+    @classmethod
+    def create_topic(cls, title, content, link, cafe_id, user_id):
+        if not link:
+            m = URL_PATTERN.match(content)
+            if m:
+                link = m.group(0)
+                content = content[len(link):]
+
+        topic = cls(
+            title=title,
+            content=content,
+            cafe_id=cafe_id,
+            user_id=user_id,
+        )
+
+        if not link:
+            return topic
+
+        webpage = WebPage.get_or_create(link, user_id)
+        if webpage:
+            topic.webpage = webpage.uuid
+        return topic
 
 
 class TopicStatus(Base):

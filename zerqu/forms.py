@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import re
 import hashlib
 
 from flask import request
@@ -184,18 +185,12 @@ class TopicForm(Form):
             return
 
     def create_topic(self, cafe_id, user_id):
-        topic = Topic(
-            title=self.title.data,
-            content=self.content.data,
-            cafe_id=cafe_id,
-            user_id=user_id,
+        topic = Topic.create_topic(
+            self.title.data,
+            self.content.data,
+            self.link.data,
+            cafe_id, user_id
         )
-
-        if self.link.data:
-            link = self.link.data
-            webpage = WebPage.get_or_create(link, user_id)
-            if webpage:
-                topic.webpage = webpage.uuid
 
         feature_type = self.feature_type.data
         feature_value = self.feature_value.data

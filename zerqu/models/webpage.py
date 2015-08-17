@@ -6,7 +6,6 @@ import requests
 from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, Integer, DateTime
-from flask import current_app, copy_current_request_context
 from zerqu.libs.utils import run_task
 from .base import db, Base, JSON
 

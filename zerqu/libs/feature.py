@@ -15,8 +15,6 @@ def process_link(value, topic):
         'type': 'link',
         'value': value
     }
-    if not topic.link:
-        topic.link = value
 
 
 def process_image(value, topic):
