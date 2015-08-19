@@ -38,7 +38,10 @@ class WebPage(Base):
     user_id = Column(Integer)
 
     def keys(self):
-        return ['title', 'image', 'description', 'info']
+        return [
+            'uuid', 'title', 'image', 'description', 'info', 'link',
+            'domain', 'created_at', 'updated_at',
+        ]
 
     def fetch_update(self):
         headers = {'User-Agent': UA}
