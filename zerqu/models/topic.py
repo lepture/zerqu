@@ -9,11 +9,13 @@ from sqlalchemy import func
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer, UnicodeText
+from flask import current_app
+from zerqu.libs.cache import cache, redis, ONE_DAY
+from zerqu.libs.renderer import markup
 from .user import User
 from .webpage import WebPage
+from .utils import current_user
 from .base import db, Base, JSON, CACHE_TIMES
-from ..libs.cache import cache, redis, ONE_DAY
-from ..libs.renderer import markup
 
 URL_PATTERN = re.compile(r'''^https?:\/\/[^\s<]+[^<.,:;"')\]\s]''')
 
@@ -53,11 +55,17 @@ class Topic(Base):
 
     def keys(self):
         return (
-            'id', 'title', 'info', 'label',
+            'id', 'title', 'info', 'label', 'editable',
             'created_at', 'updated_at',
         )
 
-    def is_changeable(self, valid_time):
+    @property
+    def editable(self):
+        if not current_user:
+            return False
+        if current_user.id != self.user_id:
+            return False
+        valid_time = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
         if not valid_time:
             return True
         delta = datetime.datetime.utcnow() - self.created_at
@@ -143,16 +151,11 @@ class Topic(Base):
         return token
 
     @classmethod
-    def delete_topic(cls, token):
+    def get_delete_topic(cls, token):
         key = 'delete-topic:%s' % token
         # pop from redis
         topic_id = redis.get(key)
-        topic = cls.query.get(int(topic_id))
-        if topic:
-            with db.auto_commit():
-                db.session.delete(topic)
-            return True
-        return False
+        return cls.query.get(int(topic_id))
 
     @classmethod
     def create_topic(cls, title, content, link, cafe_id, user_id):

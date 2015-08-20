@@ -1,9 +1,7 @@
 # coding: utf-8
 
-from flask import current_app
 from flask import request, jsonify
 
-from zerqu.libs.errors import APIException, Conflict, NotFound, Denied
 from zerqu.models import db, current_user, User
 from zerqu.models import Cafe, CafeMember
 from zerqu.models import Topic, TopicLike, TopicRead, TopicStatus
@@ -14,6 +12,7 @@ from zerqu.forms import TopicForm, CommentForm
 from zerqu.libs.renderer import markup
 from zerqu.libs.cache import cache
 from zerqu.libs.utils import run_task
+from zerqu.libs.errors import APIException, Conflict, NotFound, Denied
 from .base import ApiBlueprint
 from .base import require_oauth
 from .utils import cursor_query, pagination_query, int_or_raise
@@ -85,12 +84,6 @@ def view_topic(tid):
         data['user'] = dict(topic.user)
     data['cafe'] = dict(cafe)
     data.update(topic.get_statuses(current_user.id))
-
-    if current_user and current_user.id == topic.user_id:
-        valid = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
-        data['editable'] = topic.is_changeable(valid)
-    else:
-        data['editable'] = False
     return jsonify(data)
 
 
@@ -101,15 +94,8 @@ def update_topic(tid):
     if not topic:
         raise NotFound('Topic')
 
-    # who can update topic
-    if current_user.id != topic.user_id:
+    if not topic.editable:
         raise Denied('updating this topic')
-
-    # update topic in the given time
-    valid = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
-    if not topic.is_changeable(valid):
-        msg = 'Topic can only be updated in {} seconds'.format(valid)
-        raise APIException(code=403, description=msg)
 
     form = TopicForm.create_api_form(obj=topic)
     data = dict(form.update_topic())

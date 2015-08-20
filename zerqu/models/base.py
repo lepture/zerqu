@@ -12,8 +12,8 @@ from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.dialects.postgresql import JSON as _JSON
 from flask_sqlalchemy import SQLAlchemy as _SQLAlchemy
 
-from ..libs.utils import is_json
-from ..libs.cache import cache, ONE_DAY, FIVE_MINUTES
+from zerqu.libs.utils import is_json
+from zerqu.libs.cache import cache, ONE_DAY, FIVE_MINUTES
 from zerqu.libs.errors import NotFound
 
 __all__ = ['db', 'CACHE_TIMES', 'Base']

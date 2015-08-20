@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import re
 import hashlib
 
 from flask import request
@@ -15,7 +14,7 @@ from werkzeug.datastructures import MultiDict
 from zerqu.libs.errors import APIException, FormError
 
 from .models import db, cache
-from .models import User, Cafe, Comment, Topic, WebPage
+from .models import User, Cafe, Comment, Topic
 from .libs import feature
 
 
