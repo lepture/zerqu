@@ -92,7 +92,7 @@ class TestViewTopic(TestCase):
         headers = self.get_authorized_header(user_id=1)
         rv = self.client.get('/api/topics/%d' % t.id, headers=headers)
         data = json.loads(rv.data)
-        assert data['permission']['write']
+        assert data['editable']
 
     def test_view_topic_without_permission(self):
         cafe = Cafe(name='official', slug='official', user_id=1)

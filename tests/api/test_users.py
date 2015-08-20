@@ -139,3 +139,67 @@ class TestViewUser(TestCase):
         cached = self.client.get('/api/users/zerqu')
         assert cached.status_code == 200
         assert rv.data == cached.data
+
+
+class TestViewUserCafes(TestCase):
+
+    def test_view_user_cafes(self):
+        user = User.query.get(1)
+        rv = self.client.get(
+            '/api/users/%s/cafes' % user.username,
+        )
+        assert rv.status_code == 200
+
+    def test_view_self_cafes(self):
+        user = User.query.get(1)
+        headers = self.get_authorized_header(user_id=user.id)
+        rv = self.client.get(
+            '/api/users/%s/cafes' % user.username,
+            headers=headers
+        )
+        assert rv.status_code == 200
+
+
+class TestViewUserTopics(TestCase):
+
+    def test_view_user_topics(self):
+        user = User.query.get(1)
+        rv = self.client.get(
+            '/api/users/%s/topics' % user.username,
+        )
+        assert rv.status_code == 200
+
+    def test_view_self_topics(self):
+        user = User.query.get(1)
+        headers = self.get_authorized_header(user_id=user.id)
+        rv = self.client.get(
+            '/api/users/%s/topics' % user.username,
+            headers=headers
+        )
+        assert rv.status_code == 200
+
+
+class TestUserNotification(TestCase):
+    def test_view_notification(self):
+        headers = self.get_authorized_header()
+        rv = self.client.get(
+            '/api/users/me/notification',
+            headers=headers
+        )
+        assert rv.status_code == 200
+
+    def test_clear_notification(self):
+        headers = self.get_authorized_header()
+        rv = self.client.delete(
+            '/api/users/me/notification',
+            headers=headers
+        )
+        assert rv.status_code == 204
+
+    def test_view_notification_count(self):
+        headers = self.get_authorized_header()
+        rv = self.client.get(
+            '/api/users/me/notification/count',
+            headers=headers
+        )
+        assert rv.status_code == 200
