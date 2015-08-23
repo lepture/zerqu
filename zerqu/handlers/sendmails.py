@@ -54,3 +54,13 @@ def send_change_password_email(email):
     url = full_url('account.change_password', token=token)
     text = '%s\n\n%s' % (title, url)
     run_task(send_text, email, title, text)
+
+
+def send_delete_topic_email(email, topic):
+    token = gen_salt(16)
+    key = 'account:delete-topic:%s' % token
+    redis.set(key, topic.id, ONE_DAY)
+    url = full_url('account.delete_topic', token=token)
+    title = 'Deteting %s' % topic.title
+    text = '%s\n\n%s' % (title, url)
+    run_task(send_text, email, title, text)

@@ -4,13 +4,12 @@ import re
 import datetime
 from collections import defaultdict
 from werkzeug.utils import cached_property
-from werkzeug.security import gen_salt
 from sqlalchemy import func
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer, UnicodeText
 from flask import current_app
-from zerqu.libs.cache import cache, redis, ONE_DAY
+from zerqu.libs.cache import cache
 from zerqu.libs.renderer import markup
 from .user import User
 from .webpage import WebPage
@@ -52,6 +51,9 @@ class Topic(Base):
     )
 
     __reference__ = {'user': 'user_id', 'cafe': 'cafe_id'}
+
+    def __repr__(self):
+        return '<Topic:%d>' % self.id
 
     def keys(self):
         return (
@@ -143,19 +145,6 @@ class Topic(Base):
             if item:
                 rv[tid]['read_by_me'] = item.percent
         return rv
-
-    def request_delete_token(self):
-        token = gen_salt(16)
-        key = 'delete-topic:%s' % token
-        redis.set(key, self.id, ONE_DAY)
-        return token
-
-    @classmethod
-    def get_delete_topic(cls, token):
-        key = 'delete-topic:%s' % token
-        # pop from redis
-        topic_id = redis.get(key)
-        return cls.query.get(int(topic_id))
 
     @classmethod
     def create_topic(cls, title, content, link, cafe_id, user_id):

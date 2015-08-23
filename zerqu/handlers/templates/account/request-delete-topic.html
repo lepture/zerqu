@@ -1,0 +1,13 @@
+{% extends "account/layout.html" %}
+
+{% block content %}
+<h1>{{ _('Delete Topic') }}</h1>
+<p><strong>{{ topic.title }}</strong></p>
+{% if show_message %}
+{% include "account/email-message.html" %}
+{% endif %}
+<form action="" method="post">
+  {{ form.csrf_token }}
+  <button>{{ _('Send Confirm Email') }}</button>
+</form>
+{% endblock %}

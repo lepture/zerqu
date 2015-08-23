@@ -6,7 +6,9 @@ from flask import abort, redirect, render_template
 from zerqu.libs.cache import redis
 from zerqu.libs.utils import full_url
 from zerqu.models import db, current_user, SocialUser, User, AuthSession
+from zerqu.models import Topic
 from zerqu.forms import (
+    Form,
     RegisterForm,
     PasswordForm,
     FindPasswordForm,
@@ -14,6 +16,7 @@ from zerqu.forms import (
 )
 from .sendmails import create_email_signature, get_email_from_signature
 from .sendmails import send_change_password_email
+from .sendmails import send_delete_topic_email
 
 bp = Blueprint('account', __name__, template_folder='templates')
 
@@ -144,4 +147,49 @@ def change_email(token):
         'account/email.html',
         form=form,
         user=user,
+    )
+
+
+@bp.route('/delete-topic/<int:tid>', methods=['GET', 'POST'])
+def request_delete_topic(tid):
+    if not current_user:
+        return abort(404)
+    topic = Topic.query.get_or_404(int(tid))
+    if topic.user_id != current_user.id:
+        return abort(403)
+
+    # csrf token
+    form = Form()
+    show_message = False
+    if form.validate_on_submit():
+        show_message = True
+        send_delete_topic_email(current_user.email, topic)
+    return render_template(
+        'account/request-delete-topic.html',
+        topic=topic,
+        form=form,
+        show_message=show_message,
+    )
+
+
+@bp.route('/-/<token>/delete-topic', methods=['GET', 'POST'])
+def delete_topic(token):
+    key = 'account:delete-topic:%s' % token
+    tid = redis.get(key)
+    if not tid:
+        abort(404)
+
+    topic = Topic.query.get_or_404(int(tid))
+    title = topic.title
+    form = Form()
+    show_message = False
+    if form.validate_on_submit():
+        with db.auto_commit():
+            db.session.delete(topic)
+        show_message = True
+    return render_template(
+        'account/delete-topic.html',
+        title=title,
+        form=form,
+        show_message=show_message,
     )
