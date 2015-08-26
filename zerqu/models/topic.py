@@ -9,7 +9,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer, UnicodeText
 from flask import current_app
-from zerqu.libs.cache import cache
+from zerqu.libs.cache import cache, redis
 from zerqu.libs.renderer import markup
 from .user import User
 from .webpage import WebPage
@@ -170,6 +170,52 @@ class Topic(Base):
         return topic
 
 
+class TopicStat(object):
+    KEY_PREFIX = 'topic_stat:{}'
+
+    def __init__(self, topic_id):
+        self.topic_id = topic_id
+        self.key = self.KEY_PREFIX.format(topic_id)
+
+    def increase(self, field, step=1):
+        redis.hincrby(self.key, field, step)
+
+    def keys(self):
+        return (
+            'views', 'reads', 'flags', 'likes',
+            'comments', 'reputation', 'timestamp',
+        )
+
+    def __getitem__(self, item):
+        return self.value.get(item, 0)
+
+    def __setitem__(self, item, value):
+        redis.hset(self.key, item, int(value))
+
+    @cached_property
+    def value(self):
+        return redis.get(self.key)
+
+    def calculate(self):
+        def query_count(model):
+            q = model.query.filter_by(topic_id=self.topic_id)
+            return q.with_entities(func.count(1)).scalar()
+        redis.hmset(self.key, dict(
+            likes=query_count(TopicLike),
+            reads=query_count(TopicRead),
+            comments=query_count(Comment),
+        ))
+
+    @classmethod
+    def get_many(cls, tids):
+        return redis.mget({cls.KEY_PREFIX.format(i) for i in tids})
+
+    @classmethod
+    def get_dict(cls, tids):
+        rv = cls.get_many(tids)
+        return dict(zip(tids, rv))
+
+
 class TopicStatus(Base):
     __tablename__ = 'zq_topic_status'
 
@@ -199,10 +245,10 @@ class TopicStatus(Base):
 
     @classmethod
     def increase(cls, topic_id, key):
-        # TODO: use redis
         status = cls.get_or_create(topic_id)
-        count = getattr(status, key, 0)
-        setattr(status, key, count + 1)
+        count = getattr(status, key, 0) + 1
+        TopicStat(topic_id)[key] = count
+        setattr(status, key, count)
         with db.auto_commit(False):
             db.session.add(status)
 
