@@ -8,7 +8,8 @@ from flask_oauthlib.utils import decode_base64
 
 from zerqu.libs.errors import NotAuth, NotConfidential, InvalidClient
 from zerqu.libs.ratelimit import ratelimit
-from zerqu.models import oauth, cache, current_user
+from zerqu.libs.cache import cache
+from zerqu.models import oauth, current_user
 from zerqu.models import AuthSession, OAuthClient
 
 

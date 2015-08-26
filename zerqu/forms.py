@@ -12,9 +12,9 @@ from wtforms.validators import Email, Length, Regexp, URL
 from wtforms.validators import StopValidation
 from werkzeug.datastructures import MultiDict
 from zerqu.libs.errors import APIException, FormError
+from zerqu.libs.cache import cache
 
-from .models import db, cache
-from .models import User, Cafe, Comment, Topic
+from .models import db, User, Cafe, Comment, Topic
 from .libs import feature
 
 

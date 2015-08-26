@@ -85,12 +85,12 @@ class Topic(Base):
         return User.cache.get(self.user_id)
 
     def get_statuses(self, user_id=None):
-        status = TopicStat(self.id)
+        status = TopicStat(self.id) or {}
         rv = {
-            'view_count': status['views'],
-            'like_count': status['likes'],
-            'comment_count': status['comments'],
-            'read_count': status['reads'],
+            'view_count': status.get('views', 0),
+            'like_count': status.get('likes', 0),
+            'comment_count': status.get('comments', 0),
+            'read_count': status.get('reads', 0),
         }
         if not user_id:
             return rv
@@ -112,12 +112,13 @@ class Topic(Base):
         rv = {}
         stats = TopicStat.get_dict(tids)
         for tid in tids:
-            status = stats.get(tid)
+            status = stats.get(tid) or {}
+            tid = str(tid)
             rv[tid] = {
-                'view_count': status['views'],
-                'like_count': status['likes'],
-                'comment_count': status['comments'],
-                'read_count': status['reads'],
+                'view_count': status.get('views', 0),
+                'like_count': status.get('likes', 0),
+                'comment_count': status.get('comments', 0),
+                'read_count': status.get('reads', 0),
             }
 
         if not user_id:
@@ -173,15 +174,18 @@ class TopicStat(object):
             'comments', 'reputation', 'timestamp',
         )
 
+    def get(self, key, default=None):
+        self.value.get(key, default)
+
     def __getitem__(self, item):
-        return self.value.get(item, 0)
+        return self.value[item]
 
     def __setitem__(self, item, value):
         redis.hset(self.key, item, int(value))
 
     @cached_property
     def value(self):
-        return redis.get(self.key)
+        return redis.hgetall(self.key)
 
     def calculate(self):
         def query_count(model):
@@ -195,7 +199,10 @@ class TopicStat(object):
 
     @classmethod
     def get_many(cls, tids):
-        return redis.mget({cls.KEY_PREFIX.format(i) for i in tids})
+        with redis.pipeline() as pipe:
+            for tid in tids:
+                pipe.hgetall(cls.KEY_PREFIX.format(tid))
+            return pipe.execute()
 
     @classmethod
     def get_dict(cls, tids):
@@ -234,7 +241,6 @@ class TopicStatus(Base):
     def increase(cls, topic_id, key):
         status = cls.get_or_create(topic_id)
         count = getattr(status, key, 0) + 1
-        TopicStat(topic_id)[key] = count
         with db.auto_commit(False):
             db.session.add(status)
 
