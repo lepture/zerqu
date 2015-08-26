@@ -4,7 +4,7 @@ from flask import request, jsonify
 
 from zerqu.models import db, current_user, User
 from zerqu.models import Cafe, CafeMember
-from zerqu.models import Topic, TopicLike, TopicRead, TopicStatus
+from zerqu.models import Topic, TopicLike, TopicRead, TopicStatus, TopicStat
 from zerqu.models import WebPage, Comment, CommentLike
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.rec.timeline import get_timeline_topics, get_all_topics
@@ -78,6 +78,7 @@ def view_topic(tid):
         data['content'] = topic.content
     else:
         data['content'] = topic.get_html_content()
+        TopicStat(tid).increase('views')
         run_task(TopicStatus.increase, topic.id, 'views')
 
     if topic.user:
@@ -115,7 +116,6 @@ def write_read_percent(tid):
     if not read:
         get_topic_cafe(topic.cafe_id)
         read = TopicRead(topic_id=topic.id, user_id=current_user.id)
-        TopicStatus.increase(topic.id, 'reads')
     read.percent = percent
 
     with db.auto_commit():
@@ -134,6 +134,7 @@ def flag_topic(tid):
     cache.inc(key)
 
     TopicStatus.increase(topic.id, 'flags')
+    TopicStat(tid).increase('flags')
     return '', 204
 
 
@@ -177,8 +178,6 @@ def create_topic_comment(tid):
     rv = dict(comment)
     rv['content'] = markup(rv['content'])
     rv['user'] = dict(current_user)
-
-    TopicStatus.increase(topic.id, 'comments')
     return jsonify(rv), 201
 
 
@@ -215,8 +214,6 @@ def like_topic(tid):
     like = TopicLike(topic_id=topic.id, user_id=current_user.id)
     with db.auto_commit():
         db.session.add(like)
-
-    TopicStatus.increase(topic.id, 'likes')
     return '', 204
 
 
@@ -229,9 +226,7 @@ def unlike_topic(tid):
     with db.auto_commit():
         db.session.delete(data)
 
-    status = TopicStatus.query.get(tid)
-    with db.auto_commit(False):
-        status.calculate()
+    TopicStat(tid).calculate()
     return '', 204
 
 
@@ -244,9 +239,7 @@ def delete_topic_comment(tid, cid):
     with db.auto_commit():
         db.session.delete(comment)
 
-    status = TopicStatus.query.get(tid)
-    with db.auto_commit(False):
-        status.calculate()
+    TopicStat(tid).calculate()
     return '', 204
 
 

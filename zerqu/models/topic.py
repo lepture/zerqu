@@ -85,14 +85,12 @@ class Topic(Base):
         return User.cache.get(self.user_id)
 
     def get_statuses(self, user_id=None):
-        status = TopicStatus.cache.get(self.id)
-        if not status:
-            return {}
+        status = TopicStat(self.id)
         rv = {
-            'view_count': status.views,
-            'like_count': status.likes,
-            'read_count': status.reads,
-            'comment_count': status.comments,
+            'view_count': status['views'],
+            'like_count': status['likes'],
+            'comment_count': status['comments'],
+            'read_count': status['reads'],
         }
         if not user_id:
             return rv
@@ -112,26 +110,15 @@ class Topic(Base):
     @staticmethod
     def get_multi_statuses(tids, user_id):
         rv = {}
-
-        statuses = TopicStatus.cache.get_dict(tids)
-
+        stats = TopicStat.get_dict(tids)
         for tid in tids:
-            tid = str(tid)
-            status = statuses.get(tid)
-            if status:
-                rv[tid] = {
-                    'view_count': status.views,
-                    'like_count': status.likes,
-                    'comment_count': status.comments,
-                    'read_count': status.reads,
-                }
-            else:
-                rv[tid] = {
-                    'view_count': 0,
-                    'like_count': 0,
-                    'comment_count': 0,
-                    'read_count': 0,
-                }
+            status = stats.get(tid)
+            rv[tid] = {
+                'view_count': status['views'],
+                'like_count': status['likes'],
+                'comment_count': status['comments'],
+                'read_count': status['reads'],
+            }
 
         if not user_id:
             return rv
@@ -248,7 +235,6 @@ class TopicStatus(Base):
         status = cls.get_or_create(topic_id)
         count = getattr(status, key, 0) + 1
         TopicStat(topic_id)[key] = count
-        setattr(status, key, count)
         with db.auto_commit(False):
             db.session.add(status)
 
@@ -270,6 +256,10 @@ class TopicLike(Base):
     topic_id = Column(Integer, primary_key=True, autoincrement=False)
     user_id = Column(Integer, primary_key=True, autoincrement=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __init__(self, topic_id, user_id):
+        self.topic_id =topic_id
+        self.user_id = user_id
 
     @classmethod
     def topics_liked_by_user(cls, user_id, topic_ids):
