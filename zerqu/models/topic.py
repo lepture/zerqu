@@ -174,8 +174,8 @@ class TopicStat(object):
             'comments', 'reputation', 'timestamp',
         )
 
-    def get(self, key, default=None):
-        self.value.get(key, default)
+    def get(self, key, default=0):
+        return int(self.value.get(key, default))
 
     def __getitem__(self, item):
         return self.value[item]
@@ -218,7 +218,7 @@ class TopicLike(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     def __init__(self, topic_id, user_id):
-        self.topic_id =topic_id
+        self.topic_id = topic_id
         self.user_id = user_id
 
     @classmethod
