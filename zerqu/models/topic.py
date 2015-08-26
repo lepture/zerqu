@@ -210,37 +210,6 @@ class TopicStat(object):
         return dict(zip(tids, rv))
 
 
-class TopicStatus(Base):
-    __tablename__ = 'zq_topic_status'
-
-    topic_id = Column(Integer, primary_key=True, autoincrement=False)
-    views = Column(Integer, default=1)
-    reads = Column(Integer, default=0)
-    flags = Column(Integer, default=0)
-    likes = Column(Integer, default=0)
-    comments = Column(Integer, default=0)
-    timestamp = Column(Integer, default=0)
-    reputation = Column(Integer, default=0)
-
-    def keys(self):
-        return (
-            'views', 'reads', 'flags', 'likes',
-            'comments', 'reputation',
-        )
-
-    @classmethod
-    def sync(cls):
-        for stat in cls.query:
-            key = TopicStat.KEY_PREFIX.format(stat.topic_id)
-            redis.hmset(key, dict(
-                views=stat.views,
-                reads=stat.reads,
-                flags=stat.flags,
-                likes=stat.likes,
-                comments=stat.comments,
-            ))
-
-
 class TopicLike(Base):
     __tablename__ = 'zq_topic_like'
 

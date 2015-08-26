@@ -230,15 +230,6 @@ class TestTopicsStatuses(TestCase):
         rv = self.client.get('/api/topics/statuses?topics=sb')
         assert rv.status_code == 400
 
-    def test_get_statuses(self):
-        db.session.add(TopicStatus(topic_id=1, likes=9))
-        db.session.add(TopicStatus(topic_id=2, likes=8))
-        db.session.commit()
-        rv = self.client.get('/api/topics/statuses?topics=1,2')
-        data = json.loads(rv.data)
-        assert data['1']['like_count'] == 9
-        assert data['2']['like_count'] == 8
-
     def test_user_statuses(self):
         db.session.add(TopicLike(topic_id=1, user_id=2))
         db.session.add(TopicLike(topic_id=2, user_id=1))
