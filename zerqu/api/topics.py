@@ -4,14 +4,13 @@ from flask import request, jsonify
 
 from zerqu.models import db, current_user, User
 from zerqu.models import Cafe, CafeMember
-from zerqu.models import Topic, TopicLike, TopicRead, TopicStatus, TopicStat
+from zerqu.models import Topic, TopicLike, TopicRead, TopicStat
 from zerqu.models import WebPage, Comment, CommentLike
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.rec.timeline import get_timeline_topics, get_all_topics
 from zerqu.forms import TopicForm, CommentForm
 from zerqu.libs.renderer import markup
 from zerqu.libs.cache import cache
-from zerqu.libs.utils import run_task
 from zerqu.libs.errors import APIException, Conflict, NotFound, Denied
 from .base import ApiBlueprint
 from .base import require_oauth
@@ -79,7 +78,6 @@ def view_topic(tid):
     else:
         data['content'] = topic.get_html_content()
         TopicStat(tid).increase('views')
-        run_task(TopicStatus.increase, topic.id, 'views')
 
     if topic.user:
         data['user'] = dict(topic.user)
@@ -132,8 +130,6 @@ def flag_topic(tid):
     topic = Topic.cache.get_or_404(tid)
     get_topic_cafe(topic.cafe_id)
     cache.inc(key)
-
-    TopicStatus.increase(topic.id, 'flags')
     TopicStat(tid).increase('flags')
     return '', 204
 

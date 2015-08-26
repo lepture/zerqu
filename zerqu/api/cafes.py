@@ -207,9 +207,6 @@ def create_cafe_topic(slug):
 
     form = TopicForm.create_api_form()
     topic = form.create_topic(cafe.id, current_user.id)
-    # create topic status
-    with db.auto_commit(False):
-        db.session.add(TopicStatus(topic_id=topic.id))
     data = dict(topic)
     data['user'] = dict(current_user)
     data['content'] = topic.get_html_content()

@@ -229,31 +229,16 @@ class TopicStatus(Base):
         )
 
     @classmethod
-    def get_or_create(cls, topic_id):
-        data = cls.query.get(topic_id)
-        if not data:
-            data = cls(topic_id=topic_id)
-            db.session.add(data)
-            db.session.flush()
-        return data
-
-    @classmethod
-    def increase(cls, topic_id, key):
-        status = cls.get_or_create(topic_id)
-        count = getattr(status, key, 0) + 1
-        with db.auto_commit(False):
-            db.session.add(status)
-
-    def calculate(self):
-
-        def query_count(model):
-            q = model.query.filter_by(topic_id=self.topic_id)
-            return q.with_entities(func.count(1)).scalar()
-
-        self.likes = query_count(TopicLike)
-        self.reads = query_count(TopicRead)
-        self.comments = query_count(Comment)
-        db.session.add(self)
+    def sync(cls):
+        for stat in cls.query:
+            key = TopicStat.KEY_PREFIX.format(stat.topic_id)
+            redis.hmset(key, dict(
+                views=stat.views,
+                reads=stat.reads,
+                flags=stat.flags,
+                likes=stat.likes,
+                comments=stat.comments,
+            ))
 
 
 class TopicLike(Base):
