@@ -8,7 +8,7 @@ def register_base(app):
     from .models import db, social, auth
     from .libs import cache, ratelimit
     from .libs.pigeon import mail
-    from .models.notification import add_notification_event_listener
+    from .models.binds import bind_events
 
     db.init_app(app)
     social.init_app(app)
@@ -16,7 +16,7 @@ def register_base(app):
     cache.init_app(app)
     mail.init_app(app)
     ratelimit.init_app(app)
-    add_notification_event_listener()
+    bind_events()
 
     babel = Babel(app)
     supported_locales = app.config.get('BABEL_LOCALES', ['en'])
