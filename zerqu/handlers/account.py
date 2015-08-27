@@ -62,6 +62,11 @@ def social_authorize(name):
     return 'TODO'
 
 
+@bp.route('/settings')
+def user_settings():
+    return 'Not Ready'
+
+
 @bp.route('/find-password', methods=['GET', 'POST'])
 def find_password():
     form = FindPasswordForm()

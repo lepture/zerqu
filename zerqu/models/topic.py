@@ -87,10 +87,10 @@ class Topic(Base):
     def get_statuses(self, user_id=None):
         status = TopicStat(self.id) or {}
         rv = {
-            'view_count': status.get('views', 0),
-            'like_count': status.get('likes', 0),
-            'comment_count': status.get('comments', 0),
-            'read_count': status.get('reads', 0),
+            'view_count': int(status.get('views', 0)),
+            'like_count': int(status.get('likes', 0)),
+            'comment_count': int(status.get('comments', 0)),
+            'read_count': int(status.get('reads', 0)),
         }
         if not user_id:
             return rv
@@ -115,10 +115,10 @@ class Topic(Base):
             status = stats.get(tid) or {}
             tid = str(tid)
             rv[tid] = {
-                'view_count': status.get('views', 0),
-                'like_count': status.get('likes', 0),
-                'comment_count': status.get('comments', 0),
-                'read_count': status.get('reads', 0),
+                'view_count': int(status.get('views', 0)),
+                'like_count': int(status.get('likes', 0)),
+                'comment_count': int(status.get('comments', 0)),
+                'read_count': int(status.get('reads', 0)),
             }
 
         if not user_id:
@@ -175,7 +175,7 @@ class TopicStat(object):
         )
 
     def get(self, key, default=0):
-        return int(self.value.get(key, default))
+        return self.value.get(key, default)
 
     def __getitem__(self, item):
         return self.value[item]
