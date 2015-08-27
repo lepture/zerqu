@@ -55,15 +55,15 @@ class Qiniu(object):
             self.access_key, encoded_signature, encoded_data
         )
 
-    def create_form_data(self, user_id, content_type, transform_type=None):
+    def create_form_data(self, user_id, content_type):
         if content_type not in self.CONTENT_TYPES:
             return None
 
-        filename = self.create_token(user_id, content_type)
-        if transform_type is None:
-            transform_type = self.TRANSFORM_THUMBNAIL
+        filename = self.generate_filename(user_id, content_type)
+        # TODO: choose transform type
+        transform = self.TRANSFORM_THUMBNAIL
 
-        token = self.create_token(filename, transform=transform_type)
+        token = self.create_token(filename, transform=transform)
         return {
             'action': 'https://up.qbox.me',
             'name': self.FORM_NAME,
@@ -86,9 +86,7 @@ class Uploader(object):
         # TODO: add more services
         self.service = Qiniu(app)
 
-    def create_form_data(self, user_id, content_type, transform_type=None):
-        return self.service.create_form_data(
-            user_id, content_type, transform_type,
-        )
+    def create_form_data(self, user_id, content_type):
+        return self.service.create_form_data(user_id, content_type)
 
 uploader = Uploader()

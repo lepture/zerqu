@@ -2,7 +2,9 @@
 
 from flask import jsonify
 from flask import current_app, request
+from zerqu.models import current_user
 from zerqu.libs.renderer import markup
+from zerqu.libs.uploader import uploader
 from zerqu.versions import VERSION, API_VERSION
 from .base import ApiBlueprint, require_oauth
 
@@ -30,3 +32,13 @@ def preview_text():
     if not text:
         return ''
     return markup(text)
+
+
+@api.route('upload', methods=['GET'])
+@require_oauth(login=True)
+def upload_form_data():
+    rv = uploader.create_form_data(
+        current_user.id,
+        request.args['content-type']
+    )
+    return jsonify(rv)
