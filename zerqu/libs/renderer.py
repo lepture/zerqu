@@ -29,12 +29,14 @@ class PrettyRenderer(Renderer):
         return html
 
     def image(self, link, title, alt_text):
-        html = '<img src="%s" alt="%s" />' % (link, alt_text)
         if not title:
-            return html
-        return '<figure>%s<figcaption>%s</figcaption></figure>' % (
-            html, title
-        )
+            title = alt_text
+        return (
+            '<figure>'
+            '<img src="%s" alt="%s">'
+            '<figcaption>%s</figcaption>'
+            '</figure>'
+        ) % (link, alt_text, title)
 
     def paragraph(self, content):
         pattern = r'<figure>.*</figure>'
