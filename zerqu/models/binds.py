@@ -3,6 +3,7 @@ import re
 import time
 from sqlalchemy import event
 from zerqu.libs.utils import run_task
+from zerqu.libs.cache import execute_pipeline
 from .topic import Topic, TopicStat, TopicLike, TopicRead
 from .topic import Comment, CommentLike
 from .notification import Notification
@@ -32,31 +33,33 @@ def _record_add_comment(comment):
     topic = Topic.cache.get(comment.topic_id)
     if not topic:
         return
-    # update topic stat
-    stat = TopicStat(topic.id)
-    stat.increase('comments')
-    stat['timestamp'] = time.time()
 
-    if topic.user_id != comment.user_id:
-        Notification(topic.user_id).add(
-            comment.user_id,
-            Notification.CATEGORY_COMMENT,
-            comment.topic_id,
-            comment_id=comment.id,
-        )
+    with execute_pipeline():
+        # update topic stat
+        stat = TopicStat(topic.id)
+        stat.increase('comments')
+        stat['timestamp'] = time.time()
 
-    names = re.findall(r'(?:^|\s)@([0-9a-z]+)', comment.content)
-    for username in set(names):
-        user = User.cache.filter_first(username=username)
-        if user.id in (comment.user_id, topic.user_id):
-            continue
+        if topic.user_id != comment.user_id:
+            Notification(topic.user_id).add(
+                comment.user_id,
+                Notification.CATEGORY_COMMENT,
+                comment.topic_id,
+                comment_id=comment.id,
+            )
 
-        Notification(user.id).add(
-            comment.user_id,
-            Notification.CATEGORY_MENTION,
-            comment.topic_id,
-            comment_id=comment.id,
-        )
+        names = re.findall(r'(?:^|\s)@([0-9a-z]+)', comment.content)
+        for username in set(names):
+            user = User.cache.filter_first(username=username)
+            if user.id in (comment.user_id, topic.user_id):
+                continue
+
+            Notification(user.id).add(
+                comment.user_id,
+                Notification.CATEGORY_MENTION,
+                comment.topic_id,
+                comment_id=comment.id,
+            )
 
 
 def _record_like_topic(like):

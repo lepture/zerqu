@@ -1,7 +1,8 @@
 # coding: utf-8
 
 from functools import wraps
-from flask import current_app
+from contextlib import contextmanager
+from flask import current_app, g
 from werkzeug.local import LocalProxy
 
 # defined time durations
@@ -27,7 +28,22 @@ def use_cache(prefix='zerqu'):
 
 
 def use_redis(prefix='zerqu'):
-    return current_app.extensions[prefix + '_redis']
+    key = prefix + '_redis'
+    d = getattr(g, key, None)
+    if d is not None:
+        return d
+    return current_app.extensions[key]
+
+
+@contextmanager
+def execute_pipeline(prefix='zerqu'):
+    key = prefix + '_redis'
+    redis = current_app.extensions[key]
+    with redis.pipeline() as pipe:
+        setattr(g, key, pipe)
+        yield
+        delattr(g, key)
+        pipe.execute()
 
 
 cache = LocalProxy(use_cache)

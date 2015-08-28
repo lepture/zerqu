@@ -169,9 +169,9 @@ class TopicStat(RedisStat):
 
     def calculate(self):
         def query_count(model):
-            q = model.query.filter_by(topic_id=self.topic_id)
+            q = model.query.filter_by(topic_id=self.ident)
             return q.with_entities(func.count(1)).scalar()
-        redis.hmset(self.key, dict(
+        redis.hmset(self._key, dict(
             likes=query_count(TopicLike),
             reads=query_count(TopicRead),
             comments=query_count(Comment),
