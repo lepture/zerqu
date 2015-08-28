@@ -6,7 +6,7 @@ def register_base(app):
     from flask_babel import Babel
 
     from .models import db, social, auth
-    from .libs import cache, ratelimit
+    from .libs import cache
     from .libs.pigeon import mail
     from .libs.uploader import uploader
     from .models.binds import bind_events
@@ -16,7 +16,6 @@ def register_base(app):
     auth.bind_oauth(app)
     cache.init_app(app)
     mail.init_app(app)
-    ratelimit.init_app(app)
     uploader.init_app(app)
     bind_events()
 
