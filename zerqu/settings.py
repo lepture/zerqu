@@ -21,13 +21,6 @@ ZERQU_REDIS_URI = 'redis://localhost:6379/0'
 BABEL_DEFAULT_LOCALE = 'en'
 BABEL_LOCALES = ['en', 'zh']
 
-# Gravatar settings
-GRAVATAR_URL = 'https://secure.gravatar.com/avatar/'
-GRAVATAR_PARAMETERS = {
-    's': '140',
-    'd': '404',
-}
-
 # ZERQU settings
 
 # ZERQU_AVATAR_BASE = 'https://secure.gravatar.com/'

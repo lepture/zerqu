@@ -316,13 +316,13 @@ class RedisStat(object):
         return redis.hgetall(self._key)
 
     @classmethod
-    def get_many(cls, tids):
+    def get_many(cls, ids):
         with redis.pipeline() as pipe:
-            for tid in tids:
-                pipe.hgetall(cls.KEY_PREFIX.format(tid))
+            for i in ids:
+                pipe.hgetall(cls.KEY_PREFIX.format(i))
             return pipe.execute()
 
     @classmethod
-    def get_dict(cls, tids):
-        rv = cls.get_many(tids)
-        return dict(zip(tids, rv))
+    def get_dict(cls, ids):
+        rv = cls.get_many(ids)
+        return dict(zip(ids, rv))
