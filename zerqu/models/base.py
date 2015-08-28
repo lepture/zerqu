@@ -10,10 +10,11 @@ from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.dialects.postgresql import JSON as _JSON
+from werkzeug.utils import cached_property
 from flask_sqlalchemy import SQLAlchemy as _SQLAlchemy
 
 from zerqu.libs.utils import is_json
-from zerqu.libs.cache import cache, ONE_DAY, FIVE_MINUTES
+from zerqu.libs.cache import cache, redis, ONE_DAY, FIVE_MINUTES
 from zerqu.libs.errors import NotFound
 
 __all__ = ['db', 'CACHE_TIMES', 'Base']
@@ -289,3 +290,39 @@ def _itervalues(data, idents):
         item = data[str(k)]
         if item is not None:
             yield item
+
+
+class RedisStat(object):
+    KEY_PREFIX = 'stat:{}'
+
+    def __init__(self, ident):
+        self.ident = ident
+        self._key = self.KEY_PREFIX.format(ident)
+
+    def increase(self, field, step=1):
+        redis.hincrby(self._key, field, step)
+
+    def get(self, key, default=0):
+        return self.value.get(key, default)
+
+    def __getitem__(self, item):
+        return self.value[item]
+
+    def __setitem__(self, item, value):
+        redis.hset(self._key, item, int(value))
+
+    @cached_property
+    def value(self):
+        return redis.hgetall(self._key)
+
+    @classmethod
+    def get_many(cls, tids):
+        with redis.pipeline() as pipe:
+            for tid in tids:
+                pipe.hgetall(cls.KEY_PREFIX.format(tid))
+            return pipe.execute()
+
+    @classmethod
+    def get_dict(cls, tids):
+        rv = cls.get_many(tids)
+        return dict(zip(tids, rv))

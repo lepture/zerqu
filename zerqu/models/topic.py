@@ -14,7 +14,7 @@ from zerqu.libs.renderer import markup
 from .user import User
 from .webpage import WebPage
 from .utils import current_user
-from .base import db, Base, JSON, CACHE_TIMES
+from .base import db, Base, JSON, CACHE_TIMES, RedisStat
 
 URL_PATTERN = re.compile(r'''^https?:\/\/[^\s<]+[^<.,:;"')\]\s]''')
 
@@ -158,34 +158,14 @@ class Topic(Base):
         return topic
 
 
-class TopicStat(object):
+class TopicStat(RedisStat):
     KEY_PREFIX = 'topic_stat:{}'
-
-    def __init__(self, topic_id):
-        self.topic_id = topic_id
-        self.key = self.KEY_PREFIX.format(topic_id)
-
-    def increase(self, field, step=1):
-        redis.hincrby(self.key, field, step)
 
     def keys(self):
         return (
             'views', 'reads', 'flags', 'likes',
             'comments', 'reputation', 'timestamp',
         )
-
-    def get(self, key, default=0):
-        return self.value.get(key, default)
-
-    def __getitem__(self, item):
-        return self.value[item]
-
-    def __setitem__(self, item, value):
-        redis.hset(self.key, item, int(value))
-
-    @cached_property
-    def value(self):
-        return redis.hgetall(self.key)
 
     def calculate(self):
         def query_count(model):
@@ -196,18 +176,6 @@ class TopicStat(object):
             reads=query_count(TopicRead),
             comments=query_count(Comment),
         ))
-
-    @classmethod
-    def get_many(cls, tids):
-        with redis.pipeline() as pipe:
-            for tid in tids:
-                pipe.hgetall(cls.KEY_PREFIX.format(tid))
-            return pipe.execute()
-
-    @classmethod
-    def get_dict(cls, tids):
-        rv = cls.get_many(tids)
-        return dict(zip(tids, rv))
 
 
 class TopicLike(Base):
