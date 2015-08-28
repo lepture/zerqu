@@ -13,7 +13,7 @@ class Qiniu(object):
     CONTENT_TYPES = ('image/jpg', 'image/jpeg', 'image/png')
 
     TRANSFORM_THUMBNAIL = (
-        'imageMogr/v2/auto-orient/thumbnail/!1440x600r'
+        'imageMogr/v2/auto-orient/thumbnail/1024x>'
     )
 
     TRANSFORM_COVER = (
