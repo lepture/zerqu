@@ -1,0 +1,19 @@
+redis==2.10.3
+
+Flask==0.10.1
+Flask-WTF==0.11
+Flask-OAuthlib==0.9.1
+Flask-Mail==0.9.1
+
+# renderer
+mistune==0.7
+Pygments==2.0.2
+
+# database
+SQLAlchemy==1.0.6
+Flask-SQLAlchemy==2.0
+
+# Babel
+Flask-Babel==0.9
+Babel==2.0
+pytz==2015.4

@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from flask import json
-from zerqu.models import db, User, Topic, TopicLike, TopicRead, TopicStatus
+from zerqu.models import db, User, Topic, TopicLike, TopicRead
 from zerqu.models import Cafe, Comment
 from ._base import TestCase
 

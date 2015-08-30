@@ -19,7 +19,7 @@ class TestOAuth(TestCase):
 
     def test_get_authorize(self):
         rv = self.client.get('/oauth/authorize')
-        assert 'invalid_client_id' in rv.location
+        assert 'Missing+client_id+parameter' in rv.location
 
         client = self.client
         rv = client.get('/oauth/authorize?client_id=ios&response_type=code')
