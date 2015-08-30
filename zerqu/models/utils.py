@@ -1,9 +1,9 @@
 
 from flask import request
 from werkzeug.local import LocalProxy
+from zerqu.libs.utils import Empty
 from .auth import oauth
 from .user import AuthSession
-from ..libs.utils import Empty
 
 
 class Anonymous(Empty):

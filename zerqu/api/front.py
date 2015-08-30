@@ -5,6 +5,7 @@ from flask import current_app, request
 from zerqu.models import current_user
 from zerqu.libs.renderer import markup
 from zerqu.libs.uploader import uploader
+from zerqu.libs.errors import APIException
 from zerqu.versions import VERSION, API_VERSION
 from .base import ApiBlueprint, require_oauth
 
@@ -37,8 +38,10 @@ def preview_text():
 @api.route('upload', methods=['GET'])
 @require_oauth(login=True)
 def upload_form_data():
-    rv = uploader.create_form_data(
+    data = uploader.create_form_data(
         current_user.id,
         request.args['content-type']
     )
-    return jsonify(rv)
+    if data is None:
+        raise APIException(description='Invalid content type')
+    return jsonify(data)
