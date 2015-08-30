@@ -1,0 +1,4 @@
+gunicorn==19.3.0
+setproctitle==1.1.8
+raven==5.5.0
+gevent==1.0.2
