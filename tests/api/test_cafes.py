@@ -199,7 +199,7 @@ class TestCafeMembers(TestCase, CafeMixin):
 
     def create_membership(self, permission, total):
         item = Cafe(
-            name='hello', slug='hello', user_id=2,
+            name=u'hello', slug='hello', user_id=2,
             permission=permission
         )
         db.session.add(item)
@@ -223,7 +223,7 @@ class TestCafeMembers(TestCase, CafeMixin):
 
     def test_join_public_cafe(self):
         item = Cafe(
-            name='hello', slug='hello', user_id=2,
+            name=u'hello', slug='hello', user_id=2,
             permission=Cafe.PERMISSION_PUBLIC,
         )
         db.session.add(item)
@@ -240,7 +240,7 @@ class TestCafeMembers(TestCase, CafeMixin):
 
     def test_visitor_join_cafe(self):
         item = Cafe(
-            name='hello', slug='hello', user_id=2,
+            name=u'hello', slug='hello', user_id=2,
             permission=Cafe.PERMISSION_PUBLIC,
         )
         db.session.add(item)
@@ -255,7 +255,7 @@ class TestCafeMembers(TestCase, CafeMixin):
 
     def test_join_secret_cafe(self):
         item = Cafe(
-            name='secret', slug='secret', user_id=1,
+            name=u'secret', slug='secret', user_id=1,
             permission=Cafe.PERMISSION_PRIVATE,
         )
         db.session.add(item)
@@ -344,7 +344,7 @@ class TestCafeMembers(TestCase, CafeMixin):
 class TestCafeTopics(TestCase):
     def test_list_cafe_topics(self):
         item = Cafe(
-            name='hello', slug='hello', user_id=1,
+            name=u'hello', slug='hello', user_id=1,
             permission=Cafe.PERMISSION_PUBLIC
         )
         db.session.add(item)
@@ -356,7 +356,7 @@ class TestCafeTopics(TestCase):
             t = Topic(
                 cafe_id=item.id,
                 user_id=random.choice(user_ids),
-                title='test',
+                title=u'test',
             )
             db.session.add(t)
 
@@ -369,7 +369,7 @@ class TestCafeTopics(TestCase):
 class TestCafeCreateTopic(TestCase):
     def create_private_cafe(self):
         item = Cafe(
-            name='hello', slug='hello', user_id=2,
+            name=u'hello', slug='hello', user_id=2,
             permission=Cafe.PERMISSION_PRIVATE
         )
         db.session.add(item)

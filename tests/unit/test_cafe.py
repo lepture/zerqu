@@ -7,13 +7,13 @@ from ._base import TestCase
 class TestCafeMember(TestCase):
     def create_cafe_membership(self):
         pub = Cafe(
-            slug='hello', name='hello', user_id=2,
+            slug='hello', name=u'hello', user_id=2,
             permission=Cafe.PERMISSION_PUBLIC
         )
         db.session.add(pub)
         db.session.flush()
         pri = Cafe(
-            slug='world', name='world', user_id=2,
+            slug='world', name=u'world', user_id=2,
             permission=Cafe.PERMISSION_PRIVATE
         )
         db.session.add(pri)

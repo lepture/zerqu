@@ -132,7 +132,7 @@ class TestViewUser(TestCase):
 
         # change user information
         user = User.query.filter_by(username='zerqu').first()
-        user.description = 'changed'
+        user.description = u'changed'
         db.session.add(user)
         db.session.commit()
 

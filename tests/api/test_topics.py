@@ -9,12 +9,12 @@ from ._base import TestCase
 class TopicMixin(object):
     def create_public_topic(self):
         cafe = Cafe(
-            name='pub', slug='pub', user_id=1,
+            name=u'pub', slug='pub', user_id=1,
             permission=Cafe.PERMISSION_PUBLIC, status=9,
         )
         db.session.add(cafe)
         db.session.flush()
-        topic = Topic(title='hello', user_id=1, cafe_id=cafe.id)
+        topic = Topic(title=u'hello', user_id=1, cafe_id=cafe.id)
         db.session.add(topic)
         db.session.commit()
         return topic
@@ -23,11 +23,11 @@ class TopicMixin(object):
 class TestTopicTimeline(TestCase):
     def create_topics(self):
         pub_cafe = Cafe(
-            name='official', slug='official', user_id=1,
+            name=u'official', slug='official', user_id=1,
             permission=Cafe.PERMISSION_PUBLIC, status=9,
         )
         member_cafe = Cafe(
-            name='private', slug='private', user_id=1,
+            name=u'private', slug='private', user_id=1,
             permission=Cafe.PERMISSION_MEMBER, status=1,
         )
         db.session.add(pub_cafe)
@@ -35,8 +35,8 @@ class TestTopicTimeline(TestCase):
         db.session.flush()
 
         for i in range(30):
-            t1 = Topic(user_id=1, cafe_id=pub_cafe.id, title='hi public')
-            t2 = Topic(user_id=2, cafe_id=member_cafe.id, title='hi member')
+            t1 = Topic(user_id=1, cafe_id=pub_cafe.id, title=u'hi public')
+            t2 = Topic(user_id=2, cafe_id=member_cafe.id, title=u'hi member')
             db.session.add(t1)
             db.session.add(t2)
         db.session.commit()
@@ -59,15 +59,15 @@ class TestTopicTimeline(TestCase):
 class TestViewTopic(TestCase):
     def create_topic(self, cafe=None):
         if cafe is None:
-            cafe = Cafe(name='official', slug='official', user_id=1)
+            cafe = Cafe(name=u'official', slug='official', user_id=1)
             db.session.add(cafe)
             db.session.commit()
 
         t = Topic(
             user_id=1,
             cafe_id=cafe.id,
-            title='View',
-            content='A **text**',
+            title=u'View',
+            content=u'A **text**',
         )
         db.session.add(t)
         db.session.commit()
@@ -95,7 +95,7 @@ class TestViewTopic(TestCase):
         assert data['editable']
 
     def test_view_topic_without_permission(self):
-        cafe = Cafe(name='official', slug='official', user_id=1)
+        cafe = Cafe(name=u'official', slug='official', user_id=1)
         cafe.permission = Cafe.PERMISSION_PRIVATE
         db.session.add(cafe)
         db.session.commit()
@@ -131,7 +131,7 @@ class TestUpdateTopic(TestCase, TopicMixin):
             headers=headers,
         )
         assert rv.status_code == 200
-        assert t.title == 'Changed'
+        assert t.title == u'Changed'
 
 
 class TestTopicLikes(TestCase, TopicMixin):
@@ -177,7 +177,7 @@ class TestTopicLikes(TestCase, TopicMixin):
         assert rv.status_code == 409
 
     def test_view_topic_likes(self):
-        topic = Topic(title='hello', user_id=1)
+        topic = Topic(title=u'hello', user_id=1)
         db.session.add(topic)
         db.session.commit()
         for i in range(10, 100):
@@ -274,7 +274,7 @@ class TestTopicRead(TestCase, TopicMixin):
 class TestTopicComment(TestCase, TopicMixin):
     def create_topic_comments(self, topic_id):
         for i in range(30):
-            c = Comment(user_id=1, topic_id=topic_id, content='haha %d' % i)
+            c = Comment(user_id=1, topic_id=topic_id, content=u'haha %d' % i)
             db.session.add(c)
         db.session.commit()
 
