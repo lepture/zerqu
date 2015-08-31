@@ -2,9 +2,7 @@
 
 import time
 import datetime
-import hashlib
 from flask import request, session, current_app
-from werkzeug.urls import url_encode
 from werkzeug.utils import cached_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import event
@@ -12,9 +10,8 @@ from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer
 from sqlalchemy.orm.attributes import get_history
-from flask_oauthlib.utils import to_bytes
+from zerqu.libs.cache import cache, redis
 from .base import db, Base
-from ..libs.cache import cache
 
 __all__ = ['User', 'AuthSession']
 
@@ -118,27 +115,37 @@ def receive_user_after_update(mapper, conn, target):
 class AuthSession(Base):
     __tablename__ = 'zq_auth_session'
 
+    LAST_USED_PREFIX = 'session_last_used:{}'
+
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, default=0)
-
     platform = Column(String(20))
     browser = Column(String(40))
-
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    last_used = Column(DateTime, default=datetime.datetime.utcnow)
 
     def __str__(self):
         return u'%s / %s (%d)' % (self.browser, self.platform, self.user_id)
 
     def keys(self):
         return (
-            'id', 'platform', 'browser', 'user',
-            'created_at', 'last_used',
+            'id', 'platform', 'browser', 'user', 'created_at', 'last_used'
         )
 
     @cached_property
     def user(self):
         return User.cache.get(self.user_id)
+
+    @cached_property
+    def last_used(self):
+        key = self.LAST_USED_PREFIX.format(self.id)
+        value = redis.get(key)
+        if not value:
+            return None
+        return datetime.datetime.utcfromtimestamp(int(value))
+
+    def refresh_last_used(self):
+        key = self.LAST_USED_PREFIX.format(self.id)
+        redis.set(key, int(time.time()))
 
     def is_valid(self):
         """Verify current session is valid."""
@@ -188,7 +195,7 @@ class AuthSession(Base):
         if ts and now - ts > 600:
             data = cls.query.get(sid)
             if data:
-                data.last_used = datetime.datetime.utcnow()
+                data.refresh_last_used()
                 session['ts'] = now
                 with db.auto_commit():
                     db.session.add(data)
