@@ -173,7 +173,8 @@ class TopicForm(Form):
     feature_value = StringField()
 
     def validate_title(self, field):
-        key = hashlib.md5(to_bytes(field.data)).hexdigest()
+        data = u'%s%s' % (field.data, self.content.data)
+        key = hashlib.md5(to_bytes(data)).hexdigest()
         if cache.get(key):
             raise StopValidation("Duplicate requesting")
         # avoid duplicate requesting
