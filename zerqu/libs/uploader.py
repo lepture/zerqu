@@ -21,6 +21,11 @@ class Qiniu(object):
         'gravity/center/crop/1440x600'
     )
 
+    TRANSFORM_AVATAR = (
+        'imageMogr/v2/auto-orient/thumbnail/!160x160r/'
+        'gravity/center/crop/160x160'
+    )
+
     def __init__(self, app):
         app.config.setdefault('QINIU_EXPIRES', 3600)
         self.access_key = app.config.get('QINIU_ACCESS_KEY')
@@ -55,13 +60,17 @@ class Qiniu(object):
             self.access_key, encoded_signature, encoded_data
         )
 
-    def create_form_data(self, user_id, content_type):
+    def create_form_data(self, user_id, content_type, image_type=None):
         if content_type not in self.CONTENT_TYPES:
             return None
 
         filename = self.generate_filename(user_id, content_type)
-        # TODO: choose transform type
-        transform = self.TRANSFORM_THUMBNAIL
+        if image_type == 'avatar':
+            transform = self.TRANSFORM_AVATAR
+        elif image_type == 'cover':
+            transform = self.TRANSFORM_COVER
+        else:
+            transform = self.TRANSFORM_THUMBNAIL
 
         token = self.create_token(filename, transform=transform)
         return {
@@ -86,7 +95,7 @@ class Uploader(object):
         # TODO: add more services
         self.service = Qiniu(app)
 
-    def create_form_data(self, user_id, content_type):
-        return self.service.create_form_data(user_id, content_type)
+    def create_form_data(self, user_id, content_type, image_type=None):
+        return self.service.create_form_data(user_id, content_type, image_type)
 
 uploader = Uploader()

@@ -40,7 +40,8 @@ def preview_text():
 def upload_form_data():
     data = uploader.create_form_data(
         current_user.id,
-        request.args['content-type']
+        request.args['content-type'],
+        request.args.get('image-type'),
     )
     if data is None:
         raise APIException(description='Invalid content type')
