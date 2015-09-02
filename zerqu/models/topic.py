@@ -160,6 +160,13 @@ class Topic(Base):
 
 class TopicStat(RedisStat):
     KEY_PREFIX = 'topic_stat:{}'
+    TOPIC_FLAGS = 'topic_flags'
+
+    def flag(self):
+        with redis.pipeline() as pipe:
+            pipe.hincrby(self._key, 'flags')
+            pipe.zincrby(self.TOPIC_FLAGS, self.ident)
+            pipe.execute()
 
     def keys(self):
         return (

@@ -130,7 +130,7 @@ def flag_topic(tid):
     topic = Topic.cache.get_or_404(tid)
     get_topic_cafe(topic.cafe_id)
     cache.inc(key)
-    TopicStat(tid).increase('flags')
+    TopicStat(tid).flag()
     return '', 204
 
 
