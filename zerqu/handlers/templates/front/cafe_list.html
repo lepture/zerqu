@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html prefix="og: http://ogp.me/ns#">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  {% include "front/share.html" %}
   <title>{{ config.SITE_NAME }}</title>
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{ config.SITE_NAME }}">
   <meta property="og:description" content="{{ config.SITE_DESCRIPTION }}">
   <meta property="description" content="{{ config.SITE_DESCRIPTION }}">
   <meta name="twitter:card" content="summary">
-  <style>a{color: #42B983}img{max-width: 100%}</style>
 </head>
 <body>
   <ul>
