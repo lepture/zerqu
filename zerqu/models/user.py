@@ -194,11 +194,6 @@ class UserSession(object):
 
         sess = cls(sid)
 
-        # sync data
-        if '-' not in sid and not sess.value:
-            AuthSession.sync_current()
-            sess = cls(sid)
-
         if not sess.value or not sess.is_valid():
             session.pop('id', None)
             session.pop('ts', None)
@@ -210,38 +205,3 @@ class UserSession(object):
             sess.last_used = now
             session['ts'] = now
         return sess.user
-
-
-class AuthSession(Base):
-    __tablename__ = 'zq_auth_session'
-
-    LAST_USED_PREFIX = 'session_last_used:{}'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, default=0)
-    platform = Column(String(20))
-    browser = Column(String(40))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-
-    def __str__(self):
-        return u'%s / %s (%d)' % (self.browser, self.platform, self.user_id)
-
-    @classmethod
-    def sync_current(cls):
-        sid = session.get('id')
-        if not sid:
-            return None
-        data = cls.cache.get(sid)
-        data.sync()
-
-    def sync(self):
-        sess = UserSession(self.id)
-        now = int(time.time())
-        redis.hmset(sess._key, {
-            'user_id': self.user_id,
-            'platform': self.platform,
-            'browser': self.browser,
-            'created_at': now,
-            'last_used': now,
-        })
-        return sess
