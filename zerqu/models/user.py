@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import time
+import uuid
 import datetime
 from flask import request, session, current_app
 from werkzeug.utils import cached_property
@@ -110,6 +111,99 @@ def receive_user_after_update(mapper, conn, target):
 
     if to_delete:
         cache.delete_many(*to_delete)
+
+
+class UserSession(object):
+    KEY_PREFIX = 'user_session:{}'
+
+    def __init__(self, sid=None):
+        if sid is None:
+            sid = str(uuid.uuid4())
+
+        self.sid = sid
+        self._key = self.KEY_PREFIX.format(sid)
+
+    @cached_property
+    def value(self):
+        return redis.hgetall(self._key)
+
+    @cached_property
+    def platform(self):
+        return self.value.get('platform')
+
+    @cached_property
+    def browser(self):
+        return self.value.get('browser')
+
+    @cached_property
+    def user_id(self):
+        return self.value.get('user_id')
+
+    @cached_property
+    def user(self):
+        return User.cache.get(self.user_id)
+
+    @property
+    def last_used(self):
+        return self.value.get('last_used')
+
+    @last_used.setter
+    def last_used(self, value):
+        redis.hset(self._key, 'last_used', value)
+
+    def is_valid(self):
+        """Verify current session is valid."""
+        if not current_app.config.get('ZERQU_VERIFY_SESSION'):
+            return True
+        ua = request.user_agent
+        return (ua.platform, ua.browser) == (self.platform, self.browser)
+
+    @classmethod
+    def login(cls, user, permanent=False):
+        request._current_user = user
+        ua = request.user_agent
+        sess = cls()
+
+        now = int(time.time())
+        redis.hset(sess._key, {
+            'user_id': user.id,
+            'platform': ua.platform,
+            'browser': ua.browser,
+            'created_at': now,
+            'last_used': now,
+        })
+        session['id'] = sess.sid
+        session['ts'] = now
+        return sess
+
+    @classmethod
+    def logout(cls):
+        sid = session.pop('id', None)
+        if not sid:
+            return False
+        key = cls.KEY_PREFIX.format(sid)
+        redis.delete(key)
+        return True
+
+    @classmethod
+    def get_current_user(cls):
+        """Get current authenticated user."""
+        sid = session.get('id')
+        if not sid:
+            return None
+
+        sess = cls(sid)
+        if not sess.value or not sess.is_valid():
+            session.pop('id', None)
+            session.pop('ts', None)
+            return None
+
+        ts = session.get('ts')
+        now = int(time.time())
+        if ts and now - ts > 600:
+            sess.last_used = now
+            session['ts'] = now
+        return sess.user
 
 
 class AuthSession(Base):
