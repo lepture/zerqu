@@ -165,7 +165,7 @@ class UserSession(object):
         sess = cls()
 
         now = int(time.time())
-        redis.hset(sess._key, {
+        redis.hmset(sess._key, {
             'user_id': user.id,
             'platform': ua.platform,
             'browser': ua.browser,
@@ -237,7 +237,7 @@ class AuthSession(Base):
     def sync(self):
         sess = UserSession(self.id)
         now = int(time.time())
-        redis.hset(sess._key, {
+        redis.hmset(sess._key, {
             'user_id': self.user_id,
             'platform': self.platform,
             'browser': self.browser,
