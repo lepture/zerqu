@@ -2,7 +2,7 @@
 # flake8: noqa
 
 from .base import db, Base
-from .user import User, AuthSession
+from .user import User, UserSession, AuthSession
 from .auth import oauth, OAuthClient, OAuthToken
 from .cafe import Cafe, CafeMember
 from .topic import Topic, TopicLike, TopicRead, TopicStat

@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from werkzeug.urls import url_encode
-from zerqu.models import User, AuthSession, OAuthClient
+from zerqu.models import User, UserSession, OAuthClient
 from flask_oauthlib.utils import to_bytes
 from ._base import TestCase
 
@@ -11,7 +11,7 @@ class TestOAuth(TestCase):
     def login(self):
         user = User.query.first()
         with self.app.test_request_context():
-            AuthSession.login(user)
+            UserSession.login(user)
 
         with self.client.session_transaction() as sess:
             sess['id'] = user.id

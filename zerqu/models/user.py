@@ -14,7 +14,7 @@ from sqlalchemy.orm.attributes import get_history
 from zerqu.libs.cache import cache, redis
 from .base import db, Base
 
-__all__ = ['User', 'AuthSession']
+__all__ = ['User', 'UserSession']
 
 
 class User(Base):
@@ -193,6 +193,12 @@ class UserSession(object):
             return None
 
         sess = cls(sid)
+
+        # sync data
+        if '-' not in sid and not sess.value:
+            AuthSession.sync_current()
+            sess = cls(sid)
+
         if not sess.value or not sess.is_valid():
             session.pop('id', None)
             session.pop('ts', None)
@@ -220,83 +226,22 @@ class AuthSession(Base):
     def __str__(self):
         return u'%s / %s (%d)' % (self.browser, self.platform, self.user_id)
 
-    def keys(self):
-        return (
-            'id', 'platform', 'browser', 'user', 'created_at', 'last_used'
-        )
-
-    @cached_property
-    def user(self):
-        return User.cache.get(self.user_id)
-
-    @cached_property
-    def last_used(self):
-        key = self.LAST_USED_PREFIX.format(self.id)
-        value = redis.get(key)
-        if not value:
-            return None
-        return datetime.datetime.utcfromtimestamp(int(value))
-
-    def refresh_last_used(self):
-        key = self.LAST_USED_PREFIX.format(self.id)
-        redis.set(key, int(time.time()))
-
-    def is_valid(self):
-        """Verify current session is valid."""
-        if not current_app.config.get('ZERQU_VERIFY_SESSION'):
-            return True
-        ua = request.user_agent
-        return (ua.platform, ua.browser) == (self.platform, self.browser)
-
     @classmethod
-    def login(cls, user, permanent=False):
-        request._current_user = user
-        ua = request.user_agent
-        data = cls(
-            user_id=user.id,
-            platform=ua.platform,
-            browser=ua.browser,
-        )
-        with db.auto_commit():
-            db.session.add(data)
-        session['id'] = data.id
-        session['ts'] = int(time.time())
-        if permanent:
-            session.permanent = True
-        return data
-
-    @classmethod
-    def logout(cls):
-        sid = session.pop('id', None)
-        if not sid:
-            return False
-        data = cls.query.get(sid)
-        if not data:
-            return False
-        with db.auto_commit():
-            db.session.delete(data)
-        return True
-
-    @classmethod
-    def get_current_user(cls):
-        """Get current authenticated user."""
+    def sync_current(cls):
         sid = session.get('id')
         if not sid:
             return None
+        data = cls.cache.get(sid)
+        data.sync()
 
-        ts = session.get('ts')
+    def sync(self):
+        sess = UserSession(self.id)
         now = int(time.time())
-        if ts and now - ts > 600:
-            data = cls.query.get(sid)
-            if data:
-                data.refresh_last_used()
-                session['ts'] = now
-                with db.auto_commit():
-                    db.session.add(data)
-        else:
-            data = cls.cache.get(sid)
-        if not data or not data.is_valid():
-            session.pop('id', None)
-            session.pop('ts', None)
-            return None
-        return data.user
+        redis.hset(sess._key, {
+            'user_id': self.user_id,
+            'platform': self.platform,
+            'browser': self.browser,
+            'created_at': now,
+            'last_used': now,
+        })
+        return sess

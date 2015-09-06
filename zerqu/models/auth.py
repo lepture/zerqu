@@ -9,7 +9,7 @@ from sqlalchemy import String, Unicode, DateTime, Boolean, Text, Integer
 from flask_oauthlib.provider import OAuth2Provider
 from flask_oauthlib.contrib.oauth2 import bind_cache_grant
 from .base import db, Base, CACHE_TIMES
-from .user import User, AuthSession
+from .user import User, UserSession
 from ..libs.cache import cache
 
 __all__ = ['oauth', 'bind_oauth', 'OAuthClient', 'OAuthToken']
@@ -178,7 +178,7 @@ def bind_oauth(app):
         if hasattr(req, 'user') and req.user:
             user = req.user
         else:
-            user = AuthSession.get_current_user()
+            user = UserSession.get_current_user()
 
         client = req.client
         exist_token = OAuthToken.query.get((client.id, user.id))
@@ -196,6 +196,6 @@ def bind_oauth(app):
     # use the same cache
     bind_cache_grant(
         app, oauth,
-        AuthSession.get_current_user,
+        UserSession.get_current_user,
         config_prefix='ZERQU',
     )

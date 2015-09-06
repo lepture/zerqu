@@ -5,7 +5,8 @@ from flask import url_for, request, session
 from flask import abort, redirect, render_template
 from zerqu.libs.cache import redis
 from zerqu.libs.utils import full_url
-from zerqu.models import db, current_user, SocialUser, User, AuthSession
+from zerqu.models import db, current_user, SocialUser
+from zerqu.models import User, UserSession
 from zerqu.models import Topic
 from zerqu.forms import (
     Form,
@@ -45,7 +46,7 @@ def social_authorize(name):
 
     if social.user_id:
         user = User.cache.get(social.user_id)
-        AuthSession.login(user, True)
+        UserSession.login(user, True)
         next_url = session.pop('next_url', '/')
         return redirect(next_url)
 
@@ -107,7 +108,7 @@ def signup(token):
             with db.auto_commit():
                 db.session.add(social)
 
-        AuthSession.login(user, True)
+        UserSession.login(user, True)
         return redirect('/')
 
     return render_template(

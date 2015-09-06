@@ -5,7 +5,7 @@ from flask import session, request, jsonify
 from flask_oauthlib.utils import decode_base64
 
 from zerqu.libs.ratelimit import ratelimit
-from zerqu.models import User, AuthSession
+from zerqu.models import User, UserSession
 from zerqu.forms import EmailForm
 from .sendmails import send_signup_email, send_change_password_email
 
@@ -15,7 +15,7 @@ bp = Blueprint('session', __name__)
 @bp.route('', methods=['POST', 'DELETE'])
 def login_session():
     if request.method == 'DELETE':
-        if AuthSession.logout():
+        if UserSession.logout():
             return '', 204
         return jsonify(status='error'), 400
 
@@ -47,7 +47,7 @@ def login_session():
 
     data = request.get_json()
     permanent = data.get('permanent', False)
-    AuthSession.login(user, permanent)
+    UserSession.login(user, permanent)
     return jsonify(user), 201
 
 

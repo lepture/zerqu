@@ -3,7 +3,7 @@ from flask import request
 from werkzeug.local import LocalProxy
 from zerqu.libs.utils import Empty
 from .auth import oauth
-from .user import AuthSession
+from .user import UserSession
 
 
 class Anonymous(Empty):
@@ -23,7 +23,7 @@ def _get_current_user():
     if user:
         return user
 
-    user = AuthSession.get_current_user()
+    user = UserSession.get_current_user()
 
     if user is None and request.path.startswith('/api/'):
         _, req = oauth.verify_request([])

@@ -10,7 +10,7 @@ from zerqu.libs.errors import NotAuth, NotConfidential, InvalidClient
 from zerqu.libs.ratelimit import ratelimit
 from zerqu.libs.cache import cache
 from zerqu.models import oauth, current_user
-from zerqu.models import AuthSession, OAuthClient
+from zerqu.models import UserSession, OAuthClient
 
 
 class ApiBlueprint(object):
@@ -37,7 +37,7 @@ def oauth_limit_params(login, scopes):
     if scopes is None:
         scopes = []
 
-    user = AuthSession.get_current_user()
+    user = UserSession.get_current_user()
     if user:
         request._current_user = user
         return 'limit:sid:{0}'.format(session.get('id')), 600, 300
