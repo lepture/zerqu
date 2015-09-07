@@ -4,6 +4,9 @@ simplejson==3.6.5
 # postgresql
 psycopg2==2.6.1
 
+# redis improvement
+hiredis==0.2.0
+
 # fix security issues
 pyOpenSSL==0.15.1
 ndg-httpsclient==0.4.0
