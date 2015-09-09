@@ -58,6 +58,17 @@ class Topic(Base):
             'created_at', 'updated_at',
         )
 
+    def dict_with_statuses(self, user_id):
+        data = dict(self)
+        data.update(self.get_statuses(user_id))
+        if not self.webpage:
+            return data
+        webpage = WebPage.cache.get(self.webpage)
+        if webpage:
+            data['webpage'] = dict(webpage)
+            data['link'] = webpage.link
+        return data
+
     def update_link(self, link, user_id):
         if not link:
             return self

@@ -67,11 +67,7 @@ def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
     cafe = get_topic_cafe(topic.cafe_id)
 
-    data = dict(topic)
-    if topic.webpage:
-        webpage = WebPage.cache.get(topic.webpage)
-        data['webpage'] = dict(webpage)
-        data['link'] = webpage.link
+    data = topic.dict_with_statuses(current_user.id)
 
     # /api/topic/:id?content=raw vs ?content=html
     content_format = request.args.get('content')
@@ -84,7 +80,6 @@ def view_topic(tid):
     if topic.user:
         data['user'] = dict(topic.user)
     data['cafe'] = dict(cafe)
-    data.update(topic.get_statuses(current_user.id))
     return jsonify(data)
 
 
@@ -99,7 +94,8 @@ def update_topic(tid):
         raise Denied('updating this topic')
 
     form = TopicForm.create_api_form(obj=topic)
-    data = dict(form.update_topic(current_user.id))
+    topic = form.update_topic(current_user.id)
+    data = topic.dict_with_statuses(current_user.id)
     data['user'] = dict(current_user)
     data['content'] = topic.get_html_content()
     return jsonify(data)
