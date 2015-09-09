@@ -1,6 +1,6 @@
 """Init database
 
-Revision ID: 56f30eacbb77
+Revision ID: 3f31ff87f70e
 Revises: None
 Create Date: 2015-07-19 03:38:33.878092
 
@@ -10,24 +10,13 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSON
 
-# revision identifiers, used by Alembic.
-revision = '56f30eacbb77'
+revision = '3f31ff87f70e'
 down_revision = None
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.create_table(
-        'zq_auth_session',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('user_id', sa.Integer(), nullable=True),
-        sa.Column('platform', sa.String(length=20), nullable=True),
-        sa.Column('browser', sa.String(length=40), nullable=True),
-        sa.Column('created_at', sa.DateTime(), nullable=True),
-        sa.Column('last_used', sa.DateTime(), nullable=True),
-        sa.PrimaryKeyConstraint('id')
-    )
     op.create_table(
         'zq_cafe',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -73,6 +62,7 @@ def upgrade():
         sa.Column('reply_to', sa.Integer(), nullable=True),
         sa.Column('status', sa.SmallInteger(), nullable=True),
         sa.Column('flag_count', sa.Integer(), nullable=True),
+        sa.Column('like_count', sa.Integer(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -192,18 +182,6 @@ def upgrade():
         sa.PrimaryKeyConstraint('topic_id', 'user_id')
     )
     op.create_table(
-        'zq_topic_status',
-        sa.Column('topic_id', sa.Integer(), autoincrement=False, nullable=False),
-        sa.Column('views', sa.Integer(), nullable=True),
-        sa.Column('reads', sa.Integer(), nullable=True),
-        sa.Column('flags', sa.Integer(), nullable=True),
-        sa.Column('likes', sa.Integer(), nullable=True),
-        sa.Column('comments', sa.Integer(), nullable=True),
-        sa.Column('timestamp', sa.Integer(), nullable=True),
-        sa.Column('reputation', sa.Integer(), nullable=True),
-        sa.PrimaryKeyConstraint('topic_id')
-    )
-    op.create_table(
         'zq_user',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('username', sa.String(length=24), nullable=True),
@@ -239,7 +217,6 @@ def upgrade():
 def downgrade():
     op.drop_table('zq_webpage')
     op.drop_table('zq_user')
-    op.drop_table('zq_topic_status')
     op.drop_table('zq_topic_read')
     op.drop_table('zq_topic_like')
     op.drop_index(op.f('ix_zq_topic_user_id'), table_name='zq_topic')
@@ -261,4 +238,3 @@ def downgrade():
     op.drop_index(op.f('ix_zq_cafe_user_id'), table_name='zq_cafe')
     op.drop_index(op.f('ix_zq_cafe_slug'), table_name='zq_cafe')
     op.drop_table('zq_cafe')
-    op.drop_table('zq_auth_session')
