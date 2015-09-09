@@ -211,10 +211,11 @@ class TopicForm(Form):
             db.session.add(topic)
         return topic
 
-    def update_topic(self):
+    def update_topic(self, user_id):
         topic = getattr(self, '_obj')
         topic.title = self.title.data
         topic.content = self.content.data
+        topic.update_link(self.link.data, user_id)
         with db.auto_commit():
             db.session.add(topic)
         return topic

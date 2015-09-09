@@ -16,8 +16,6 @@ from .webpage import WebPage
 from .utils import current_user
 from .base import db, Base, JSON, CACHE_TIMES, RedisStat
 
-URL_PATTERN = re.compile(r'''^https?:\/\/[^\s<]+[^<.,:;"')\]\s]''')
-
 
 class Topic(Base):
     __tablename__ = 'zq_topic'
@@ -60,6 +58,14 @@ class Topic(Base):
             'id', 'title', 'info', 'label', 'editable',
             'created_at', 'updated_at',
         )
+
+    def update_link(self, link, user_id):
+        if not link:
+            return self
+        webpage = WebPage.get_or_create(link, user_id)
+        if webpage:
+            self.webpage = webpage.uuid
+        return self
 
     @property
     def editable(self):
@@ -136,25 +142,13 @@ class Topic(Base):
 
     @classmethod
     def create_topic(cls, title, content, link, cafe_id, user_id):
-        if not link:
-            m = URL_PATTERN.match(content)
-            if m:
-                link = m.group(0)
-                content = content[len(link):]
-
         topic = cls(
             title=title,
             content=content,
             cafe_id=cafe_id,
             user_id=user_id,
         )
-
-        if not link:
-            return topic
-
-        webpage = WebPage.get_or_create(link, user_id)
-        if webpage:
-            topic.webpage = webpage.uuid
+        topic.update_link(link, user_id)
         return topic
 
 

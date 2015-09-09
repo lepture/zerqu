@@ -97,7 +97,7 @@ def update_topic(tid):
         raise Denied('updating this topic')
 
     form = TopicForm.create_api_form(obj=topic)
-    data = dict(form.update_topic())
+    data = dict(form.update_topic(current_user.id))
     data['user'] = dict(current_user)
     data['content'] = topic.get_html_content()
     return jsonify(data)
