@@ -23,7 +23,8 @@ class Ratelimiter(object):
         }, duration)
 
     def remain(self, remaining, expires):
-        self.db.set(self.count_key, remaining, expires)
+        if expires > 0:
+            self.db.set(self.count_key, remaining, expires)
 
     def __call__(self, prefix, count=600, duration=300):
         logger.info('Rate limit on %s' % prefix)
