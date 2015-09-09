@@ -74,6 +74,7 @@ class WebPage(Base):
                 page.user_id = user_id
             with db.auto_commit():
                 db.session.add(page)
+        if not page.info:
             run_task(page.fetch_update)
         return page
 
