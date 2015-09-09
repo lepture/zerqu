@@ -2,12 +2,12 @@
 
 import datetime
 from collections import defaultdict
-from werkzeug.utils import cached_property
+from flask import current_app
 from sqlalchemy import func
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer, UnicodeText
-from flask import current_app
+from werkzeug.utils import cached_property
 from zerqu.libs.cache import cache, redis
 from zerqu.libs.renderer import markup
 from .user import User
