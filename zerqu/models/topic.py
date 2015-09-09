@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import re
 import datetime
 from collections import defaultdict
 from werkzeug.utils import cached_property

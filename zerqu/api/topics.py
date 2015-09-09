@@ -69,7 +69,9 @@ def view_topic(tid):
 
     data = dict(topic)
     if topic.webpage:
-        data['webpage'] = dict(WebPage.cache.get(topic.webpage))
+        webpage = WebPage.cache.get(topic.webpage)
+        data['webpage'] = dict(webpage)
+        data['link'] = webpage.link
 
     # /api/topic/:id?content=raw vs ?content=html
     content_format = request.args.get('content')
