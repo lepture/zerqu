@@ -52,9 +52,11 @@ class WebPage(Base):
             self.info = {'error': 'content_not_found'}
         else:
             info = parse_meta(resp.text)
-            self.title = info.pop('title', None)
-            self.image = info.pop('image', None)
-            self.description = info.pop('description', None)
+            self.title = info.pop('title', '')[:80]
+            self.description = info.pop('description', '')[:140]
+            image = info.pop('image', None)
+            if image and len(image) < 256:
+                self.image = image
             self.info = info
 
         with db.auto_commit():
