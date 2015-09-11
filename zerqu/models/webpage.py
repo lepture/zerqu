@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, Integer, DateTime
 from zerqu.libs.utils import run_task
+from zerqu.libs.og import parse as parse_meta
 from .base import db, Base, JSON
 
 try:
@@ -95,52 +96,3 @@ def sanitize_link(url):
     # remove ? at the end of url
     url = re.sub(r'\?$', '', url)
     return url
-
-
-meta_pattern = re.compile(ur'<meta[^>]+content=[^>]+>', re.U)
-value_pattern = re.compile(
-    ur'(name|property|content)=(?:\'|\")(.*?)(?:\'|\")',
-    re.U
-)
-
-
-def parse_meta(content):
-    head = content.split('</head>', 1)[0]
-    rv = {}
-
-    def get_value(key, name, content):
-        if name not in ['og:%s' % key, 'twitter:%s' % key]:
-            return False
-        if key not in rv:
-            rv[key] = content
-        return True
-
-    def parse_pair(kv):
-        name = kv.get('name')
-        if not name:
-            name = kv.get('property')
-        if not name:
-            return None
-
-        content = kv.get('content')
-        if not content:
-            return None
-
-        if name == 'twitter:creator':
-            rv['twitter'] = content
-            return
-
-        for key in ['title', 'image', 'description', 'url']:
-            if get_value(key, name, content):
-                return
-
-    for text in meta_pattern.findall(head):
-        kv = value_pattern.findall(text)
-        if kv:
-            parse_pair(dict(kv))
-
-    if 'title' not in rv:
-        m = re.findall(ur'<title>(.*?)</title>', head, flags=re.U)
-        if m:
-            rv['title'] = m[0]
-    return rv
