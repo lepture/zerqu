@@ -3,7 +3,7 @@
 <head>
   {% include "front/share.html" %}
   <title>{{ cafe.name }}</title>
-  <meta property="og:type" content="article">
+  <meta property="og:type" content="website">
   <meta property="og:title" content="{{ cafe.name }}">
   <meta property="og:description" content="{{ cafe.description }}">
   <meta property="description" content="{{ cafe.description }}">
@@ -21,17 +21,17 @@
   </header>
   {% for topic in topics %}
   {% set user = topic_users.get(topic.user_id|string) %}
-  <article class="hentry" itemscope itemtype="http://schema.org/Article">
-    <h1 class="entry-title" itemprop="name">
-      <a href="{{ url_for('.view_topic', tid=topic.id) }}" itemprop="url">{{ topic.title }}</a>
+  <article class="hentry">
+    <h1 class="entry-title">
+      <a href="{{ url_for('.view_topic', tid=topic.id) }}">{{ topic.title }}</a>
     </h1>
     {% if user %}
     <span class="author vcard">
-      <a class="fn url" itemprop="author" href="{{ url_for('.view_user', username=user.username) }}">{{ user }}</a>
+      <a class="fn url" href="{{ url_for('.view_user', username=user.username) }}">{{ user }}</a>
     </span>
     {% endif %}
-    <time class="published" datetime="{{ topic.created_at|xmldatetime }}" itemprop="datePublished" pubdate>{{ topic.created_at|xmldatetime }}</time>
-    <time class="updated" datetime="{{ topic.updated_at|xmldatetime }}" itemprop="dateModified">{{ topic.updated_at|xmldatetime }}</time>
+    <time class="published" datetime="{{ topic.created_at|xmldatetime }}" pubdate>{{ topic.created_at|xmldatetime }}</time>
+    <time class="updated" datetime="{{ topic.updated_at|xmldatetime }}">{{ topic.updated_at|xmldatetime }}</time>
   </article>
   {% endfor %}
 </body>
