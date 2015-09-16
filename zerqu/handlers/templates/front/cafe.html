@@ -12,6 +12,11 @@
   <meta name="twitter:card" content="summary_large_image">
   {% else %}
   <meta name="twitter:card" content="summary">
+    {% if cafe.style.logo %}
+    <meta property="og:image" content="{{ cafe.style.logo }}">
+    {% elif config.SITE_LOGO %}
+    <meta property="og:image" content="{{ config.SITE_LOGO }}">
+    {% endif %}
   {% endif %}
 </head>
 <body>

@@ -7,6 +7,9 @@
   <meta property="og:title" content="{{ config.SITE_NAME }}">
   <meta property="og:description" content="{{ config.SITE_DESCRIPTION }}">
   <meta property="description" content="{{ config.SITE_DESCRIPTION }}">
+  {% if config.SITE_LOGO %}
+  <meta property="og:image" content="{{ config.SITE_LOGO }}">
+  {% endif %}
   <meta name="twitter:card" content="summary">
 </head>
 <body>
