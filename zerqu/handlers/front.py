@@ -172,3 +172,9 @@ def view_user(username):
         user=user,
         topics=topics,
     )
+
+
+@bp.route('/z/<path:name>')
+def view_zerqu_app(name):
+    """A helper URL router for anything else."""
+    return render_template('front/app.html')
