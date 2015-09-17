@@ -6,6 +6,7 @@ import requests
 from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, Integer, DateTime
+from werkzeug.urls import url_parse, url_join
 from zerqu.libs.utils import run_task
 from zerqu.libs.og import parse as parse_meta
 from .base import db, Base, JSON
@@ -57,7 +58,7 @@ class WebPage(Base):
             self.description = info.pop('description', '')[:140]
             image = info.pop('image', None)
             if image and len(image) < 256:
-                self.image = image
+                self.image = url_join(self.link, image)
             self.info = info
 
         with db.auto_commit():
@@ -72,7 +73,8 @@ class WebPage(Base):
         uuid = hashlib.md5(link.encode('utf-8')).hexdigest()
         page = cls.query.get(uuid)
         if not page:
-            page = cls(uuid=uuid, link=link)
+            url = url_parse(link)
+            page = cls(uuid=uuid, link=link, domain=url.host)
             if user_id:
                 page.user_id = user_id
             with db.auto_commit():
