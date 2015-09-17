@@ -174,7 +174,12 @@ def view_user(username):
     )
 
 
+@bp.route('/u/<path:name>')
+@bp.route('/c/<path:name>')
+@bp.route('/t/<path:name>')
 @bp.route('/z/<path:name>')
 def view_zerqu_app(name):
     """A helper URL router for anything else."""
+    if is_robot():
+        abort(403)
     return render_template('front/app.html')
