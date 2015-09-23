@@ -13,7 +13,7 @@ from zerqu.libs.renderer import markup
 from .user import User
 from .webpage import WebPage
 from .utils import current_user
-from .base import db, Base, JSON, CACHE_TIMES, RedisStat
+from .base import db, Base, JSON, ARRAY, CACHE_TIMES, RedisStat
 
 
 class Topic(Base):
@@ -33,10 +33,11 @@ class Topic(Base):
     # feature content
     info = Column(JSON, default={})
 
+    # TODO: remove cafe_id
     cafe_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=False, index=True)
-    # A topic copied from another topic
-    fork_id = Column(Integer)
+
+    tags = Column(ARRAY(String))
 
     status = Column(SmallInteger, default=1)
 

@@ -6,7 +6,7 @@ from flask import current_app, abort
 from sqlalchemy import event, func
 from sqlalchemy.orm import Query, class_mapper
 from sqlalchemy.orm.exc import UnmappedClassError
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import JSON, ARRAY
 from werkzeug.utils import cached_property
 from flask_sqlalchemy import SQLAlchemy as _SQLAlchemy
 
@@ -14,7 +14,7 @@ from zerqu.libs.utils import is_json
 from zerqu.libs.cache import cache, redis, ONE_DAY, FIVE_MINUTES
 from zerqu.libs.errors import NotFound
 
-__all__ = ['db', 'CACHE_TIMES', 'Base', 'JSON']
+__all__ = ['db', 'CACHE_TIMES', 'Base', 'JSON', 'ARRAY']
 
 CACHE_TIMES = {
     'get': ONE_DAY,
