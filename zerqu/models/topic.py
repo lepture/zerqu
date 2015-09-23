@@ -19,10 +19,18 @@ from .base import db, Base, JSON, ARRAY, CACHE_TIMES, RedisStat
 class Topic(Base):
     __tablename__ = 'zq_topic'
 
+    STATUS_DRAFT = 0
+    STATUS_PUBLIC = 1
+    STATUS_CLOSED = 2
+    STATUS_FEATURED = 3
+    STATUS_PRIVATE = 9
+
     STATUSES = {
-        0: 'closed',
-        3: 'featured',
-        6: 'promoted',
+        STATUS_DRAFT: 'draft',
+        STATUS_PUBLIC: 'public',
+        STATUS_CLOSED: 'closed',
+        STATUS_FEATURED: 'featured',
+        STATUS_PRIVATE: 'private',
     }
 
     id = Column(Integer, primary_key=True)
@@ -39,7 +47,7 @@ class Topic(Base):
 
     tags = Column(ARRAY(String))
 
-    status = Column(SmallInteger, default=1)
+    status = Column(SmallInteger, default=STATUS_PUBLIC)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(
@@ -55,7 +63,7 @@ class Topic(Base):
 
     def keys(self):
         return (
-            'id', 'title', 'info', 'label', 'editable',
+            'id', 'title', 'info', 'label', 'editable', 'tags',
             'created_at', 'updated_at',
         )
 
@@ -84,6 +92,8 @@ class Topic(Base):
             return False
         if current_user.id != self.user_id:
             return False
+        if self.status == self.STATUS_PRIVATE:
+            return True
         valid_time = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
         if not valid_time:
             return True
