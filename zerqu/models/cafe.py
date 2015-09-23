@@ -29,8 +29,8 @@ class Cafe(Base):
 
     # everyone can read and write
     PERMISSION_PUBLIC = 0
-    # everyone can read, only subscriber can write
-    PERMISSION_SUBSCRIBER = 3
+    # everyone can read, write should be approved by members
+    PERMISSION_APPROVE = 3
     # everyone can read, only member can write
     PERMISSION_MEMBER = 6
     # only member can read and write
@@ -38,7 +38,7 @@ class Cafe(Base):
 
     PERMISSIONS = {
         'public': PERMISSION_PUBLIC,
-        'subscriber': PERMISSION_SUBSCRIBER,
+        'approve': PERMISSION_APPROVE,
         'member': PERMISSION_MEMBER,
         'private': PERMISSION_PRIVATE,
     }
@@ -147,11 +147,7 @@ class Cafe(Base):
             return False
 
         role = membership.role
-        limited = (self.PERMISSION_PRIVATE, self.PERMISSION_MEMBER)
-        if self.permission in limited:
-            return role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
-
-        return role != CafeMember.ROLE_VISITOR
+        return role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
 
     def has_admin_permission(self, user_id, membership=EMPTY):
         if not user_id:
@@ -167,6 +163,22 @@ class Cafe(Base):
             return False
 
         return membership.role == CafeMember.ROLE_ADMIN
+
+    def create_cafe_topic(self, topic_id, user_id):
+        has_permission = self.has_write_permission(user_id)
+
+        status = CafeTopic.STATUS_PUBLIC
+        if self.permission == self.PERMISSION_APPROVE:
+            has_permission = True
+            status = CafeTopic.STATUS_DRAFT
+
+        if not has_permission:
+            # TODO: raise error
+            return None
+
+        ct = CafeTopic(self.id, topic_id, user_id, status)
+        db.session.add(ct)
+        return ct
 
 
 class CafeMember(Base):
@@ -240,3 +252,30 @@ class CafeMember(Base):
         q = db.session.query(cls.user_id).filter_by(cafe_id=cafe_id)
         q = q.filter_by(role=cls.ROLE_ADMIN)
         return {user_id for user_id, in q}
+
+
+class CafeTopic(Base):
+    __tablename__ = 'zq_cafe_topic'
+
+    STATUS_DRAFT = 0
+    STATUS_PUBLIC = 1
+
+    cafe_id = Column(Integer, primary_key=True, autoincrement=False)
+    topic_id = Column(Integer, primary_key=True, autoincrement=False)
+    user_id = Column(Integer)
+
+    status = Column(SmallInteger, default=STATUS_DRAFT)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __init__(self, cafe_id, topic_id, user_id, status=None):
+        self.cafe_id = cafe_id
+        self.topic_id = topic_id
+        self.user_id = user_id
+        if status:
+            self.status = status
+
+    def approve(self):
+        self.status = self.STATUS_PUBLIC
+        self.updated_at = datetime.datetime.utcnow()
+        db.session.add(self)
