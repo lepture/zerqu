@@ -11,11 +11,6 @@ from zerqu.libs.utils import run_task
 from zerqu.libs.og import parse as parse_meta
 from .base import db, Base, JSON
 
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
-
 
 UA = 'Mozilla/5.0 (compatible; Zerqu)'
 
@@ -89,11 +84,11 @@ def sanitize_link(url):
     if not re.match(r'^https?:\/\/', url):
         url = 'http://%s' % url
 
-    rv = urlparse(url)
+    rv = url_parse(url)
 
     if rv.query:
         query = re.sub(r'utm_\w+=[^&]+&?', '', rv.query)
-        url = '%s://%s%s?%s' % (rv.scheme, rv.hostname, rv.path, query)
+        url = '%s://%s%s?%s' % (rv.scheme, rv.host, rv.path, query)
 
     # remove ? at the end of url
     url = re.sub(r'\?$', '', url)

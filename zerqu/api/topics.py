@@ -5,7 +5,7 @@ from flask import request, jsonify
 from zerqu.models import db, current_user, User
 from zerqu.models import Cafe, CafeMember
 from zerqu.models import Topic, TopicLike, TopicRead, TopicStat
-from zerqu.models import WebPage, Comment, CommentLike
+from zerqu.models import Comment, CommentLike
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.rec.timeline import get_timeline_topics, get_all_topics
 from zerqu.forms import TopicForm, CommentForm
