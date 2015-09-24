@@ -1,12 +1,13 @@
 # coding: utf-8
 """
-    Open graph parser
-    ~~~~~~~~~~~~~~~~~
+    Web page parser
+    ~~~~~~~~~~~~~~~
 
     Parsing open graph meta data, including twitter cards.
 """
 
 import re
+from werkzeug.urls import url_parse
 
 __version__ = '0.1'
 __author__ = 'Hsiaoming Yang <me@lepture.com>'
@@ -20,7 +21,7 @@ META_ATTR = re.compile(
 TITLE = re.compile(ur'<title>(.*?)</title>', re.U | re.I | re.S)
 
 
-def parse(content):
+def parse_meta(content):
     """Parse og information from HTML content.
 
     :param content: HTML content to be parsed. unicode required.
@@ -64,3 +65,19 @@ def parse(content):
         if m:
             rv[u'title'] = m[0]
     return rv
+
+
+def sanitize_link(url):
+    """Sanitize link. clean utm parameters on link."""
+    if not re.match(r'^https?:\/\/', url):
+        url = 'http://%s' % url
+
+    rv = url_parse(url)
+
+    if rv.query:
+        query = re.sub(r'utm_\w+=[^&]+&?', '', rv.query)
+        url = '%s://%s%s?%s' % (rv.scheme, rv.host, rv.path, query)
+
+    # remove ? at the end of url
+    url = re.sub(r'\?$', '', url)
+    return url

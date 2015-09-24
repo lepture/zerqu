@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import re
 import hashlib
 import requests
 from datetime import datetime
@@ -8,7 +7,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, Unicode, Integer, DateTime
 from werkzeug.urls import url_parse, url_join
 from zerqu.libs.utils import run_task
-from zerqu.libs.og import parse as parse_meta
+from Zerqu.libs.webparser import parse_meta, sanitize_link
 from .base import db, Base, JSON
 
 
@@ -77,19 +76,3 @@ class WebPage(Base):
         if not page.info:
             run_task(page.fetch_update)
         return page
-
-
-def sanitize_link(url):
-    """Sanitize link. clean utm parameters on link."""
-    if not re.match(r'^https?:\/\/', url):
-        url = 'http://%s' % url
-
-    rv = url_parse(url)
-
-    if rv.query:
-        query = re.sub(r'utm_\w+=[^&]+&?', '', rv.query)
-        url = '%s://%s%s?%s' % (rv.scheme, rv.host, rv.path, query)
-
-    # remove ? at the end of url
-    url = re.sub(r'\?$', '', url)
-    return url
