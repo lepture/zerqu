@@ -24,7 +24,6 @@ Response with::
             "background_color": "",
             "background_url": "",
             "logo_url": "",
-            "feature": "audio",
             "is_active": true,
             "count": {
                 "topic": 20,
@@ -68,7 +67,6 @@ Response with::
             "background_color": "",
             "background_url": "",
             "logo_url": "",
-            "feature": "audio",
             "active": true,
             "count": {
                 "topic": 20,
@@ -90,16 +88,3 @@ Response with::
             "updated_at": "2014-12-31T18:50:06Z"
         }
     }
-
-
-Create a cafe
-~~~~~~~~~~~~~
-
-Available features:
-
-0. text: nothing, just a text topic
-1. link: a linked topic
-2. image: you can create an image topic in this cafe
-3. video: you can create a video topic in this cafe
-4. audio: you can create an audio topic in this cafe
-5. gist: you can insert a gist in this cafe

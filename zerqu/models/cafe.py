@@ -58,9 +58,6 @@ class Cafe(Base):
         'cover': None,
     })
 
-    # available features
-    _features = Column('features', Integer, default=0)
-
     # defined above
     permission = Column(SmallInteger, default=PERMISSION_PUBLIC)
 
@@ -81,7 +78,7 @@ class Cafe(Base):
     def keys(self):
         return (
             'id', 'slug', 'name', 'style', 'description', 'intro',
-            'features', 'label', 'is_active', 'created_at', 'updated_at',
+            'label', 'is_active', 'created_at', 'updated_at',
         )
 
     @cached_property
@@ -98,18 +95,6 @@ class Cafe(Base):
         if label == 'active':
             return None
         return label
-
-    @cached_property
-    def features(self):
-        if not self._features:
-            return []
-
-        rv = []
-        defines = current_app.config.get('ZERQU_FEATURE_DEFINES')
-        for k in defines:
-            if defines[k] & self._features:
-                rv.append(k)
-        return rv
 
     def has_read_permission(self, user_id, membership=EMPTY):
         if self.permission != self.PERMISSION_PRIVATE:

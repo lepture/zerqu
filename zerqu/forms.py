@@ -11,11 +11,9 @@ from wtforms.validators import DataRequired, Optional
 from wtforms.validators import Email, Length, Regexp, URL
 from wtforms.validators import StopValidation
 from werkzeug.datastructures import MultiDict
-from zerqu.libs.errors import APIException, FormError
+from zerqu.libs.errors import FormError
 from zerqu.libs.cache import cache
-
-from .models import db, User, Cafe, Comment, Topic
-from .libs import feature
+from zerqu.models import db, User, Cafe, Comment, Topic
 
 
 class Form(BaseForm):
@@ -169,9 +167,6 @@ class TopicForm(Form):
     link = StringField()
     content = TextAreaField()
 
-    feature_type = StringField()
-    feature_value = StringField()
-
     def validate_title(self, field):
         data = u'%s%s' % (field.data, self.content.data)
         key = hashlib.md5(to_bytes(data)).hexdigest()
@@ -191,22 +186,6 @@ class TopicForm(Form):
             self.link.data,
             cafe_id, user_id
         )
-
-        feature_type = self.feature_type.data
-        feature_value = self.feature_value.data
-        if feature_type and feature_value:
-            cafe = Cafe.cache.get(cafe_id)
-            if feature_type not in cafe.features:
-                raise APIException('Invalid feature_type')
-            try:
-                feature.process(
-                    feature_type,
-                    feature_value,
-                    topic,
-                )
-            except feature.FeatureError as e:
-                raise APIException(e.message)
-
         with db.auto_commit():
             db.session.add(topic)
         return topic
