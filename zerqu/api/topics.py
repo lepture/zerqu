@@ -44,24 +44,6 @@ def timeline():
     return jsonify(data=data, cursor=cursor)
 
 
-@api.route('/statuses')
-@require_oauth(login=False, cache_time=600)
-def view_statuses():
-    id_list = request.args.get('topics')
-    if not id_list:
-        raise APIException(description='Require parameter "topics" missing')
-    try:
-        tids = [int(i) for i in id_list.split(',')]
-    except ValueError:
-        raise APIException(
-            description='Require int type on "topics" parameter'
-        )
-    user_id = None
-    if current_user:
-        user_id = current_user.id
-    return jsonify(Topic.get_multi_statuses(tids, user_id))
-
-
 @api.route('/<int:tid>')
 @require_oauth(login=False)
 def view_topic(tid):
