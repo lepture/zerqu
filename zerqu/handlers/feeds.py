@@ -94,6 +94,5 @@ def yield_entry(topic, user):
         yield u'<name>Anonymous</name>'
     yield u'</author>'
 
-    content = topic.get_html_content()
-    yield u'<content type="html"><![CDATA[%s]]></content>' % content
+    yield u'<content type="html"><![CDATA[%s]]></content>' % topic.html
     yield u'</entry>'

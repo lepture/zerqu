@@ -57,7 +57,7 @@ def view_topic(tid):
     if content_format == 'raw':
         data['content'] = topic.content
     else:
-        data['content'] = topic.get_html_content()
+        data['content'] = topic.html
         TopicStat(tid).increase('views')
 
     if topic.user:
@@ -80,7 +80,7 @@ def update_topic(tid):
     topic = form.update_topic(current_user.id)
     data = topic.dict_with_statuses(current_user.id)
     data['user'] = dict(current_user)
-    data['content'] = topic.get_html_content()
+    data['content'] = topic.html
     return jsonify(data)
 
 

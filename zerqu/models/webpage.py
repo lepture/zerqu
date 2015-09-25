@@ -33,6 +33,14 @@ class WebPage(Base):
     # first created by this user
     user_id = Column(Integer)
 
+    def __init__(self, uuid, link, user_id=None):
+        self.uuid = uuid
+        self.link = link
+        url = url_parse(link)
+        self.domain = url.host
+        if user_id:
+            self.user_id = user_id
+
     def keys(self):
         return [
             'uuid', 'title', 'image', 'description', 'info', 'link',
@@ -67,10 +75,7 @@ class WebPage(Base):
         uuid = hashlib.md5(link.encode('utf-8')).hexdigest()
         page = cls.query.get(uuid)
         if not page:
-            url = url_parse(link)
-            page = cls(uuid=uuid, link=link, domain=url.host)
-            if user_id:
-                page.user_id = user_id
+            page = cls(uuid=uuid, link=link, user_id=user_id)
             with db.auto_commit():
                 db.session.add(page)
         if not page.info:

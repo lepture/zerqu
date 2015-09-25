@@ -104,7 +104,8 @@ class Topic(Base):
     def label(self):
         return self.STATUSES.get(self.status)
 
-    def get_html_content(self):
+    @property
+    def html(self):
         return markup(self.content)
 
     @cached_property

@@ -5,7 +5,7 @@
   <title>{{ topic.title }}</title>
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{ topic.title }}">
-  {% set content = topic.get_html_content() %}
+  {% set content = topic.html %}
   {% set description = content|striptags|truncate(120) %}
   <meta name="description" content="{{ description }}">
   <meta property="og:description" content="{{ description }}">
