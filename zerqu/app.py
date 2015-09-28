@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Flask as _Flask
 from flask import request
 from flask.json import JSONEncoder as _JSONEncoder
+SYSTEM_CONF = '/etc/zerqu/conf.py'
 
 try:
     from raven.contrib.flask import Sentry
@@ -65,6 +66,10 @@ def create_app(config=None):
 
     #: load default configuration
     app.config.from_object('zerqu.settings')
+
+    #: load system configuration
+    if os.path.isfile(SYSTEM_CONF):
+        app.config.from_pyfile(SYSTEM_CONF)
 
     #: load environment configuration
     if 'ZERQU_CONF' in os.environ:
