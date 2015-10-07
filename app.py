@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import os
 import sys
 import logging
 from zerqu import create_app
@@ -20,11 +19,7 @@ log = logging.getLogger('oauthlib')
 log.addHandler(handler)
 log.setLevel(logging.DEBUG)
 
-root = os.path.abspath(os.path.dirname(__file__))
-secret_file = os.path.join(root, 'etc/secret.py')
-os.environ['ZERQU_CONF'] = os.path.join(root, 'etc/development.py')
-
-app = create_app(secret_file)
+app = create_app()
 
 
 def create_database():
