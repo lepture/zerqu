@@ -1,9 +1,6 @@
 # json enhance
 simplejson==3.6.5
 
-# postgresql
-psycopg2==2.6.1
-
 # redis improvement
 hiredis==0.2.0
 

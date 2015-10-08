@@ -10,6 +10,7 @@ mistune==0.7
 Pygments==2.0.2
 
 # database
+psycopg2==2.6.1
 SQLAlchemy==1.0.6
 Flask-SQLAlchemy==2.0
 
