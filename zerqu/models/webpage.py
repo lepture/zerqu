@@ -7,7 +7,7 @@ from sqlalchemy import Column
 from sqlalchemy import String, Unicode, Integer, DateTime
 from werkzeug.urls import url_parse, url_join
 from zerqu.libs.utils import run_task
-from Zerqu.libs.webparser import parse_meta, sanitize_link
+from zerqu.libs.webparser import parse_meta, sanitize_link
 from .base import db, Base, JSON
 
 
