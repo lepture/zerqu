@@ -19,4 +19,4 @@ cover/
 *.mo
 venv/
 htmlcov/
-etc/secret.py
+playbooks/roles/*.*

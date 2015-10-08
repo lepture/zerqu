@@ -10,3 +10,7 @@ babel-update:
 
 babel-compile:
 	@pybabel compile -d zerqu/translations
+
+
+bootstrap:
+	@ansible-galaxy install -r playbooks/requirements.yml -p playbooks/roles

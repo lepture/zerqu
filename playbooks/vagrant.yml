@@ -1,0 +1,7 @@
+---
+
+- include: playbook.yml
+  vars:
+    server_mode: development
+    postgresql_databases:
+      - name: dev

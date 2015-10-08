@@ -1,0 +1,19 @@
+---
+- hosts: all
+  sudo: yes
+  # gather_facts: no
+
+  roles:
+    - Stouts.redis
+    - Stouts.nginx
+    - Stouts.python
+    - Stouts.supervisor
+    - ANXS.postgresql
+    # - zerqu
+
+  vars:
+    python_ppa: "ppa:fkrull/deadsnakes-python2.7"
+    python_versions: [2.7]
+    python_virtualenvs:
+      - path: /var/zerqu/venv
+    postgresql_ext_install_dev_headers: yes
