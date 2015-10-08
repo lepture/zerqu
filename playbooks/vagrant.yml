@@ -4,4 +4,7 @@
   vars:
     server_mode: development
     postgresql_databases:
-      - name: dev
+      - name: development
+      - name: testing
+    python_virtualenvs:
+      - path: /var/venv
