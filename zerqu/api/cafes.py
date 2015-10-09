@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 from zerqu.libs.errors import NotFound, Denied, InvalidAccount, Conflict
 from zerqu.models import db, current_user
-from zerqu.models import User, Cafe, CafeMember, Topic
+from zerqu.models import User, Cafe, CafeMember, CafeTopic, Topic
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.forms import CafeForm, TopicForm
 from .base import ApiBlueprint
@@ -185,7 +185,8 @@ def list_cafe_users(slug):
 @cache_response(600)
 def list_cafe_topics(slug):
     cafe = get_and_protect_cafe(slug)
-    data, p = pagination_query(Topic, 'id', cafe_id=cafe.id)
+    cts, p = pagination_query(CafeTopic, 'updated_at', cafe_id=cafe.id)
+    data = Topic.cache.get_many([c.topic_id for c in cts])
     reference = {'user': User.cache.get_dict({o.user_id for o in data})}
     data = list(Topic.iter_dict(data, **reference))
     data = topic_list_with_statuses(data, current_user.id)

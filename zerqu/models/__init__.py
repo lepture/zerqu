@@ -4,7 +4,7 @@
 from .base import db, Base
 from .user import User, UserSession
 from .auth import oauth, OAuthClient, OAuthToken
-from .cafe import Cafe, CafeMember
+from .cafe import Cafe, CafeMember, CafeTopic
 from .topic import Topic, TopicLike, TopicRead, TopicStat
 from .topic import Comment, CommentLike
 from .webpage import WebPage

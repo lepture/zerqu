@@ -9,7 +9,7 @@ from zerqu.libs.utils import EMPTY
 from .user import User
 from .base import db, Base, JSON
 
-__all__ = ['Cafe', 'CafeMember']
+__all__ = ['Cafe', 'CafeMember', 'CafeTopic']
 
 
 class Cafe(Base):
