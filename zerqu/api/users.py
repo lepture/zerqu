@@ -1,7 +1,6 @@
 # coding: utf-8
 
 from flask import jsonify
-from collections import defaultdict
 from zerqu.models import db, User, current_user
 from zerqu.models import Cafe, CafeMember, Topic
 from zerqu.models import Notification
@@ -41,11 +40,7 @@ def view_user(username):
 @require_oauth(login=False, cache_time=600)
 def view_user_cafes(username):
     user = User.cache.first_or_404(username=username)
-    if current_user.id == user.id:
-        cafe_ids = CafeMember.get_user_following_cafe_ids(user.id)
-    else:
-        cafe_ids = CafeMember.get_user_following_public_cafe_ids(user.id)
-
+    cafe_ids = CafeMember.get_user_following_cafe_ids(user.id)
     cafes = Cafe.cache.get_many(cafe_ids)
     users = User.cache.get_dict({o.user_id for o in cafes})
     data = list(Cafe.iter_dict(cafes, user=users))

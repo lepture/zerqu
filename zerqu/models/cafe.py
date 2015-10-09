@@ -199,13 +199,6 @@ class CafeMember(Base):
         return {cafe_id for cafe_id, in q}
 
     @classmethod
-    def get_user_following_public_cafe_ids(cls, user_id):
-        q = db.session.query(cls.cafe_id).filter_by(user_id=user_id)
-        q = q.filter(cls.role >= cls.ROLE_SUBSCRIBER)
-        q = q.join(Cafe, Cafe.id == cls.cafe_id)
-        return {cafe_id for cafe_id, in q}
-
-    @classmethod
     def get_cafe_admin_ids(cls, cafe_id):
         q = db.session.query(cls.user_id).filter_by(cafe_id=cafe_id)
         q = q.filter_by(role=cls.ROLE_ADMIN)
