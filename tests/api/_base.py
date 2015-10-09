@@ -7,6 +7,9 @@ from zerqu import create_app
 from zerqu.models import db, User, OAuthClient, OAuthToken
 
 
+DATABASE = 'postgresql://postgres@localhost/testing'
+
+
 def encode_base64(text):
     text = to_bytes(text)
     return to_unicode(base64.b64encode(text))
@@ -15,7 +18,7 @@ def encode_base64(text):
 class TestCase(unittest.TestCase):
     def setUp(self):
         app = create_app({
-            'SQLALCHEMY_DATABASE_URI': 'sqlite://',
+            'SQLALCHEMY_DATABASE_URI': DATABASE,
             'ZERQU_CACHE_TYPE': 'simple',
             'OAUTH_CACHE_TYPE': 'simple',
             'RATE_LIMITER_TYPE': 'cache',
@@ -26,6 +29,8 @@ class TestCase(unittest.TestCase):
         self._ctx.push()
 
         db.init_app(app)
+
+        db.drop_all()
         db.create_all()
 
         self.app = app
@@ -33,7 +38,6 @@ class TestCase(unittest.TestCase):
         self.prepare_data()
 
     def tearDown(self):
-        db.drop_all()
         self._ctx.pop()
 
     def prepare_data(self):

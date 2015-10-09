@@ -56,7 +56,7 @@ class TestUserAgent(TestCase):
 class TestRenderer(TestCase):
     def test_markdown_image(self):
         img = 'hello ![alt](http://path.to/img)'
-        assert '<figure>' in renderer.markdown(img, code=False)
+        assert '<figure>' not in renderer.markdown(img, code=False)
 
         img = 'hello ![alt](http://path.to/img "has title")'
         assert '<figure>' in renderer.markdown(img, code=False)

@@ -209,5 +209,5 @@ def create_cafe_topic(slug):
     topic = form.create_topic(cafe.id, current_user.id)
     data = dict(topic)
     data['user'] = dict(current_user)
-    data['content'] = topic.get_html_content()
+    data['content'] = topic.html
     return jsonify(data), 201

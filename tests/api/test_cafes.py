@@ -11,7 +11,7 @@ class CafeMixin(object):
         for i in range(num):
             permission = random.choice([
                 Cafe.PERMISSION_PUBLIC,
-                Cafe.PERMISSION_SUBSCRIBER,
+                Cafe.PERMISSION_APPROVE,
                 Cafe.PERMISSION_MEMBER,
                 Cafe.PERMISSION_PRIVATE,
             ])
