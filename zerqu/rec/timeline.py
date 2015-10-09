@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import random
-from zerqu.models import db, Topic, Cafe, CafeMember
+from zerqu.models import db, Topic, Cafe, CafeMember, CafeTopic
 from zerqu.libs.cache import cached
 # TODO: use redis to calculate popularity
 
@@ -57,11 +57,12 @@ def get_all_cafe_ids():
 
 
 def get_cafe_topics(cafe_ids, cursor=None, count=20):
-    q = db.session.query(Topic.id).filter(Topic.cafe_id.in_(cafe_ids))
+    q = db.session.query(CafeTopic.topic_id)
+    q = q.filter(CafeTopic.cafe_id.in_(cafe_ids))
     if cursor:
-        q = q.filter(Topic.id < cursor)
+        q = q.filter(CafeTopic.topic_id < cursor)
 
-    q = q.order_by(Topic.id.desc()).limit(count)
+    q = q.order_by(CafeTopic.topic_id.desc()).limit(count)
     topic_ids = [i for i, in q]
     topics = Topic.cache.get_many(topic_ids)
     if len(topics) < count:

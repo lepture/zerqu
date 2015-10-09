@@ -59,33 +59,26 @@ def view_user_topics(username):
     count = int_or_raise('count', 20, 100)
 
     user = User.cache.first_or_404(username=username)
-    q = db.session.query(Topic.id, Topic.cafe_id).filter_by(user_id=user.id)
+    q = db.session.query(Topic.id)
+    q = q.filter(Topic.status != Topic.STATUS_DRAFT)
+    q = q.filter_by(user_id=user.id)
     if cursor:
         q = q.filter(Topic.id < cursor)
 
-    pairs = q.order_by(Topic.id.desc()).limit(count).all()
-    if not len(pairs):
+    q = q.order_by(Topic.id.desc()).limit(count).all()
+    topic_ids = [i for i, in q]
+    if not topic_ids:
         return jsonify(data=[], cursor=0)
 
-    cafe_topics = defaultdict(list)
-    for tid, cid in pairs:
-        cafe_topics[cid].append(tid)
-
-    cafes = Cafe.cache.get_dict(cafe_topics.keys())
-
-    topic_ids = []
-    for cid in cafe_topics:
-        topic_ids.extend(cafe_topics[cid])
-
-    topics = Topic.cache.get_many(sorted(topic_ids, reverse=True))
+    topics = Topic.cache.get_many(topic_ids)
     users = {str(user.id): user}
-    data = list(Topic.iter_dict(topics, cafe=cafes, user=users))
+    data = list(Topic.iter_dict(topics, user=users))
     data = topic_list_with_statuses(data, current_user.id)
 
-    if len(pairs) < count:
+    if len(topic_ids) < count:
         cursor = 0
     else:
-        cursor = pairs[-1][0]
+        cursor = topics[-1].id
     return jsonify(data=data, cursor=cursor)
 
 

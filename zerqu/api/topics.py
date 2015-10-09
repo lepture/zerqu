@@ -91,7 +91,6 @@ def write_read_percent(tid):
         raise APIException(description='Invalid payload "percent"')
     read = TopicRead.query.get((topic.id, current_user.id))
     if not read:
-        get_topic_cafe(topic)
         read = TopicRead(topic_id=topic.id, user_id=current_user.id)
     read.percent = percent
 
@@ -106,8 +105,6 @@ def flag_topic(tid):
     key = 'flag:%d:t-%d' % (current_user.id, tid)
     if cache.get(key):
         return '', 204
-    topic = Topic.cache.get_or_404(tid)
-    get_topic_cafe(topic)
     cache.inc(key)
     TopicStat(tid).flag()
     return '', 204
@@ -117,8 +114,6 @@ def flag_topic(tid):
 @require_oauth(login=False, cache_time=600)
 def view_topic_comments(tid):
     topic = Topic.cache.get_or_404(tid)
-    get_topic_cafe(topic)
-
     comments, cursor = cursor_query(
         Comment, lambda q: q.filter_by(topic_id=topic.id)
     )
@@ -144,10 +139,6 @@ def view_topic_comments(tid):
 @require_oauth(login=True, scopes=['comment:write'])
 def create_topic_comment(tid):
     topic = Topic.cache.get_or_404(tid)
-    cafe = get_topic_cafe(topic)
-    # take a record for cafe membership
-    CafeMember.get_or_create(cafe.id, current_user.id)
-
     form = CommentForm.create_api_form()
     comment = form.create_comment(current_user.id, topic.id)
     rv = dict(comment)
@@ -185,7 +176,6 @@ def like_topic(tid):
         raise Conflict(description='You already liked it')
 
     topic = Topic.cache.get_or_404(tid)
-    get_topic_cafe(topic)
     like = TopicLike(topic_id=topic.id, user_id=current_user.id)
     with db.auto_commit():
         db.session.add(like)
