@@ -30,6 +30,6 @@ Install python requirements in vagrant::
 
 Run app server in vagrant ``/vagrant`` directory::
 
-    $ /var/venv/bin/python app.py
+    $ make run
 
 Visit: http://192.168.30.10:5000/

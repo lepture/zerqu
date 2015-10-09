@@ -18,3 +18,6 @@ install-ansible-roles:
 
 install:
 	@sudo /var/venv/bin/pip install -r deps/requirements.txt
+
+run:
+	@ZERQU_CONF=/vagrant/local_config.py /var/venv/bin/python app.py
