@@ -26,11 +26,10 @@ Setup vagrant development::
 Install python requirements in vagrant::
 
     $ cd /vagrant
-    $ source venv/bin/activate
-    $ pip install -r deps/requirements.txt
+    $ make install
 
 Run app server in vagrant ``/vagrant`` directory::
 
-    $ python app.py
+    $ /var/venv/bin/python app.py
 
 Visit: http://192.168.30.10:5000/
