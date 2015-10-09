@@ -19,7 +19,10 @@ log = logging.getLogger('oauthlib')
 log.addHandler(handler)
 log.setLevel(logging.DEBUG)
 
-app = create_app()
+app = create_app({
+    'SECRET_KEY': 'secret',
+    'SQLALCHEMY_DATABASE_URI': 'postgresql://postgres@localhost/development'
+})
 
 
 def create_database():
