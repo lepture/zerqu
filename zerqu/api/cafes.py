@@ -207,6 +207,10 @@ def create_cafe_topic(slug):
 
     form = TopicForm.create_api_form()
     topic = form.create_topic(cafe.id, current_user.id)
+
+    with db.auto_commit():
+        cafe.create_cafe_topic(topic.id, current_user.id)
+
     data = dict(topic)
     data['user'] = dict(current_user)
     data['content'] = topic.html

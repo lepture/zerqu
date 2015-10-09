@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import datetime
-from flask import current_app
 from werkzeug.utils import cached_property
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
