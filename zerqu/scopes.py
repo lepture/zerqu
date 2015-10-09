@@ -13,7 +13,6 @@ SCOPES = [
     ('user:follow', 'follow and unfollow other users'),
     ('user:subscribe', 'follow and unfollow a cafe'),
 
-    ('cafe:private', 'read your private cafes'),
     ('cafe:write', 'create and update your cafes'),
 
     ('topic:write', 'create topics with your account'),
@@ -25,7 +24,7 @@ SCOPES = [
 #: alias scopes
 ALIASES = {
     'user': ['user:email', 'user:write', 'user:follow', 'user:subscribe'],
-    'cafe': ['cafe:write', 'cafe:private'],
+    'cafe': ['cafe:write'],
     'topic': ['topic:write', 'topic:delete'],
     'comment': ['comment:write', 'comment:delete'],
 }
@@ -33,7 +32,6 @@ ALIASES = {
 #: scopes that user can choose to disable
 CHOICES = [
     'user:email',
-    'cafe:private',
     'topic:delete',
     'comment:delete',
 ]

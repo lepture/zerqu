@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from flask import json
-from zerqu.models import db, User, Topic, TopicLike, TopicRead
+from zerqu.models import db, User, Topic, TopicLike
 from zerqu.models import Cafe, Comment
 from ._base import TestCase
 
@@ -93,15 +93,6 @@ class TestViewTopic(TestCase):
         rv = self.client.get('/api/topics/%d' % t.id, headers=headers)
         data = json.loads(rv.data)
         assert data['editable']
-
-    def test_view_topic_without_permission(self):
-        cafe = Cafe(name=u'official', slug='official', user_id=1)
-        cafe.permission = Cafe.PERMISSION_PRIVATE
-        db.session.add(cafe)
-        db.session.commit()
-        t = self.create_topic(cafe)
-        rv = self.client.get('/api/topics/%d' % t.id)
-        assert rv.status_code == 403
 
 
 class TestUpdateTopic(TestCase, TopicMixin):

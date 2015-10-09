@@ -13,7 +13,6 @@ class CafeMixin(object):
                 Cafe.PERMISSION_PUBLIC,
                 Cafe.PERMISSION_APPROVE,
                 Cafe.PERMISSION_MEMBER,
-                Cafe.PERMISSION_PRIVATE,
             ])
             status = random.choice(list(Cafe.STATUSES.keys()))
             name = u'%s-%d' % (random.choice(['foo', 'bar']), i)
@@ -253,23 +252,6 @@ class TestCafeMembers(TestCase, CafeMixin):
         rv = self.client.post(url, headers=headers)
         assert rv.status_code == 204
 
-    def test_join_secret_cafe(self):
-        item = Cafe(
-            name=u'secret', slug='secret', user_id=1,
-            permission=Cafe.PERMISSION_PRIVATE,
-        )
-        db.session.add(item)
-        db.session.commit()
-
-        headers = self.get_authorized_header(scope='user:subscribe', user_id=2)
-        url = '/api/cafes/secret/users'
-        rv = self.client.post(url, headers=headers)
-        assert rv.status_code == 204
-
-        # already joined
-        rv = self.client.post(url, headers=headers)
-        assert rv.status_code == 204
-
     def test_leave_cafe(self):
         self.create_cafes(2)
         cafe = Cafe.query.get(2)
@@ -311,35 +293,6 @@ class TestCafeMembers(TestCase, CafeMixin):
         rv = self.client.get('/api/cafes/hello/users?perpage=1')
         assert rv.status_code == 400
 
-    def test_list_private_cafe_users_failed(self):
-        total = 60
-        self.create_membership(Cafe.PERMISSION_PRIVATE, total)
-
-        url = '/api/cafes/hello/users'
-        headers = self.get_authorized_header(user_id=1, scope='cafe:private')
-        rv = self.client.get(url, headers=headers)
-        assert rv.status_code == 403
-
-        headers = self.get_authorized_header(user_id=2)
-        rv = self.client.get(url, headers=headers)
-        assert rv.status_code == 401
-
-    def test_list_private_cafe_users_success(self):
-        total = 60
-        self.create_membership(Cafe.PERMISSION_PRIVATE, total)
-
-        url = '/api/cafes/hello/users'
-        headers = self.get_authorized_header(user_id=2, scope='cafe:private')
-        rv = self.client.get(url, headers=headers)
-        assert rv.status_code == 200
-
-        item = CafeMember.query.filter_by(role=CafeMember.ROLE_MEMBER).first()
-        headers = self.get_authorized_header(
-            user_id=item.user_id, scope='cafe:private',
-        )
-        rv = self.client.get(url, headers=headers)
-        assert rv.status_code == 200
-
 
 class TestCafeTopics(TestCase):
     def test_list_cafe_topics(self):
@@ -364,42 +317,3 @@ class TestCafeTopics(TestCase):
 
         rv = self.client.get('/api/cafes/hello/topics')
         assert b'data' in rv.data
-
-
-class TestCafeCreateTopic(TestCase):
-    def create_private_cafe(self):
-        item = Cafe(
-            name=u'hello', slug='hello', user_id=2,
-            permission=Cafe.PERMISSION_PRIVATE
-        )
-        db.session.add(item)
-        db.session.commit()
-
-    def test_has_no_permission(self):
-        self.create_private_cafe()
-        scope = 'cafe:private topic:write'
-        headers = self.get_authorized_header(user_id=1, scope=scope)
-        rv = self.client.post('/api/cafes/hello/topics', headers=headers)
-        assert rv.status_code == 403
-
-    def test_invalid_account(self):
-        self.create_private_cafe()
-        scope = 'cafe:private topic:write'
-        headers = self.get_authorized_header(user_id=2, scope=scope)
-        user = User.query.get(2)
-        user.role = 0
-        rv = self.client.post('/api/cafes/hello/topics', headers=headers)
-        assert rv.status_code == 403
-        assert b'account' in rv.data
-
-    def test_create_topic_success(self):
-        self.create_private_cafe()
-        scope = 'cafe:private topic:write'
-        headers = self.get_authorized_header(user_id=2, scope=scope)
-        rv = self.client.post(
-            '/api/cafes/hello/topics',
-            data=json.dumps({'title': 'Created', 'content': 'Hello World'}),
-            headers=headers,
-        )
-        assert rv.status_code == 201
-        assert b'Created' in rv.data

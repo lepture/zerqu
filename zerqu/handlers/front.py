@@ -112,9 +112,6 @@ def view_topic(tid):
     """Show one topic. This handler is designed for SEO."""
     topic = Topic.cache.get_or_404(tid)
     cafe = Cafe.cache.get_or_404(topic.cafe_id)
-    if cafe.permission == Cafe.PERMISSION_PRIVATE:
-        abort(404)
-
     q = db.session.query(Comment.id).filter_by(topic_id=tid)
     comments = Comment.cache.get_many({i for i, in q.limit(100)})
     comment_users = User.cache.get_dict({o.user_id for o in comments})
@@ -133,7 +130,6 @@ def view_topic(tid):
 @bp.route('/c/')
 def cafe_list():
     q = db.session.query(Cafe.id)
-    q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
     q = q.order_by(Cafe.id.desc())
     cafes = Cafe.cache.get_many([i for i, in q.limit(100)])
     return render(
@@ -146,9 +142,6 @@ def cafe_list():
 def view_cafe(slug):
     """Show one cafe. This handler is designed for SEO."""
     cafe = Cafe.cache.first_or_404(slug=slug)
-    if cafe.permission == Cafe.PERMISSION_PRIVATE:
-        abort(404)
-
     q = db.session.query(Topic.id).filter_by(cafe_id=cafe.id)
     q = q.order_by(Topic.id.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])

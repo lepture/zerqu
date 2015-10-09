@@ -26,20 +26,17 @@ class Cafe(Base):
     STATUS_VERIFIED = 6
     STATUS_OFFICIAL = 9
 
-    # everyone can read and write
+    # everyone can write
     PERMISSION_PUBLIC = 0
-    # everyone can read, write should be approved by members
+    # write should be approved by members
     PERMISSION_APPROVE = 3
-    # everyone can read, only member can write
+    # only member can write
     PERMISSION_MEMBER = 6
-    # only member can read and write
-    PERMISSION_PRIVATE = 9
 
     PERMISSIONS = {
         'public': PERMISSION_PUBLIC,
         'approve': PERMISSION_APPROVE,
         'member': PERMISSION_MEMBER,
-        'private': PERMISSION_PRIVATE,
     }
 
     id = Column(Integer, primary_key=True)
@@ -96,23 +93,7 @@ class Cafe(Base):
         return label
 
     def has_read_permission(self, user_id, membership=EMPTY):
-        if self.permission != self.PERMISSION_PRIVATE:
-            return True
-
-        if not user_id:
-            return False
-
-        if self.user_id == user_id:
-            return True
-
-        if membership is EMPTY:
-            membership = CafeMember.cache.get((self.id, user_id))
-
-        if not membership:
-            return False
-
-        role = membership.role
-        return role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN)
+        return True
 
     def has_write_permission(self, user_id, membership=EMPTY):
         if not user_id:
@@ -228,7 +209,6 @@ class CafeMember(Base):
         q = db.session.query(cls.cafe_id).filter_by(user_id=user_id)
         q = q.filter(cls.role >= cls.ROLE_SUBSCRIBER)
         q = q.join(Cafe, Cafe.id == cls.cafe_id)
-        q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
         return {cafe_id for cafe_id, in q}
 
     @classmethod

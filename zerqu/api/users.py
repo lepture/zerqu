@@ -72,13 +72,6 @@ def view_user_topics(username):
         cafe_topics[cid].append(tid)
 
     cafes = Cafe.cache.get_dict(cafe_topics.keys())
-    if current_user.id != user.id:
-        # filter private cafes
-        for k in cafes:
-            cafe = cafes[k]
-            if cafe.permission == Cafe.PERMISSION_PRIVATE:
-                cafe_topics.pop(cafe.id)
-                cafes.pop(k)
 
     topic_ids = []
     for cid in cafe_topics:

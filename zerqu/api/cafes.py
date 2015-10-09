@@ -12,34 +12,10 @@ from zerqu.models import User, Cafe, CafeMember, CafeTopic, Topic
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.forms import CafeForm, TopicForm
 from .base import ApiBlueprint
-from .base import require_oauth, oauth_ratelimit, cache_response
+from .base import require_oauth
 from .utils import cursor_query, pagination_query
 
 api = ApiBlueprint('cafes')
-
-
-def get_and_protect_cafe(slug, scopes=None):
-    cafe = Cafe.cache.first_or_404(slug=slug)
-    if cafe.permission != Cafe.PERMISSION_PRIVATE:
-        if scopes is None:
-            oauth_ratelimit(False, scopes=None)
-        else:
-            oauth_ratelimit(True, scopes=scopes)
-        return cafe
-
-    if scopes is None:
-        scopes = []
-    scopes.append('cafe:private')
-    oauth_ratelimit(True, scopes=scopes)
-
-    if cafe.user_id == current_user.id:
-        return cafe
-
-    ident = (cafe.id, current_user.id)
-    data = CafeMember.cache.get(ident)
-    if data and data.role in (CafeMember.ROLE_MEMBER, CafeMember.ROLE_ADMIN):
-        return cafe
-    raise Denied('cafe "%s"' % cafe.slug)
 
 
 @api.route('')
@@ -128,8 +104,6 @@ def join_cafe(slug):
 
     if cafe.user_id == current_user.id:
         item.role = CafeMember.ROLE_ADMIN
-    elif cafe.permission == cafe.PERMISSION_PRIVATE:
-        item.role = CafeMember.ROLE_APPLICANT
     else:
         item.role = CafeMember.ROLE_SUBSCRIBER
 
@@ -158,9 +132,9 @@ def leave_cafe(slug):
 
 
 @api.route('/<slug>/users')
-@cache_response(600)
+@require_oauth(login=False, cache_time=600)
 def list_cafe_users(slug):
-    cafe = get_and_protect_cafe(slug)
+    cafe = Cafe.cache.first_or_404(slug=slug)
     members, pagination = pagination_query(
         CafeMember, CafeMember.user_id, cafe_id=cafe.id
     )
@@ -182,9 +156,9 @@ def list_cafe_users(slug):
 
 
 @api.route('/<slug>/topics')
-@cache_response(600)
+@require_oauth(login=False, cache_time=600)
 def list_cafe_topics(slug):
-    cafe = get_and_protect_cafe(slug)
+    cafe = Cafe.cache.first_or_404(slug=slug)
     cts, p = pagination_query(CafeTopic, 'updated_at', cafe_id=cafe.id)
     data = Topic.cache.get_many([c.topic_id for c in cts])
     reference = {'user': User.cache.get_dict({o.user_id for o in data})}
@@ -194,17 +168,15 @@ def list_cafe_topics(slug):
 
 
 @api.route('/<slug>/topics', methods=['POST'])
+@require_oauth(login=True, scopes=['topic:write'])
 def create_cafe_topic(slug):
-    cafe = get_and_protect_cafe(slug, ['topic:write'])
+    cafe = Cafe.cache.first_or_404(slug=slug)
 
     if not current_user.is_active:
         raise InvalidAccount(description='Your account is not active')
 
     if cafe.permission == Cafe.PERMISSION_PUBLIC:
         CafeMember.get_or_create(cafe.id, current_user.id)
-    elif cafe.permission != Cafe.PERMISSION_PRIVATE:
-        if not cafe.has_write_permission(current_user.id):
-            raise Denied('creating topic in this cafe')
 
     form = TopicForm.create_api_form()
     topic = form.create_topic(cafe.id, current_user.id)

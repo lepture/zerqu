@@ -36,7 +36,6 @@ def get_following_cafe_ids(user_id):
 def get_promoted_cafe_ids():
     statuses = [Cafe.STATUS_OFFICIAL, Cafe.STATUS_VERIFIED]
     q = db.session.query(Cafe.id).filter(Cafe.status.in_(statuses))
-    q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
     return {cafe_id for cafe_id, in q}
 
 
@@ -51,10 +50,9 @@ def get_random_cafe_ids():
     return choices
 
 
-@cached('timeline:non_private_cafe_ids')
+@cached('timeline:all_cafe_ids')
 def get_all_cafe_ids():
     q = db.session.query(Cafe.id)
-    q = q.filter(Cafe.permission != Cafe.PERMISSION_PRIVATE)
     return {cafe_id for cafe_id, in q}
 
 

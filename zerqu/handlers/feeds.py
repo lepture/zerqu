@@ -1,8 +1,7 @@
 # coding: utf-8
 
 from markupsafe import escape
-from flask import Blueprint
-from flask import abort, Response
+from flask import Blueprint, Response
 from flask import request, current_app
 from zerqu.models import db, User, Cafe, Topic
 from zerqu.libs.cache import cache, ONE_HOUR
@@ -41,8 +40,6 @@ def site_feed():
 def cafe_feed(slug):
     """Show one cafe. This handler is designed for SEO."""
     cafe = Cafe.cache.first_or_404(slug=slug)
-    if cafe.permission == Cafe.PERMISSION_PRIVATE:
-        abort(404)
 
     q = db.session.query(Topic.id).filter_by(cafe_id=cafe.id)
     q = q.order_by(Topic.id.desc())

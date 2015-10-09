@@ -23,14 +23,12 @@ class Topic(Base):
     STATUS_PUBLIC = 1
     STATUS_CLOSED = 2
     STATUS_FEATURED = 3
-    STATUS_PRIVATE = 9
 
     STATUSES = {
         STATUS_DRAFT: 'draft',
         STATUS_PUBLIC: 'public',
         STATUS_CLOSED: 'closed',
         STATUS_FEATURED: 'featured',
-        STATUS_PRIVATE: 'private',
     }
 
     id = Column(Integer, primary_key=True)
@@ -92,8 +90,6 @@ class Topic(Base):
             return False
         if current_user.id != self.user_id:
             return False
-        if self.status == self.STATUS_PRIVATE:
-            return True
         valid_time = current_app.config.get('ZERQU_VALID_MODIFY_TIME')
         if not valid_time:
             return True
