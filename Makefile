@@ -14,3 +14,7 @@ babel-compile:
 
 install-ansible-roles:
 	@ansible-galaxy install -r playbooks/requirements.yml -p playbooks/roles
+
+
+install:
+	@sudo /var/venv/bin/pip install -r deps/requirements.txt
