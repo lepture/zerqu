@@ -22,8 +22,6 @@ api = ApiBlueprint('topics')
 def get_topic_cafe(topic):
     cafe_id = request.args.get('cafe_id', topic.cafe_id)
     cafe = Cafe.cache.get_or_404(cafe_id)
-    if not cafe.has_read_permission(current_user.id):
-        raise Denied('viewing this topic')
     return cafe
 
 

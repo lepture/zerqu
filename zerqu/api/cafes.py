@@ -60,7 +60,6 @@ def view_cafe(slug):
             data['membership'] = dict(m)
 
         permission = {
-            'read': cafe.has_read_permission(user_id, m),
             'write': cafe.has_write_permission(user_id, m),
             'admin': cafe.has_admin_permission(user_id, m),
         }

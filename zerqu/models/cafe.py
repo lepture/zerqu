@@ -92,9 +92,6 @@ class Cafe(Base):
             return None
         return label
 
-    def has_read_permission(self, user_id, membership=EMPTY):
-        return True
-
     def has_write_permission(self, user_id, membership=EMPTY):
         if not user_id:
             return False
@@ -151,8 +148,6 @@ class CafeMember(Base):
 
     # not joined, but has topics or comments in this cafe
     ROLE_VISITOR = 0
-    # asking for joining a private cafe
-    ROLE_APPLICANT = 1
     # subscribed a cafe
     ROLE_SUBSCRIBER = 2
     # authorized member of a private cafe
@@ -162,7 +157,6 @@ class CafeMember(Base):
 
     ROLE_LABELS = {
         ROLE_VISITOR: 'visitor',
-        ROLE_APPLICANT: 'applicant',
         ROLE_SUBSCRIBER: 'subscriber',
         ROLE_MEMBER: 'member',
         ROLE_ADMIN: 'admin',
