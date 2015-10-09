@@ -35,4 +35,4 @@ ZERQU_VALID_MODIFY_TIME = 3600
 # it can also be a module string for importing
 ZERQU_TEXT_RENDERER = 'markdown'
 
-ZERQU_CAFE_CREATOR_ROLE = 4
+ZERQU_CAFE_CREATOR_ROLES = [4, 7, 8, 9]

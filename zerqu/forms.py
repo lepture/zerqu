@@ -91,10 +91,14 @@ class RegisterForm(UserForm, EmailForm):
 
 
 class CafeForm(Form):
-    # TODO: validators
-    name = StringField()
-    slug = StringField()
-    description = TextAreaField()
+    name = StringField(validators=[
+        Length(min=3, max=30),
+    ])
+    slug = StringField(validators=[
+        Length(min=3, max=30),
+        Regexp(r'^[a-z0-9\-]{3,30}$')
+    ])
+    description = TextAreaField(validators=[Length(max=180)])
     permission = StringField()
 
     cover = StringField(validators=[Optional(), URL()])

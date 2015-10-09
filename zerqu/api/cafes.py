@@ -62,8 +62,8 @@ def list_cafes():
 @api.route('', methods=['POST'])
 @require_oauth(login=True, scopes=['cafe:write'])
 def create_cafe():
-    role = current_app.config.get('ZERQU_CAFE_CREATOR_ROLE')
-    if current_user.role < role:
+    role = current_app.config.get('ZERQU_CAFE_CREATOR_ROLES')
+    if current_user.role not in role:
         raise Denied('creating cafe')
     form = CafeForm.create_api_form()
     cafe = form.create_cafe(current_user.id)
