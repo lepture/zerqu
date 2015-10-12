@@ -3,7 +3,7 @@
 from flask import request, jsonify
 
 from zerqu.models import db, current_user, User
-from zerqu.models import Cafe
+from zerqu.models import Cafe, CafeTopic
 from zerqu.models import Topic, TopicLike, TopicRead, TopicStat
 from zerqu.models import Comment, CommentLike
 from zerqu.models.topic import topic_list_with_statuses
@@ -17,12 +17,6 @@ from .base import require_oauth
 from .utils import cursor_query, pagination_query, int_or_raise
 
 api = ApiBlueprint('topics')
-
-
-def get_topic_cafe(topic):
-    cafe_id = request.args.get('cafe_id', topic.cafe_id)
-    cafe = Cafe.cache.get_or_404(cafe_id)
-    return cafe
 
 
 @api.route('/timeline')
@@ -46,8 +40,6 @@ def timeline():
 @require_oauth(login=False)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
-    cafe = get_topic_cafe(topic)
-
     data = topic.dict_with_statuses(current_user.id)
 
     # /api/topic/:id?content=raw vs ?content=html
@@ -58,9 +50,10 @@ def view_topic(tid):
         data['content'] = topic.html
         TopicStat(tid).increase('views')
 
-    if topic.user:
-        data['user'] = dict(topic.user)
-    data['cafe'] = dict(cafe)
+    cafes = CafeTopic.get_topic_cafes(tid, 1)
+    if cafes:
+        data['cafe'] = dict(cafes[0])
+    data['user'] = User.cache.get(topic.user_id)
     return jsonify(data)
 
 

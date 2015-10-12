@@ -79,10 +79,6 @@ class Cafe(Base):
         )
 
     @cached_property
-    def user(self):
-        return User.cache.get(self.user_id)
-
-    @cached_property
     def is_active(self):
         return self.status > 0
 
@@ -231,6 +227,14 @@ class CafeTopic(Base):
         self.status = self.STATUS_PUBLIC
         self.updated_at = datetime.datetime.utcnow()
         db.session.add(self)
+
+    @classmethod
+    def get_topic_cafes(cls, topic_id, count=None):
+        q = db.session.query(cls.cafe_id)
+        q = q.filter_by(topic_id=topic_id, status=cls.STATUS_PUBLIC)
+        if count:
+            q = q.limit(count)
+        return Cafe.cache.get_many([i for i, in q])
 
     @classmethod
     def get_topics_cafes(cls, topic_ids):

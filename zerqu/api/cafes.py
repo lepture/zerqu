@@ -51,7 +51,7 @@ def create_cafe():
 def view_cafe(slug):
     cafe = Cafe.cache.first_or_404(slug=slug)
     data = dict(cafe)
-    data['user'] = cafe.user
+    data['user'] = User.cache.get(cafe.user_id)
 
     if current_user:
         user_id = current_user.id

@@ -104,10 +104,6 @@ class Topic(Base):
     def html(self):
         return markup(self.content)
 
-    @cached_property
-    def user(self):
-        return User.cache.get(self.user_id)
-
     def get_statuses(self, user_id=None):
         status = TopicStat(self.id) or {}
         rv = {
