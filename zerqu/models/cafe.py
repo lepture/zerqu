@@ -235,6 +235,7 @@ class CafeTopic(Base):
     @classmethod
     def get_topics_cafes(cls, topic_ids):
         q = db.session.query(cls.topic_id, cls.cafe_id)
+        q = q.filter_by(status=cls.STATUS_PUBLIC)
         q = q.filter(cls.topic_id.in_(topic_ids)).all()
         cafe_ids = {i for _, i in q}
         cafes = Cafe.cache.get_dict(cafe_ids)

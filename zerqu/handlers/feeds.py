@@ -3,7 +3,7 @@
 from markupsafe import escape
 from flask import Blueprint, Response
 from flask import request, current_app
-from zerqu.models import db, User, Cafe, Topic
+from zerqu.models import db, User, Cafe, Topic, CafeTopic
 from zerqu.libs.cache import cache, ONE_HOUR
 from zerqu.libs.utils import xmldatetime, canonical_url
 from zerqu.rec.timeline import get_all_topics
@@ -41,8 +41,9 @@ def cafe_feed(slug):
     """Show one cafe. This handler is designed for SEO."""
     cafe = Cafe.cache.first_or_404(slug=slug)
 
-    q = db.session.query(Topic.id).filter_by(cafe_id=cafe.id)
-    q = q.order_by(Topic.id.desc())
+    q = db.session.query(CafeTopic.topic_id)
+    q = q.filter_by(cafe_id=cafe.id, status=CafeTopic.STATUS_PUBLIC)
+    q = q.order_by(CafeTopic.updated_at.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
 
     site_name = current_app.config.get('SITE_NAME')
@@ -68,7 +69,7 @@ def yield_feed(title, web_url, self_url, topics):
         yield u'<updated>%s</updated>' % xmldatetime(topics[0].updated_at)
     users = User.cache.get_dict({o.user_id for o in topics})
     for topic in topics:
-        for text in yield_entry(topic, users.get(topic.user_id)):
+        for text in yield_entry(topic, users.get(str(topic.user_id))):
             yield text
     yield u'</feed>'
 
