@@ -2,7 +2,7 @@
 
 from flask import json
 from zerqu.models import db, User, Topic, TopicLike
-from zerqu.models import Cafe, Comment
+from zerqu.models import Cafe, CafeTopic, Comment
 from ._base import TestCase
 
 
@@ -13,14 +13,29 @@ class TopicMixin(object):
             permission=Cafe.PERMISSION_PUBLIC, status=9,
         )
         db.session.add(cafe)
-        db.session.flush()
-        topic = Topic(title=u'hello', user_id=1, cafe_id=cafe.id)
+        topic = Topic(title=u'hello', content='', user_id=1)
         db.session.add(topic)
+        db.session.flush()
+        ct = CafeTopic(cafe_id=cafe.id, topic_id=topic.id, user_id=1)
+        db.session.add(ct)
         db.session.commit()
         return topic
 
+    def add_cafe_topic(self, title, content, user_id, cafe_id):
+        t = Topic(title=title, content=content, user_id=user_id)
+        db.session.add(t)
+        db.session.flush()
+        ct = CafeTopic(
+            cafe_id=cafe_id,
+            topic_id=t.id,
+            user_id=user_id,
+            status=CafeTopic.STATUS_PUBLIC,
+        )
+        db.session.add(ct)
+        return t
 
-class TestTopicTimeline(TestCase):
+
+class TestTopicTimeline(TestCase, TopicMixin):
     def create_topics(self):
         pub_cafe = Cafe(
             name=u'official', slug='official', user_id=1,
@@ -35,10 +50,8 @@ class TestTopicTimeline(TestCase):
         db.session.flush()
 
         for i in range(30):
-            t1 = Topic(user_id=1, cafe_id=pub_cafe.id, title=u'hi public')
-            t2 = Topic(user_id=2, cafe_id=member_cafe.id, title=u'hi member')
-            db.session.add(t1)
-            db.session.add(t2)
+            self.add_cafe_topic(u'hi public', '', 1, pub_cafe.id)
+            self.add_cafe_topic(u'hi member', '', 2, member_cafe.id)
         db.session.commit()
 
     def test_public_timeline(self):
@@ -56,20 +69,14 @@ class TestTopicTimeline(TestCase):
         assert len(set([d['cafe']['id'] for d in data['data']])) == 2
 
 
-class TestViewTopic(TestCase):
+class TestViewTopic(TestCase, TopicMixin):
     def create_topic(self, cafe=None):
         if cafe is None:
             cafe = Cafe(name=u'official', slug='official', user_id=1)
             db.session.add(cafe)
             db.session.commit()
 
-        t = Topic(
-            user_id=1,
-            cafe_id=cafe.id,
-            title=u'View',
-            content=u'A **text**',
-        )
-        db.session.add(t)
+        t = self.add_cafe_topic(u'View', u'A **text**', 1, cafe.id)
         db.session.commit()
         return t
 
@@ -168,7 +175,7 @@ class TestTopicLikes(TestCase, TopicMixin):
         assert rv.status_code == 409
 
     def test_view_topic_likes(self):
-        topic = Topic(title=u'hello', user_id=1)
+        topic = Topic(title=u'hello', content=u'', user_id=1)
         db.session.add(topic)
         db.session.commit()
         for i in range(10, 100):

@@ -36,15 +36,10 @@ class Topic(Base):
 
     # feature content
     info = Column(JSON, default={})
-
-    # TODO: remove cafe_id
-    cafe_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=False, index=True)
-
     tags = Column(ARRAY(String))
 
     status = Column(SmallInteger, default=STATUS_PUBLIC)
-
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(
         DateTime,

@@ -2,7 +2,8 @@
 
 import random
 from flask import json
-from zerqu.models import db, User, Cafe, CafeMember, Topic
+from zerqu.models import Cafe, CafeTopic, CafeMember
+from zerqu.models import db, User, Topic
 from ._base import TestCase
 
 
@@ -93,16 +94,16 @@ class TestUpdateCafe(TestCase, CafeMixin):
 
     def test_owner_update_cafe_name(self):
         cafe, headers = self.get_prepared_data(1)
-        data = json.dumps({'name': 'A'})
+        data = json.dumps({'name': 'ABC', 'slug': cafe.slug})
         rv = self.client.post(
             '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
         )
         assert rv.status_code == 200
-        assert cafe.name == 'A'
+        assert cafe.name == 'ABC'
 
     def test_owner_update_cafe_slug(self):
         cafe, headers = self.get_prepared_data(1)
-        data = json.dumps({'slug': 'a-b-c'})
+        data = json.dumps({'slug': 'a-b-c', 'name': cafe.name})
         rv = self.client.post(
             '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
         )
@@ -136,17 +137,17 @@ class TestUpdateCafe(TestCase, CafeMixin):
         # Add membership
         cafe, headers = self.get_prepared_data(2)
         self.add_membership(cafe)
-        data = json.dumps({'name': 'A'})
+        data = json.dumps({'name': 'ABC', 'slug': cafe.slug})
         rv = self.client.post(
             '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
         )
         assert rv.status_code == 200
-        assert cafe.name == 'A'
+        assert cafe.name == 'ABC'
 
     def test_admin_update_cafe_slug(self):
         cafe, headers = self.get_prepared_data(2)
         self.add_membership(cafe)
-        data = json.dumps({'slug': 'a-b-c'})
+        data = json.dumps({'slug': 'a-b-c', 'name': cafe.name})
         rv = self.client.post(
             '/api/cafes/%s' % cafe.slug, data=data, headers=headers,
         )
@@ -189,7 +190,6 @@ class TestViewCafe(TestCase, CafeMixin):
         rv = self.client.get('/api/cafes/%s' % cafe.slug, headers=headers)
         value = json.loads(rv.data)
         assert 'permission' in value
-        assert value['permission']['read']
         assert value['permission']['write']
         assert value['permission']['admin']
 
@@ -212,7 +212,6 @@ class TestCafeMembers(TestCase, CafeMixin):
             member = CafeMember(cafe_id=item.id, user_id=user.id)
             member.role = random.choice([
                 CafeMember.ROLE_VISITOR,
-                CafeMember.ROLE_APPLICANT,
                 CafeMember.ROLE_SUBSCRIBER,
                 CafeMember.ROLE_MEMBER,
                 CafeMember.ROLE_ADMIN,
@@ -307,11 +306,19 @@ class TestCafeTopics(TestCase):
 
         for i in range(60):
             t = Topic(
-                cafe_id=item.id,
                 user_id=random.choice(user_ids),
                 title=u'test',
+                content=u'',
             )
             db.session.add(t)
+            db.session.flush()
+            ct = CafeTopic(
+                cafe_id=item.id,
+                topic_id=t.id,
+                user_id=1,
+                status=CafeTopic.STATUS_PUBLIC,
+            )
+            db.session.add(ct)
 
         db.session.commit()
 
