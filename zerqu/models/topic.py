@@ -63,17 +63,6 @@ class Topic(Base):
             'created_at', 'updated_at',
         )
 
-    def dict_with_statuses(self, user_id):
-        data = dict(self)
-        data.update(self.get_statuses(user_id))
-        if not self.webpage:
-            return data
-        webpage = WebPage.cache.get(self.webpage)
-        if webpage:
-            data['webpage'] = dict(webpage)
-            data['link'] = webpage.link
-        return data
-
     def update_link(self, link, user_id):
         if not link:
             return self
@@ -123,33 +112,6 @@ class Topic(Base):
             read = TopicRead(topic_id=self.id, user_id=user_id)
             with db.auto_commit(throw=False):
                 db.session.add(read)
-        return rv
-
-    @staticmethod
-    def get_multi_statuses(tids, user_id):
-        rv = {}
-        stats = TopicStat.get_dict(tids)
-        for tid in tids:
-            status = stats.get(tid) or {}
-            tid = str(tid)
-            rv[tid] = {
-                'view_count': int(status.get('views', 0)),
-                'like_count': int(status.get('likes', 0)),
-                'comment_count': int(status.get('comments', 0)),
-                'read_count': int(status.get('reads', 0)),
-            }
-
-        if not user_id:
-            return rv
-
-        liked = TopicLike.topics_liked_by_user(user_id, tids)
-        reads = TopicRead.topics_read_by_user(user_id, tids)
-        for tid in tids:
-            tid = str(tid)
-            rv[tid]['liked_by_me'] = bool(liked.get(tid))
-            item = reads.get(tid)
-            if item:
-                rv[tid]['read_by_me'] = item.percent
         return rv
 
 
@@ -324,15 +286,35 @@ def fetch_current_user_items(cls, user_id, ref_ids, key='topic_id'):
     return rv
 
 
-def topic_list_with_statuses(topics, user_id):
+def iter_topics_with_statuses(topics, user_id):
     """Update topic list with statuses.
 
     :param topics: A list of topic dict.
     :param user_id: Current user ID.
     """
-    rv = []
-    statuses = Topic.get_multi_statuses([t['id'] for t in topics], user_id)
+    tids = [t['id'] for t in topics]
+    stats = TopicStat.get_dict(tids)
+
+    if user_id:
+        liked = TopicLike.topics_liked_by_user(user_id, tids)
+        reads = TopicRead.topics_read_by_user(user_id, tids)
+    else:
+        liked = None
+        reads = None
+
     for t in topics:
-        t.update(statuses.get(str(t['id']), {}))
-        rv.append(t)
-    return rv
+        tid = t['id']
+        status = stats.get(tid, {})
+        t['view_count'] = int(status.get('views', 0))
+        t['like_count'] = int(status.get('likes', 0))
+        t['comment_count'] = int(status.get('comments', 0))
+        t['read_count'] = int(status.get('reads', 0))
+
+        tid = str(tid)
+        if liked:
+            t['liked_by_me'] = bool(liked.get(tid))
+        if reads:
+            read = reads.get(tid)
+            if read:
+                t['read_by_me'] = read.percent
+        yield t

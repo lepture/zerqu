@@ -10,7 +10,7 @@ from zerqu.libs.errors import NotFound, Denied, InvalidAccount, Conflict
 from zerqu.models import db, current_user
 from zerqu.models import User, Cafe, CafeMember, CafeTopic, Topic
 from zerqu.models import iter_items_with_users
-from zerqu.models.topic import topic_list_with_statuses
+from zerqu.models.topic import iter_topics_with_statuses
 from zerqu.forms import CafeForm, TopicForm
 from .base import ApiBlueprint
 from .base import require_oauth
@@ -160,7 +160,7 @@ def list_cafe_topics(slug):
     cts, p = pagination_query(CafeTopic, 'updated_at', cafe_id=cafe.id)
     data = Topic.cache.get_many([c.topic_id for c in cts])
     data = list(iter_items_with_users(data))
-    data = topic_list_with_statuses(data, current_user.id)
+    data = list(iter_topics_with_statuses(data, current_user.id))
     return jsonify(data=data, pagination=dict(p))
 
 

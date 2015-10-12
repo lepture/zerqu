@@ -3,11 +3,11 @@
 from flask import request, jsonify
 
 from zerqu.models import db, current_user, User
-from zerqu.models import CafeTopic
+from zerqu.models import CafeTopic, WebPage
 from zerqu.models import Topic, TopicLike, TopicRead, TopicStat
 from zerqu.models import Comment, CommentLike
 from zerqu.models import iter_items_with_users
-from zerqu.models.topic import topic_list_with_statuses
+from zerqu.models.topic import iter_topics_with_statuses
 from zerqu.rec.timeline import get_timeline_topics, get_all_topics
 from zerqu.forms import TopicForm, CommentForm
 from zerqu.libs.renderer import markup
@@ -32,13 +32,9 @@ def timeline():
     topics_cafes = CafeTopic.get_topics_cafes([t.id for t in topics])
     data = []
     for d in iter_items_with_users(topics):
-        cafes = topics_cafes.get(d['id'])
-        d['cafes'] = cafes
-        # TODO: delete
-        if cafes:
-            d['cafe'] = dict(cafes[0])
+        d['cafes'] = topics_cafes.get(d['id'])
         data.append(d)
-    data = topic_list_with_statuses(data, current_user.id)
+    data = list(iter_topics_with_statuses(data, current_user.id))
     return jsonify(data=data, cursor=cursor)
 
 
@@ -46,7 +42,7 @@ def timeline():
 @require_oauth(login=False)
 def view_topic(tid):
     topic = Topic.cache.get_or_404(tid)
-    data = topic.dict_with_statuses(current_user.id)
+    data = make_topic_response(topic)
 
     # /api/topic/:id?content=raw vs ?content=html
     content_format = request.args.get('content')
@@ -56,10 +52,7 @@ def view_topic(tid):
         data['content'] = topic.html
         TopicStat(tid).increase('views')
 
-    cafes = CafeTopic.get_topic_cafes(tid, 1)
-    data['cafes'] = cafes
-    if cafes:
-        data['cafe'] = dict(cafes[0])
+    data['cafes'] = CafeTopic.get_topic_cafes(tid, 1)
     data['user'] = User.cache.get(topic.user_id)
     return jsonify(data)
 
@@ -76,7 +69,7 @@ def update_topic(tid):
 
     form = TopicForm.create_api_form(obj=topic)
     topic = form.update_topic(current_user.id)
-    data = topic.dict_with_statuses(current_user.id)
+    data = make_topic_response(topic)
     data['user'] = dict(current_user)
     data['content'] = topic.html
     return jsonify(data)
@@ -264,3 +257,15 @@ def get_comment_or_404(tid, cid):
     if not comment or comment.topic_id != tid:
         raise NotFound('Comment')
     return comment
+
+
+def make_topic_response(topic):
+    data = dict(topic)
+    data.update(topic.get_statuses(current_user.id))
+    if not topic.webpage:
+        return data
+    webpage = WebPage.cache.get(topic.webpage)
+    if webpage:
+        data['webpage'] = dict(webpage)
+        data['link'] = webpage.link
+    return data
