@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import datetime
+from collections import defaultdict
 from werkzeug.utils import cached_property
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
@@ -230,3 +231,16 @@ class CafeTopic(Base):
         self.status = self.STATUS_PUBLIC
         self.updated_at = datetime.datetime.utcnow()
         db.session.add(self)
+
+    @classmethod
+    def get_topics_cafes(cls, topic_ids):
+        q = db.session.query(cls.topic_id, cls.cafe_id)
+        q = q.filter(cls.topic_id.in_(topic_ids)).all()
+        cafe_ids = {i for _, i in q}
+        cafes = Cafe.cache.get_dict(cafe_ids)
+        topic_cafes = defaultdict(list)
+        for tid, cid in q:
+            cafe = cafes.get(str(cid))
+            if cafe:
+                topic_cafes[tid].append(cafe)
+        return topic_cafes

@@ -19,7 +19,7 @@
   </header>
   {% for topic in topics %}
   {% set user = topic_users.get(topic.user_id|string) %}
-  {% set cafe = topic_cafes.get(topic.cafe_id|string) %}
+  {% set cafes = topic_cafes.get(topic.id) %}
   <article class="hentry">
     <h1 class="entry-title">
       <a href="{{ url_for('.view_topic', tid=topic.id) }}">{{ topic.title }}</a>
@@ -29,9 +29,9 @@
       <a class="fn url" href="{{ url_for('.view_user', username=user.username) }}">{{ user }}</a>
     </span>
     {% endif %}
-    {% if cafe %}
+    {% for cafe in cafes %}
     <a href="{{ url_for('.view_cafe', slug=cafe.slug) }}" rel="tag">{{ cafe.name }}</a>
-    {% endif %}
+    {% endfor %}
     <time class="published" datetime="{{ topic.created_at|xmldatetime }}" pubdate>{{ topic.created_at|xmldatetime }}</time>
     <time class="updated" datetime="{{ topic.updated_at|xmldatetime }}">{{ topic.updated_at|xmldatetime }}</time>
   </article>

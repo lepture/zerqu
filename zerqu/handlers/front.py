@@ -6,7 +6,7 @@ from werkzeug.security import gen_salt
 from zerqu.libs.cache import cache, ONE_HOUR
 from zerqu.libs.utils import is_robot, xmldatetime
 from zerqu.rec.timeline import get_all_topics
-from zerqu.models import db, User, Cafe, Topic, Comment
+from zerqu.models import db, User, Cafe, Topic, CafeTopic, Comment
 
 
 bp = Blueprint('front', __name__, template_folder='templates')
@@ -98,7 +98,7 @@ def run_app():
 def home():
     topics, _ = get_all_topics(0)
     topic_users = User.cache.get_dict({o.user_id for o in topics})
-    topic_cafes = Cafe.cache.get_dict({o.cafe_id for o in topics})
+    topic_cafes = CafeTopic.get_topics_cafes([o.id for o in topics])
     return render(
         'front/index.html',
         topics=topics,
@@ -111,7 +111,8 @@ def home():
 def view_topic(tid):
     """Show one topic. This handler is designed for SEO."""
     topic = Topic.cache.get_or_404(tid)
-    cafe = Cafe.cache.get_or_404(topic.cafe_id)
+    q = db.session.query(CafeTopic.cafe_id).filter_by(topic_id=tid)
+    cafes = Cafe.cache.get_many([i for i, in q])
     q = db.session.query(Comment.id).filter_by(topic_id=tid)
     comments = Comment.cache.get_many({i for i, in q.limit(100)})
     comment_users = User.cache.get_dict({o.user_id for o in comments})
@@ -120,7 +121,7 @@ def view_topic(tid):
     return render(
         'front/topic.html',
         topic=topic,
-        cafe=cafe,
+        cafes=cafes,
         comments=comments,
         comment_users=comment_users,
         comment_count=comment_count,

@@ -18,8 +18,17 @@ def get_timeline_topics(cursor=None, user_id=None, count=20):
 
 
 def get_all_topics(cursor=None, count=20):
-    cafe_ids = get_all_cafe_ids()
-    return get_cafe_topics(cafe_ids, cursor, count)
+    q = db.session.query(Topic.id)
+    if cursor:
+        q = q.filter(Topic.id < cursor)
+
+    q = q.order_by(Topic.id.desc()).limit(count)
+
+    topic_ids = [i for i, in q]
+    topics = Topic.cache.get_many(topic_ids)
+    if len(topics) < count:
+        return topics, 0
+    return topics, topic_ids[-1]
 
 
 @cached('timeline:following_cafe_ids:%s')
