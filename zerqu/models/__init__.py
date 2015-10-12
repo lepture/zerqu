@@ -10,4 +10,4 @@ from .topic import Comment, CommentLike
 from .webpage import WebPage
 from .social import SocialUser
 from .notification import Notification
-from .utils import current_user
+from .utils import current_user, iter_items_with_users

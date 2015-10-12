@@ -3,9 +3,10 @@
 from flask import request, jsonify
 
 from zerqu.models import db, current_user, User
-from zerqu.models import Cafe, CafeTopic
+from zerqu.models import CafeTopic
 from zerqu.models import Topic, TopicLike, TopicRead, TopicStat
 from zerqu.models import Comment, CommentLike
+from zerqu.models import iter_items_with_users
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.rec.timeline import get_timeline_topics, get_all_topics
 from zerqu.forms import TopicForm, CommentForm
@@ -24,14 +25,19 @@ api = ApiBlueprint('topics')
 def timeline():
     cursor = int_or_raise('cursor', 0)
     if request.args.get('show') == 'all':
-        data, cursor = get_all_topics(cursor)
+        topics, cursor = get_all_topics(cursor)
     else:
-        data, cursor = get_timeline_topics(cursor, current_user.id)
-    reference = {
-        'user': User.cache.get_dict({o.user_id for o in data}),
-        'cafe': Cafe.cache.get_dict({o.cafe_id for o in data}),
-    }
-    data = list(Topic.iter_dict(data, **reference))
+        topics, cursor = get_timeline_topics(cursor, current_user.id)
+
+    topics_cafes = CafeTopic.get_topics_cafes([t.id for t in topics])
+    data = []
+    for d in iter_items_with_users(topics):
+        cafes = topics_cafes.get(d['id'])
+        d['cafes'] = cafes
+        # TODO: delete
+        if cafes:
+            d['cafe'] = dict(cafes[0])
+        data.append(d)
     data = topic_list_with_statuses(data, current_user.id)
     return jsonify(data=data, cursor=cursor)
 
@@ -51,6 +57,7 @@ def view_topic(tid):
         TopicStat(tid).increase('views')
 
     cafes = CafeTopic.get_topic_cafes(tid, 1)
+    data['cafes'] = cafes
     if cafes:
         data['cafe'] = dict(cafes[0])
     data['user'] = User.cache.get(topic.user_id)
@@ -110,7 +117,6 @@ def view_topic_comments(tid):
     comments, cursor = cursor_query(
         Comment, lambda q: q.filter_by(topic_id=topic.id)
     )
-    reference = {'user': User.cache.get_dict({o.user_id for o in comments})}
     data = []
 
     if current_user:
@@ -120,7 +126,7 @@ def view_topic_comments(tid):
         )
     else:
         statuses = {}
-    for d in Comment.iter_dict(comments, **reference):
+    for d in iter_items_with_users(comments):
         d['content'] = markup(d['content'])
         # update status
         d.update(statuses.get(str(d['id']), {}))

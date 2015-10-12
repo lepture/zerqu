@@ -4,6 +4,7 @@ from flask import jsonify
 from zerqu.models import db, User, current_user
 from zerqu.models import Cafe, CafeMember, Topic
 from zerqu.models import Notification
+from zerqu.models import iter_items_with_users
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.forms import RegisterForm, UserProfileForm
 from .base import ApiBlueprint
@@ -42,8 +43,7 @@ def view_user_cafes(username):
     user = User.cache.first_or_404(username=username)
     cafe_ids = CafeMember.get_user_following_cafe_ids(user.id)
     cafes = Cafe.cache.get_many(cafe_ids)
-    users = User.cache.get_dict({o.user_id for o in cafes})
-    data = list(Cafe.iter_dict(cafes, user=users))
+    data = list(iter_items_with_users(cafes))
     return jsonify(data=data)
 
 
@@ -66,8 +66,7 @@ def view_user_topics(username):
         return jsonify(data=[], cursor=0)
 
     topics = Topic.cache.get_many(topic_ids)
-    users = {str(user.id): user}
-    data = list(Topic.iter_dict(topics, user=users))
+    data = list(iter_items_with_users(topics, {str(user.id): user}))
     data = topic_list_with_statuses(data, current_user.id)
 
     if len(topic_ids) < count:

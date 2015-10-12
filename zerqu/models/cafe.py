@@ -7,7 +7,6 @@ from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer
 from zerqu.libs.utils import EMPTY
-from .user import User
 from .base import db, Base, JSON
 
 __all__ = ['Cafe', 'CafeMember', 'CafeTopic']
@@ -63,8 +62,6 @@ class Cafe(Base):
     user_id = Column(Integer, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
-
-    __reference__ = {'user': 'user_id'}
 
     def __repr__(self):
         return '<Cafe:%s>' % self.slug

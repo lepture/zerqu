@@ -183,12 +183,12 @@ class TopicForm(Form):
         if not field.data:
             return
 
-    def create_topic(self, cafe_id, user_id):
-        topic = Topic.create_topic(
-            self.title.data,
-            self.content.data,
-            self.link.data,
-            cafe_id, user_id
+    def create_topic(self, user_id):
+        topic = Topic(
+            title=self.title.data,
+            content=self.content.data,
+            user_id=user_id,
+            link=self.link.data,
         )
         with db.auto_commit():
             db.session.add(topic)
@@ -217,9 +217,9 @@ class CommentForm(Form):
 
     def create_comment(self, user_id, topic_id):
         c = Comment(
-            user_id=user_id,
-            topic_id=topic_id,
             content=self.content.data,
+            topic_id=topic_id,
+            user_id=user_id,
         )
 
         reply_to = self.reply_to.data

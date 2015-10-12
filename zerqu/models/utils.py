@@ -3,7 +3,7 @@ from flask import request
 from werkzeug.local import LocalProxy
 from zerqu.libs.utils import Empty
 from .auth import oauth
-from .user import UserSession
+from .user import User, UserSession
 
 
 class Anonymous(Empty):
@@ -34,6 +34,17 @@ def _get_current_user():
 
     request._current_user = user
     return user
+
+
+def iter_items_with_users(items, users=None):
+    if not users:
+        users = User.cache.get_dict([o.user_id for o in items])
+    for item in items:
+        data = dict(item)
+        user = users.get(str(item.user_id))
+        if user:
+            data['user'] = dict(user)
+        yield data
 
 
 current_user = LocalProxy(_get_current_user)

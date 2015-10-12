@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from zerqu.libs.errors import NotFound, Denied, InvalidAccount, Conflict
 from zerqu.models import db, current_user
 from zerqu.models import User, Cafe, CafeMember, CafeTopic, Topic
+from zerqu.models import iter_items_with_users
 from zerqu.models.topic import topic_list_with_statuses
 from zerqu.forms import CafeForm, TopicForm
 from .base import ApiBlueprint
@@ -22,16 +23,14 @@ api = ApiBlueprint('cafes')
 @require_oauth(login=False, cache_time=300)
 def list_cafes():
     data, cursor = cursor_query(Cafe)
-    users = User.cache.get_dict({o.user_id for o in data})
-    data = list(Cafe.iter_dict(data, user=users))
+    data = list(iter_items_with_users(data))
 
     if not current_user or request.args.get('cursor'):
         return jsonify(data=data, cursor=cursor)
 
     cafe_ids = CafeMember.get_user_following_cafe_ids(current_user.id)
     following = Cafe.cache.get_many(cafe_ids)
-    users = User.cache.get_dict({o.user_id for o in following})
-    following = list(Cafe.iter_dict(following, user=users))
+    following = list(iter_items_with_users(following))
     return jsonify(following=following, data=data, cursor=cursor)
 
 
@@ -160,8 +159,7 @@ def list_cafe_topics(slug):
     cafe = Cafe.cache.first_or_404(slug=slug)
     cts, p = pagination_query(CafeTopic, 'updated_at', cafe_id=cafe.id)
     data = Topic.cache.get_many([c.topic_id for c in cts])
-    reference = {'user': User.cache.get_dict({o.user_id for o in data})}
-    data = list(Topic.iter_dict(data, **reference))
+    data = list(iter_items_with_users(data))
     data = topic_list_with_statuses(data, current_user.id)
     return jsonify(data=data, pagination=dict(p))
 
@@ -178,7 +176,7 @@ def create_cafe_topic(slug):
         CafeMember.get_or_create(cafe.id, current_user.id)
 
     form = TopicForm.create_api_form()
-    topic = form.create_topic(cafe.id, current_user.id)
+    topic = form.create_topic(current_user.id)
 
     with db.auto_commit():
         cafe.create_cafe_topic(topic.id, current_user.id)

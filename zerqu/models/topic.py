@@ -7,10 +7,8 @@ from sqlalchemy import func
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, DateTime
 from sqlalchemy import SmallInteger, Integer, UnicodeText
-from werkzeug.utils import cached_property
 from zerqu.libs.cache import cache, redis
 from zerqu.libs.renderer import markup
-from .user import User
 from .webpage import WebPage
 from .utils import current_user
 from .base import db, Base, JSON, ARRAY, CACHE_TIMES, RedisStat
@@ -54,7 +52,12 @@ class Topic(Base):
         onupdate=datetime.datetime.utcnow,
     )
 
-    __reference__ = {'user': 'user_id', 'cafe': 'cafe_id'}
+    def __init__(self, title, content, user_id, link=None):
+        self.title = title
+        self.content = content
+        self.user_id = user_id
+        if link:
+            self.update_link(link, user_id)
 
     def __repr__(self):
         return '<Topic:%d>' % self.id
@@ -154,17 +157,6 @@ class Topic(Base):
                 rv[tid]['read_by_me'] = item.percent
         return rv
 
-    @classmethod
-    def create_topic(cls, title, content, link, cafe_id, user_id):
-        topic = cls(
-            title=title,
-            content=content,
-            cafe_id=cafe_id,
-            user_id=user_id,
-        )
-        topic.update_link(link, user_id)
-        return topic
-
 
 class TopicStat(RedisStat):
     KEY_PREFIX = 'topic_stat:{}'
@@ -218,6 +210,10 @@ class TopicRead(Base):
     # reading status
     _percent = Column('percent', SmallInteger, default=0)
 
+    def __init__(self, topic_id, user_id):
+        self.topic_id = topic_id
+        self.user_id = user_id
+
     @property
     def percent(self):
         return '%d%%' % self._percent
@@ -257,7 +253,12 @@ class Comment(Base):
         onupdate=datetime.datetime.utcnow,
     )
 
-    __reference__ = {'user': 'user_id'}
+    def __init__(self, content, topic_id, user_id, reply_to=None):
+        self.content = content
+        self.topic_id = topic_id
+        self.user_id = user_id
+        if reply_to:
+            self.reply_to = reply_to
 
     def keys(self):
         return (
@@ -288,6 +289,10 @@ class CommentLike(Base):
     comment_id = Column(Integer, primary_key=True, autoincrement=False)
     user_id = Column(Integer, primary_key=True, autoincrement=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __init__(self, comment_id, user_id):
+        self.comment_id = comment_id
+        self.user_id = user_id
 
     @classmethod
     def comments_liked_by_user(cls, user_id, comment_ids):
