@@ -148,9 +148,10 @@ def cafe_list():
 def view_cafe(slug):
     """Show one cafe. This handler is designed for SEO."""
     cafe = Cafe.cache.first_or_404(slug=slug)
-    q = db.session.query(Topic.id).filter_by(cafe_id=cafe.id)
-    q = q.order_by(Topic.id.desc())
-    topics = Topic.cache.get_many([i for i, in q.limit(50)])
+    q = db.session.query(CafeTopic.topic_id)
+    q = q.filter_by(cafe_id=cafe.id, status=CafeTopic.STATUS_PUBLIC)
+    q = q.order_by(CafeTopic.topic_id.desc()).limit(50)
+    topics = Topic.cache.get_many([i for i, in q])
     topic_users = User.cache.get_dict({o.user_id for o in topics})
     return render(
         'front/cafe.html',
