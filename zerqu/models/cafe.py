@@ -158,13 +158,19 @@ class CafeMember(Base):
 
     cafe_id = Column(Integer, primary_key=True, autoincrement=False)
     user_id = Column(Integer, primary_key=True, autoincrement=False)
-    role = Column('role', SmallInteger, default=0)
+    role = Column('role', SmallInteger, default=ROLE_VISITOR)
 
     reputation = Column(Integer, default=0)
     description = Column(Unicode(140))
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __init__(self, cafe_id, user_id, role=None):
+        self.cafe_id = cafe_id
+        self.user_id = user_id
+        if role:
+            self.role = role
 
     @cached_property
     def label(self):
