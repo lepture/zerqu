@@ -1,7 +1,6 @@
-<!DOCTYPE html>
-<html prefix="og: http://ogp.me/ns#">
-<head>
-  {% include "front/share.html" %}
+{% extends "front/layout.html" %}
+
+{% block head %}
   <title>{{ cafe.name }}</title>
   <meta property="og:type" content="website">
   <meta property="og:title" content="{{ cafe.name }}">
@@ -18,8 +17,9 @@
     <meta property="og:image" content="{{ config.SITE_LOGO }}">
     {% endif %}
   {% endif %}
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
   <header>
     <h1>{{ cafe.name }}</h1>
     <p>{{ cafe.description }}</p>
@@ -39,5 +39,4 @@
     <time class="updated" datetime="{{ topic.updated_at|xmldatetime }}">{{ topic.updated_at|xmldatetime }}</time>
   </article>
   {% endfor %}
-</body>
-</html>
+{% endblock %}

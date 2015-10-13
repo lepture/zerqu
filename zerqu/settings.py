@@ -4,12 +4,12 @@ import datetime
 
 SITE_NAME = 'ZERQU'
 SITE_DESCRIPTION = 'Welcome to ZERQU'
-SITE_LINKS = [{'name': 'About', 'url': '/c/about'}]
 SITE_YEAR = datetime.date.today().year
 
-SITE_LOGINS = []
-SITE_HEADER = ''
-SITE_FOOTER = ''
+APP_LINKS = [{'name': 'About', 'url': '/c/about'}]
+APP_LOGINS = []
+APP_HEADER = ''
+APP_FOOTER = ''
 
 OAUTH2_CACHE_TYPE = 'redis'
 OAUTH2_CACHE_REDIS_DB = 1

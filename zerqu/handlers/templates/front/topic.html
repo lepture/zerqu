@@ -1,17 +1,18 @@
-<!DOCTYPE html>
-<html prefix="og: http://ogp.me/ns#">
-<head>
-  {% include "front/share.html" %}
+{% extends "front/layout.html" %}
+
+{% set content = topic.html %}
+{% set description = content|striptags|truncate(120) %}
+
+{% block head %}
   <title>{{ topic.title }}</title>
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{ topic.title }}">
-  {% set content = topic.html %}
-  {% set description = content|striptags|truncate(120) %}
   <meta name="description" content="{{ description }}">
   <meta property="og:description" content="{{ description }}">
   <meta name="twitter:card" content="summary">
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
   <article class="hentry" itemscope itemtype="http://schema.org/Article">
     <h1 class="entry-title" itemprop="name">{{ topic.title }}</h1>
     <meta itemprop="headline" content="{{ topic.title }}">
@@ -42,5 +43,4 @@
       </ul>
     </div>
   </article>
-</body>
-</html>
+{% endblock %}
