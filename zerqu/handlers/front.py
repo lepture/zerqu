@@ -111,16 +111,21 @@ def home():
 def view_topic(tid):
     """Show one topic. This handler is designed for SEO."""
     topic = Topic.cache.get_or_404(tid)
+    user = User.cache.get(topic.user_id)
+
     q = db.session.query(CafeTopic.cafe_id).filter_by(topic_id=tid)
     cafes = Cafe.cache.get_many([i for i, in q])
+
     q = db.session.query(Comment.id).filter_by(topic_id=tid)
     comments = Comment.cache.get_many({i for i, in q.limit(100)})
+
     comment_users = User.cache.get_dict({o.user_id for o in comments})
     comment_count = Comment.cache.filter_count(topic_id=tid)
 
     return render(
         'front/topic.html',
         topic=topic,
+        user=user,
         cafes=cafes,
         comments=comments,
         comment_users=comment_users,

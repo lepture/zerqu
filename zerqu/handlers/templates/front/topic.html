@@ -16,7 +16,7 @@
     <h1 class="entry-title" itemprop="name">{{ topic.title }}</h1>
     <meta itemprop="headline" content="{{ topic.title }}">
     <span class="author vcard">
-      <a class="fn url" itemprop="author" href="{{ url_for('.view_user', username=topic.user.username) }}">{{ topic.user }}</a>
+      <a class="fn url" itemprop="author" href="{{ url_for('.view_user', username=user.username) }}">{{ user }}</a>
     </span>
     {% for cafe in cafes %}
       <a href="{{ url_for('.view_cafe', slug=cafe.slug) }}" rel="tag">{{ cafe.name }}</a>
