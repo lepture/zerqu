@@ -215,7 +215,9 @@ class Comment(Base):
         self.topic_id = topic_id
         self.user_id = user_id
         if reply_to:
-            self.reply_to = reply_to
+            reply = Comment.cache.get(reply_to)
+            if reply and reply.topic_id == topic_id:
+                self.reply_to = reply_to
 
     def keys(self):
         return (

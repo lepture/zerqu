@@ -168,7 +168,7 @@ class CafeForm(Form):
 
 class TopicForm(Form):
     title = StringField(validators=[DataRequired()])
-    link = StringField()
+    link = StringField(validators=[Optional(), URL()])
     content = TextAreaField()
 
     def validate_title(self, field):
@@ -178,10 +178,6 @@ class TopicForm(Form):
             raise StopValidation("Duplicate requesting")
         # avoid duplicate requesting
         cache.set(key, 1, 100)
-
-    def validate_link(self, field):
-        if not field.data:
-            return
 
     def create_topic(self, user_id):
         topic = Topic(
@@ -220,13 +216,8 @@ class CommentForm(Form):
             content=self.content.data,
             topic_id=topic_id,
             user_id=user_id,
+            reply_to=self.reply_to.data
         )
-
-        reply_to = self.reply_to.data
-        if reply_to:
-            reply = Comment.cache.get(reply_to)
-            if reply and reply.topic_id == topic_id:
-                c.reply_to = reply.id
 
         with db.auto_commit():
             db.session.add(c)
