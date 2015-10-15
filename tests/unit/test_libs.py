@@ -56,19 +56,19 @@ class TestUserAgent(TestCase):
 class TestRenderer(TestCase):
     def test_markdown_image(self):
         img = 'hello ![alt](http://path.to/img)'
-        assert '<figure>' not in renderer.markdown(img, code=False)
+        assert '<figure>' not in renderer.render_markdown(img, code=False)
 
         img = 'hello ![alt](http://path.to/img "has title")'
-        assert '<figure>' in renderer.markdown(img, code=False)
+        assert '<figure>' in renderer.render_markdown(img, code=False)
 
     def test_markdown_code(self):
         s = '```\nprint()\n```'
-        assert 'highlight' not in renderer.markdown(s, code=True)
+        assert 'highlight' not in renderer.render_markdown(s, code=True)
 
         s = '```python\nprint()\n```'
-        assert 'highlight' in renderer.markdown(s, code=True)
+        assert 'highlight' in renderer.render_markdown(s, code=True)
 
     def test_text(self):
         s = 'hello\nword\n\nnewline'
-        assert '<p>' in renderer.text(s)
-        assert '<br>' in renderer.text(s)
+        assert '<p>' in renderer.render_text(s)
+        assert '<br>' in renderer.render_text(s)

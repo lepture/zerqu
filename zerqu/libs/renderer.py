@@ -67,7 +67,7 @@ _code_md = Markdown(renderer=HighlightRenderer(escape=True, skip_style=True))
 _text_md = Markdown(renderer=PrettyRenderer(escape=True, skip_style=True))
 
 
-def markdown(s, code=True):
+def render_markdown(s, code=True):
     if code:
         return _code_md.render(s)
     return _text_md.render(s)
@@ -83,7 +83,7 @@ def _process_text(s):
     return s.replace('\n', '<br>')
 
 
-def text(s):
+def render_text(s):
     s = RE_NEWLINES.sub('\n', s)
     paras = RE_LINE_SPLIT.split(s)
     paras = ['<p>%s</p>' % _process_text(p) for p in paras]
@@ -91,7 +91,7 @@ def text(s):
 
 
 if html5lib is None:
-    def html(s):
+    def render_html(s):
         raise RuntimeError('Please install html5lib for "html" renderer')
 else:
     _html_parser = html5lib.HTMLParser(
@@ -101,21 +101,21 @@ else:
     _html_walker = html5lib.getTreeWalker('dom')
     _html_serializer = html5lib.serializer.HTMLSerializer()
 
-    def html(s):
+    def render_html(s):
         stream = _html_walker(_html_parser.parse(s))
         return u''.join(_html_serializer.serialize(stream)).strip()
 
 
+renderers = {
+    'markdown': render_markdown,
+    'html': render_html,
+    'text': render_text,
+}
+
+
 def markup(s):
-    renderer = current_app.config.get('ZERQU_TEXT_RENDERER')
-    if renderer == 'markdown':
-        return markdown(s)
-
-    if renderer == 'html':
-        return html(s)
-
-    if renderer == 'text':
-        return renderer
-
-    func = import_string(renderer)
+    name = current_app.config.get('ZERQU_TEXT_RENDERER')
+    if name in renderers:
+        return renderers[name](s)
+    func = import_string(name)
     return func(s)
