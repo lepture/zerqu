@@ -1,5 +1,4 @@
 - src: Stouts.redis
-- src: Stouts.memcached
 - src: Stouts.nginx
 - src: Stouts.python
 - src: Stouts.supervisor

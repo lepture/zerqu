@@ -23,13 +23,14 @@ Setup vagrant development::
     $ vagrant up
     $ vagrant ssh
 
-Install python requirements in vagrant::
+Install python requirements in vagrant and create database::
 
     $ cd /vagrant
     $ make install
+    $ make database
 
 Run app server in vagrant ``/vagrant`` directory::
 
     $ make run
 
-Visit: http://192.168.30.10:5000/
+Visit: `http://192.168.30.10:5000/`

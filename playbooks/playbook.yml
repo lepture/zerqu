@@ -9,7 +9,6 @@
     - Stouts.python
     - Stouts.supervisor
     - ANXS.postgresql
-    # - zerqu
 
   vars:
     python_ppa: "ppa:fkrull/deadsnakes-python2.7"
