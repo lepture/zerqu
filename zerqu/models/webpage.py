@@ -1,13 +1,12 @@
 # coding: utf-8
 
 import hashlib
-import requests
 from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, Integer, DateTime
 from werkzeug.urls import url_parse, url_join
 from zerqu.libs.utils import run_task
-from zerqu.libs.webparser import parse_meta, sanitize_link
+from zerqu.libs.webparser import fetch_parse, sanitize_link
 from .base import db, Base, JSON
 
 
@@ -48,17 +47,13 @@ class WebPage(Base):
         ]
 
     def fetch_update(self):
-        headers = {'User-Agent': UA}
-        resp = requests.get(self.link, timeout=5, headers=headers)
-        if resp.status_code != 200:
-            self.info = {'error': 'status_code_error'}
-        elif not resp.text:
-            self.info = {'error': 'content_not_found'}
+        info = fetch_parse(self.link)
+        if u'error' in info:
+            self.info = info
         else:
-            info = parse_meta(resp.text)
-            self.title = info.pop('title', '')[:80]
-            self.description = info.pop('description', '')[:140]
-            image = info.pop('image', None)
+            self.title = info.pop(u'title', '')[:80]
+            self.description = info.pop(u'description', '')[:140]
+            image = info.pop(u'image', None)
             if image and len(image) < 256:
                 self.image = url_join(self.link, image)
             self.info = info

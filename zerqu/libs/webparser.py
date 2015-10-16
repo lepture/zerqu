@@ -7,6 +7,7 @@
 """
 
 import re
+import requests
 from werkzeug.urls import url_parse
 
 __version__ = '0.1'
@@ -19,6 +20,8 @@ META_ATTR = re.compile(
     re.U | re.I | re.S
 )
 TITLE = re.compile(ur'<title>(.*?)</title>', re.U | re.I | re.S)
+
+UA = 'Mozilla/5.0 (compatible; Webparser)'
 
 
 def parse_meta(content):
@@ -81,3 +84,13 @@ def sanitize_link(url):
     # remove ? at the end of url
     url = re.sub(r'\?$', '', url)
     return url
+
+
+def fetch_parse(link):
+    headers = {'User-Agent': UA}
+    resp = requests.get(link, timeout=5, headers=headers)
+    if resp.status_code != 200:
+        return {u'error': u'status_code_error'}
+    elif not resp.text:
+        return {u'error': u'content_not_found'}
+    return parse_meta(resp.text)
