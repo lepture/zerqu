@@ -8,7 +8,7 @@
 
 import re
 import requests
-from werkzeug.urls import url_parse
+from werkzeug.urls import url_parse, url_join
 
 __version__ = '0.1'
 __author__ = 'Hsiaoming Yang <me@lepture.com>'
@@ -24,49 +24,60 @@ TITLE = re.compile(ur'<title>(.*?)</title>', re.U | re.I | re.S)
 UA = 'Mozilla/5.0 (compatible; Webparser)'
 
 
-def parse_meta(content):
+def parse_meta(content, link=None):
     """Parse og information from HTML content.
 
     :param content: HTML content to be parsed. unicode required.
     """
     head = content.split(u'</head>', 1)[0]
-    rv = {}
-
-    def get_value(key, name, content):
-        if name not in [u'og:%s' % key, u'twitter:%s' % key]:
-            return False
-        if key not in rv:
-            rv[key] = content
-        return True
+    pairs = {}
 
     def parse_pair(kv):
         name = kv.get(u'name')
         if not name:
             name = kv.get(u'property')
         if not name:
-            return None
-
+            return
+        if name in pairs:
+            return
         content = kv.get(u'content')
         if not content:
-            return None
-
-        if name == u'twitter:creator':
-            rv[u'twitter'] = content
             return
-
-        for key in [u'title', u'image', u'description', u'url']:
-            if get_value(key, name, content):
-                return
+        pairs[name] = content
 
     for text in META_TAG.findall(head):
         kv = META_ATTR.findall(text)
         if kv:
             parse_pair(dict(kv))
 
+    rv = {}
+
+    def get_og_value(key):
+        for name in [u'og:%s' % key, u'twitter:%s' % key]:
+            if name in pairs:
+                rv[key] = pairs[name]
+
+    for key in [u'title', u'image', u'description', u'url']:
+        get_og_value(key)
+
+    if u'twitter:creator' in pairs:
+        rv[u'twitter'] = pairs[u'twitter:creator']
+
     if u'title' not in rv:
         m = TITLE.findall(head)
         if m:
             rv[u'title'] = m[0]
+        else:
+            rv[u'title'] = u'Unknown'
+
+    if u'description' not in rv:
+        desc = rv.get(u'description')
+        if desc:
+            rv[u'description'] = desc
+
+    # format absolute link
+    if link and u'image' in rv:
+        rv[u'image'] = url_join(link, rv[u'image'])
     return rv
 
 
@@ -93,4 +104,4 @@ def fetch_parse(link):
         return {u'error': u'status_code_error'}
     elif not resp.text:
         return {u'error': u'content_not_found'}
-    return parse_meta(resp.text)
+    return parse_meta(resp.text, link)
