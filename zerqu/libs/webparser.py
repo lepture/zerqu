@@ -67,8 +67,6 @@ def parse_meta(content, link=None):
         m = TITLE.findall(head)
         if m:
             rv[u'title'] = m[0]
-        else:
-            rv[u'title'] = u'Unknown'
 
     if u'description' not in rv:
         desc = rv.get(u'description')
@@ -78,6 +76,19 @@ def parse_meta(content, link=None):
     # format absolute link
     if link and u'image' in rv:
         rv[u'image'] = url_join(link, rv[u'image'])
+
+    rv.update(parse_embed(pairs))
+    return rv
+
+
+def parse_embed(pairs):
+    rv = {}
+    if u'twitter:player' in pairs:
+        rv['embed_url'] = pairs[u'twitter:player']
+    if u'twitter:player:width' in pairs:
+        rv['embed_width'] = pairs[u'twitter:player:width']
+    if u'twitter:player:height' in pairs:
+        rv['embed_height'] = pairs[u'twitter:player:height']
     return rv
 
 

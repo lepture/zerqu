@@ -4,7 +4,7 @@ import hashlib
 from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import String, Unicode, Integer, DateTime
-from werkzeug.urls import url_parse, url_join
+from werkzeug.urls import url_parse
 from zerqu.libs.utils import run_task
 from zerqu.libs.webparser import fetch_parse, sanitize_link
 from .base import db, Base, JSON
@@ -55,7 +55,7 @@ class WebPage(Base):
             self.description = info.pop(u'description', '')[:140]
             image = info.pop(u'image', None)
             if image and len(image) < 256:
-                self.image = url_join(self.link, image)
+                self.image = image
             self.info = info
 
         with db.auto_commit():
