@@ -74,6 +74,6 @@ def get_cafe_topics(cafe_ids, cursor=None, count=20):
     q = q.order_by(CafeTopic.topic_id.desc()).limit(count)
     topic_ids = [i for i, in q]
     topics = Topic.cache.get_many(topic_ids)
-    if len(topics) < count:
-        return topics, 0
+    if not topics:
+        return [], 0
     return topics, topics[-1].id
