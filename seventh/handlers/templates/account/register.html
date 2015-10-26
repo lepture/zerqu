@@ -1,0 +1,14 @@
+{% extends "account/layout.html" %}
+{% from "account/macro.html" import FormField %}
+
+{% block content %}
+  <h1>{{ _('Register') }}</h1>
+  {% if show_message %}
+    {% include "account/email-message.html" %}
+  {% endif %}
+  <form action="" method="post">
+    {{ form.csrf_token }}
+    {{ FormField(form.email) }}
+    <button class="form-button">{{ _('Register') }}</button>
+  </form>
+{% endblock %}

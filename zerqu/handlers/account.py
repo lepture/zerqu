@@ -17,6 +17,7 @@ from zerqu.forms import (
 )
 from .sendmails import create_email_signature, get_email_from_signature
 from .sendmails import send_change_password_email
+from .sendmails import send_signup_email
 from .sendmails import send_delete_topic_email
 
 bp = Blueprint('account', __name__, template_folder='templates')
@@ -79,6 +80,19 @@ def find_password():
         'account/find-password.html',
         form=form,
         message=message,
+    )
+
+
+@bp.route('/register', methods=['GET', 'POST'])
+def register_account():
+    form = EmailForm()
+    show_message = form.validate_on_submit()
+    if show_message:
+        send_signup_email(form.email.data)
+    return render_template(
+        'account/register.html',
+        form=form,
+        show_message=show_message,
     )
 
 
