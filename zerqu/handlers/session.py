@@ -19,10 +19,12 @@ def login_session():
             return '', 204
         return jsonify(status='error'), 400
 
-    if request.mimetype != 'application/json':
-        return jsonify(status='error'), 400
+    if request.mimetype == 'application/json':
+        username, password = parse_auth_headers()
+    else:
+        username = request.form.username
+        password = request.form.password
 
-    username, password = parse_auth_headers()
     if not username or not password:
         return jsonify(
             status='error',
