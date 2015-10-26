@@ -38,7 +38,7 @@
   font-size: 14px;
   margin: 6px 0;
 }
-form button {
+.form-button {
   cursor: pointer;
   display: inline-block;
   background-color: #42B983;
