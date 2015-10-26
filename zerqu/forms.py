@@ -60,6 +60,22 @@ class FindPasswordForm(Form):
         self.user = user
 
 
+class LoginForm(PasswordForm):
+    username = StringField('Username or Email', validators=[DataRequired()])
+
+    def validate_password(self, field):
+        username = self.username.data
+        if '@' in username:
+            user = User.cache.filter_first(email=username)
+        else:
+            user = User.cache.filter_first(username=username)
+
+        if not user or not user.check_password(field.data):
+            raise StopValidation('Invalid account or password')
+
+        self.user = user
+
+
 class EmailForm(Form):
     email = StringField(validators=[DataRequired(), Email()])
 

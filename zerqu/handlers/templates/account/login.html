@@ -1,0 +1,12 @@
+{% extends "account/layout.html" %}
+{% from "account/macro.html" import FormField %}
+
+{% block content %}
+  <h1>{{ _('Log In') }}</h1>
+  <form action="" method="post">
+    {{ form.csrf_token }}
+    {{ FormField(form.username) }}
+    {{ FormField(form.password) }}
+    <button class="form-button">{{ _('Log In') }}</button>
+  </form>
+{% endblock %}

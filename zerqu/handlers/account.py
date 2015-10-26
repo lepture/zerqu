@@ -14,6 +14,7 @@ from zerqu.forms import (
     PasswordForm,
     FindPasswordForm,
     EmailForm,
+    LoginForm,
 )
 from .sendmails import create_email_signature, get_email_from_signature
 from .sendmails import send_change_password_email
@@ -67,6 +68,16 @@ def social_authorize(name):
 @bp.route('/settings')
 def user_settings():
     return 'Not Ready'
+
+
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        UserSession.login(form.user, True)
+        next_url = request.args.get('next_url', '/')
+        return redirect(next_url)
+    return render_template('account/login.html', form=form)
 
 
 @bp.route('/find-password', methods=['GET', 'POST'])
