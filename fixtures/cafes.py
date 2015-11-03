@@ -1,7 +1,7 @@
 
 import random
 from werkzeug.security import gen_salt
-from zerqu.models import Cafe
+from zerqu.models import Cafe, CafeTopic
 
 TYPEWRITER = (
     "https://d262ilb51hltx0.cloudfront.net/max/1600/"
@@ -67,8 +67,21 @@ def iter_user_cafes():
         }
 
 
+def iter_cafe_topics():
+
+    print('Creating CafeTopics')
+    for i in range(1, 2000):
+        yield {
+            "topic_id": random.randint(1, 64),
+            "cafe_id": random.randint(1, 64),
+            "user_id": random.randint(2, 512),
+        }
+
+
 def iter_data():
     for data in iter_site_cafes():
         yield Cafe(**data)
     for data in iter_user_cafes():
         yield Cafe(**data)
+    for data in iter_cafe_topics():
+        yield CafeTopic(**data)

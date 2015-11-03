@@ -24,7 +24,6 @@ def create_topic(cafe_id, user_id):
     return {
         "title": title[:135],
         "content": content,
-        "cafe_id": cafe_id,
         "user_id": user_id,
     }
 
@@ -38,7 +37,7 @@ def iter_user_topics():
 
 
 def iter_topic_likes():
-    print('Creating topics likes')
+    print('Creating topic likes')
     for i in range(1, 2000):
         yield {
             "topic_id": random.randint(1, 62),
