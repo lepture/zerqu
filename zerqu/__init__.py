@@ -41,10 +41,9 @@ def register_base_blueprints(app):
 def register_app_blueprints(app):
     from .handlers import front, feeds, admin
 
+    admin.init_app(app)
     app.register_blueprint(feeds.bp, url_prefix='')
     app.register_blueprint(front.bp, url_prefix='')
-
-    admin.admin.init_app(app)
 
 
 def register_not_found(app):

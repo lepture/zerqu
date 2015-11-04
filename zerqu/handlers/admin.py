@@ -1,16 +1,13 @@
 # coding: utf-8
 
 from flask import redirect, url_for, request
-from flask_admin import Admin
+from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView as _ModelView
 from zerqu.models import db, current_user
 from zerqu.models import User, Cafe, Topic
 
 
-class ModelView(_ModelView):
-    can_delete = False
-    column_display_pk = True
-
+class LoginMixin(object):
     def is_accessible(self):
         if not current_user:
             return False
@@ -19,6 +16,15 @@ class ModelView(_ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('account.login', next_url=request.url))
+
+
+class IndexView(LoginMixin, AdminIndexView):
+    pass
+
+
+class ModelView(LoginMixin, _ModelView):
+    can_delete = False
+    column_display_pk = True
 
 
 class UserModelView(ModelView):
@@ -73,7 +79,12 @@ class TopicModelView(ModelView):
     }
 
 
-admin = Admin(name='Dashboard', template_mode='bootstrap3')
-admin.add_view(UserModelView(User, db.session))
-admin.add_view(CafeModelView(Cafe, db.session))
-admin.add_view(TopicModelView(Topic, db.session))
+def init_app(app):
+    admin = Admin(
+        app, name='Dashboard',
+        template_mode='bootstrap3',
+        index_view=IndexView(),
+    )
+    admin.add_view(UserModelView(User, db.session))
+    admin.add_view(CafeModelView(Cafe, db.session))
+    admin.add_view(TopicModelView(Topic, db.session))
