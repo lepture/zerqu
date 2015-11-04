@@ -43,14 +43,20 @@ class UserModelView(ModelView):
 
 class CafeModelView(ModelView):
     column_sortable_list = ['id', 'slug']
-    column_exclude_list = ['style']
     column_searchable_list = ['slug']
+    column_list = [
+        'id', 'slug', 'name', 'description', 'label',
+        'user_id', 'created_at', 'updated_at',
+    ]
 
 
 class TopicModelView(ModelView):
     column_sortable_list = ['id', 'user_id']
     column_searchable_list = ['title']
-    column_exclude_list = ['content']
+    column_list = [
+        'id', 'title', 'tags', 'label', 'info',
+        'user_id', 'created_at', 'updated_at',
+    ]
     form_excluded_columns = ['created_at', 'updated_at', 'webpage', 'user_id']
     form_choices = {
         'status': [
