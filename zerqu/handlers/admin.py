@@ -47,6 +47,7 @@ class UserModelView(ModelView):
             'coerce': int,
         }
     }
+    form_excluded_columns = ['updated_at', 'created_at']
 
 
 class CafeModelView(ModelView):
@@ -56,6 +57,7 @@ class CafeModelView(ModelView):
         'id', 'slug', 'name', 'description', 'label',
         'user_id', 'created_at', 'updated_at',
     ]
+    form_excluded_columns = ['slug', 'created_at', 'updated_at', 'user_id']
 
 
 class TopicModelView(ModelView):
