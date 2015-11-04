@@ -1,6 +1,8 @@
 # coding: utf-8
 
-from flask import redirect, url_for, request
+from flask import redirect, request, current_app
+from flask import url_for as flask_url_for
+from werkzeug.urls import url_encode, url_join
 from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView as _ModelView
 from zerqu.models import db, current_user
@@ -15,7 +17,7 @@ class LoginMixin(object):
         return current_user.role in roles
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('account.login', next_url=request.url))
+        return redirect(flask_url_for('account.login', next_url=request.url))
 
 
 class IndexView(LoginMixin, AdminIndexView):
@@ -79,12 +81,25 @@ class TopicModelView(ModelView):
     }
 
 
+def url_for(endpoint, **values):
+    if endpoint == 'admin.static':
+        filename = values.pop('filename')
+        query = url_encode(values)
+        url_prefix = current_app.config['ADMIN_STATIC_URL']
+        return '{}?{}'.format(url_join(url_prefix, filename), query)
+    return flask_url_for(endpoint, **values)
+
+
 def init_app(app):
     admin = Admin(
         app, name='Dashboard',
         template_mode='bootstrap3',
+        endpoint='admin',
         index_view=IndexView(),
     )
     admin.add_view(UserModelView(User, db.session))
     admin.add_view(CafeModelView(Cafe, db.session))
     admin.add_view(TopicModelView(Topic, db.session))
+
+    if app.config.get('ADMIN_STATIC_URL'):
+        app.jinja_env.globals['url_for'] = url_for
