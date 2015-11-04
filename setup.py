@@ -8,18 +8,38 @@ def fread(filename):
     with open(filename) as f:
         return f.read()
 
-flask_requires = [
-    'Flask',
-    'Flask-WTF',
-    'Flask-OAuthlib',
-    'Flask-SQLAlchemy',
-    'Flask-Mail',
+basic_requires = [
+    'Flask==0.10.1',
+    'Flask-WTF==0.11',
+    'Flask-OAuthlib==0.9.1',
+    'Flask-Mail==0.9.1',
+
+    # renderer
+    'mistune==0.7',
+    'Pygments==2.0.2',
+
+    # database
+    'redis==2.10.3',
+    'psycopg2==2.6.1',
+    'SQLAlchemy==1.0.6',
+    'Flask-SQLAlchemy==2.0',
+
+    # Babel
+    'Flask-Babel==0.9',
+    'Babel==2.0',
+    'pytz==2015.4',
 ]
-zerqu_requires = [
-    'Pygments',
-    'mistune',
-    'redis',
-    'psycopg2',
+enhance_requires = [
+    # enhance json
+    'simplejson==3.6.5',
+
+    # enhance redis
+    'hiredis==0.2.0',
+
+    # enhance requests
+    'pyOpenSSL==0.15.1',
+    'ndg-httpsclient==0.4.0',
+    'pyasn1==0.1.8',
 ]
 
 
@@ -35,7 +55,7 @@ setup(
     platforms='any',
     long_description=fread('README.rst'),
     license='unknown',
-    install_requires=flask_requires + zerqu_requires,
+    install_requires=basic_requires + enhance_requires,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',
