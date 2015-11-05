@@ -42,10 +42,10 @@ class TestSession(TestCase):
         assert data['status'] == 'error'
 
     def test_session_login_failed(self):
-        rv = self.client.post('/session', data={
+        rv = self.client.post('/session', data=json.dumps({
             'username': 'test',
             'password': 'test-password',
-        })
+        }), content_type='application/json')
         assert rv.status_code == 400
         data = json.loads(rv.data)
         assert data['status'] == 'error'

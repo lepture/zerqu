@@ -59,14 +59,14 @@ class TestTopicTimeline(TestCase, TopicMixin):
         rv = self.client.get('/api/topics/timeline')
         assert rv.status_code == 200
         data = json.loads(rv.data)
-        assert len(set([d['cafe']['id'] for d in data['data']])) == 1
+        assert len(set([d['cafes'][0]['id'] for d in data['data']])) == 1
 
     def test_show_all_timeline(self):
         self.create_topics()
         rv = self.client.get('/api/topics/timeline?show=all')
         assert rv.status_code == 200
         data = json.loads(rv.data)
-        assert len(set([d['cafe']['id'] for d in data['data']])) == 2
+        assert len(set([d['cafes'][0]['id'] for d in data['data']])) == 2
 
 
 class TestViewTopic(TestCase, TopicMixin):
