@@ -9,6 +9,7 @@ except ImportError:
 
 
 ROBOT_BROWSERS = ('google', 'msn', 'yahoo', 'ask', 'aol')
+ROBOT_KEYWORDS = ('spider', 'bot', 'crawler', '+http')
 MOBILE_PLATFORMS = ('iphone', 'android', 'wii')
 
 
@@ -45,9 +46,10 @@ def canonical_url(endpoint, **kwargs):
 
 
 def is_robot():
-    ua = str(request.user_agent)
-    if 'spider' in ua.lower():
-        return True
+    ua = str(request.user_agent).lower()
+    for key in ROBOT_KEYWORDS:
+        if key in ua:
+            return True
     return request.user_agent.browser in ROBOT_BROWSERS
 
 
