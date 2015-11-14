@@ -1,2 +1,3 @@
 loremipsum==1.0.5
 alembic==0.8.2
+flask-script>=2.0.0
