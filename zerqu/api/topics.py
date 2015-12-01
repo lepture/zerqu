@@ -38,6 +38,15 @@ def timeline():
     return jsonify(data=data, cursor=cursor)
 
 
+@api.route('', methods=['POST'])
+@require_oauth(login=True, scopes=['topic:write'])
+def create_topic():
+    form = TopicForm.create_api_form()
+    topic = form.create_topic(current_user.id)
+    data = make_topic_response(topic)
+    return jsonify(data)
+
+
 @api.route('/<int:tid>')
 @require_oauth(login=False)
 def view_topic(tid):
