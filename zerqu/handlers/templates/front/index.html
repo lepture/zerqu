@@ -19,7 +19,7 @@
   </header>
   {% for topic in topics %}
   {% set user = topic_users.get(topic.user_id|string) %}
-  {% set cafes = topic_cafes.get(topic.id) %}
+  {% set cafes = topic_cafes.get(topic.id, []) %}
   <article class="hentry">
     <h1 class="entry-title">
       <a href="{{ url_for('.view_topic', tid=topic.id) }}">{{ topic.title }}</a>
