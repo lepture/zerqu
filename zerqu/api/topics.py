@@ -20,6 +20,7 @@ from .utils import cursor_query, pagination_query, int_or_raise
 api = ApiBlueprint('topics')
 
 
+@api.route('')
 @api.route('/timeline')
 @require_oauth(login=False, cache_time=600)
 def timeline():
