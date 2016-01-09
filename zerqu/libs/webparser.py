@@ -111,6 +111,8 @@ def sanitize_link(url):
 def fetch_parse(link):
     headers = {'User-Agent': UA}
     resp = requests.get(link, timeout=5, headers=headers)
+    if resp.encoding == 'ISO-8859-1':
+        resp.encoding = 'UTF-8'
     if resp.status_code != 200:
         return {u'error': u'status_code_error'}
     elif not resp.text:
