@@ -9,6 +9,7 @@
 import re
 import requests
 from werkzeug.urls import url_parse, url_join
+from werkzeug.utils import unescape
 
 __version__ = '0.1'
 __author__ = 'Hsiaoming Yang <me@lepture.com>'
@@ -78,6 +79,10 @@ def parse_meta(content, link=None):
         rv[u'image'] = url_join(link, rv[u'image'])
 
     rv.update(parse_embed(pairs))
+
+    for key in [u'title', u'description']:
+        if rv.get(key):
+            rv[key] = unescape(rv[key])
     return rv
 
 

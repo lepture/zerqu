@@ -1,8 +1,10 @@
 # coding: utf-8
+import unittest
 
 from zerqu.libs import renderer
 from zerqu.libs.ratelimit import ratelimit
 from zerqu.libs.utils import is_robot, is_mobile
+from zerqu.libs.webparser import parse_meta
 from zerqu.libs.errors import LimitExceeded
 from ._base import TestCase
 
@@ -72,3 +74,25 @@ class TestRenderer(TestCase):
         s = 'hello\nword\n\nnewline'
         assert '<p>' in renderer.render_text(s)
         assert '<br>' in renderer.render_text(s)
+
+
+class TestParser(unittest.TestCase):
+    def test_parse_meta(self):
+        link = u'http://fabric-chs.readthedocs.org/zh_CN/chs/'
+        rsp = u'''
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>欢迎访问 Fabric 中文文档 &mdash; Fabric  文档</title>
+<link rel="top" title="Fabric  文档" href="#" />
+<link rel="next" title="概览 &amp; 教程" href="tutorial.html" />
+</head>
+<body role="document">
+</body>
+</html>
+'''
+        meta = parse_meta(rsp, link)
+        assert u'—' in meta[u'title']
+        assert u'&mdash;' not in meta[u'title']
