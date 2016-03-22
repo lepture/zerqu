@@ -8,8 +8,8 @@
   <script>
     ZERQU = window.ZERQU || {production: true};
     ZERQU.site = {name: "{{ config.SITE_NAME }}", description: "{{ config.SITE_DESCRIPTION }}"};
-    ZERQU.site.links = {{ config.APP_LINKS|tojson }};
-    ZERQU.site.logins = {{ config.APP_LOGINS|tojson }};
+    ZERQU.site.links = {{ config.SITE_LINKS|tojson }};
+    ZERQU.site.logins = {{ config.SITE_LOGINS|tojson }};
   </script>
   {{ config.APP_HEADER|safe }}
 </head>

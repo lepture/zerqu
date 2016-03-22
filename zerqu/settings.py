@@ -6,8 +6,9 @@ SITE_NAME = 'ZERQU'
 SITE_DESCRIPTION = 'Welcome to ZERQU'
 SITE_YEAR = datetime.date.today().year
 
-APP_LINKS = [{'name': 'About', 'url': '/c/about'}]
-APP_LOGINS = []
+SITE_LINKS = [{'name': 'About', 'url': '/c/about'}]
+SITE_LOGINS = []
+
 APP_HEADER = ''
 APP_FOOTER = ''
 
