@@ -3,7 +3,9 @@
 from markupsafe import escape
 from flask import Blueprint, Response
 from flask import request, current_app
+
 from zerqu.models import db, User, Cafe, Topic, CafeTopic
+from zerqu.models import WebPage
 from zerqu.libs.cache import cache, ONE_HOUR
 from zerqu.libs.utils import xmldatetime, canonical_url
 from zerqu.rec.timeline import get_all_topics
@@ -91,6 +93,22 @@ def yield_entry(topic, user):
     else:
         yield u'<name>Anonymous</name>'
     yield u'</author>'
+    webpage = WebPage.cache.get(topic.webpage) or u''
+    if webpage:
+        webpage_dict = dict(webpage)
 
-    yield u'<content type="html"><![CDATA[%s]]></content>' % topic.html
+        def yield_webpage():
+            if webpage_dict.get('image'):
+                yield u'<figure>'
+                yield u'<img src="%s">' % webpage_dict['image']
+                yield u'<figcaption>'\
+                      u'<a href="{link}">{title}</a>{link}'\
+                      u'</figcaption>'.format(**webpage_dict)
+                yield u'</figure>'
+            else:
+                yield u'<div><a href="{link}">{title}</a></div>'\
+                      u'<div>{link}</div>'.format(**webpage_dict)
+        webpage = u''.join(yield_webpage())
+    yield u'<content type="html"><![CDATA[%s]]></content>' % (webpage + topic.html)
+
     yield u'</entry>'
