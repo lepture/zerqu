@@ -1,0 +1,23 @@
+db:
+  image: postgres:9.5
+  environment:
+    - POSTGRES_PASSWORD=secret
+    - POSTGRES_DB=development
+    - PGDATA=/data
+  volumes:
+    - ./data/:/code
+
+redis:
+  image: redis:3.2
+
+web:
+  links:
+    - db
+    - redis
+  build: .
+  volumes:
+    - .:/code
+  ports:
+          - "5000:5000"
+  command: python manage.py runserver -h 0.0.0.0
+
