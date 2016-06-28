@@ -18,6 +18,5 @@ web:
   volumes:
     - .:/code
   ports:
-          - "5000:5000"
+    - "5000:5000"
   command: python manage.py runserver -h 0.0.0.0
-
