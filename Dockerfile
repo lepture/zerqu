@@ -10,4 +10,3 @@ RUN pip install -r deps/extra.txt
 RUN pip install -r deps/tests.txt
 
 ADD . /code
-
