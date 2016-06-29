@@ -8,3 +8,4 @@ ZERQU_REDIS_URI = 'redis://redis:6379/0'
 ZERQU_CACHE_REDIS_HOST = 'redis'
 
 DEBUG = True
+SITE_MANIFEST = os.path.abspath('./manifest.json')
