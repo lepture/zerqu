@@ -5,12 +5,10 @@ import datetime
 SITE_NAME = 'ZERQU'
 SITE_DESCRIPTION = 'Welcome to ZERQU'
 SITE_YEAR = datetime.date.today().year
-
-SITE_LINKS = [{'name': 'About', 'url': '/c/about'}]
 SITE_LOGINS = []
 
-APP_HEADER = ''
-APP_FOOTER = ''
+# manifest.json location
+SITE_MANIFEST = ''
 
 OAUTH2_CACHE_TYPE = 'redis'
 OAUTH2_CACHE_REDIS_DB = 1

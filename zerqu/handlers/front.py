@@ -1,6 +1,7 @@
 # coding: utf-8
 
-from flask import Blueprint, request, session, current_app
+import os
+from flask import Blueprint, request, session, current_app, json
 from flask import render_template, abort, redirect
 from werkzeug.security import gen_salt
 from zerqu.libs.cache import cache, ONE_HOUR
@@ -13,85 +14,22 @@ bp = Blueprint('front', __name__, template_folder='templates')
 bp.add_app_template_filter(xmldatetime)
 
 
-def render(template, **kwargs):
-    key = 'front:page:%s' % request.path
-    content = render_template(template, **kwargs)
-    cache.set(key, content, timeout=ONE_HOUR)
-    return render_content(content)
-
-
-def render_content(content):
-    use_app = session.get('app')
-
-    base_url = current_app.config.get('SITE_CANONICAL_URL')
-    if not base_url:
-        base_url = current_app.config.get('SITE_URL')
-
-    if base_url:
-        link = '%s%s' % (base_url.rstrip('/'), request.path)
-    else:
-        link = request.base_url
-
-    extra_head = ['<meta property="og:url" content="%s">' % link]
-    twitter = current_app.config.get('SITE_TWITTER')
-    if twitter:
-        extra_head.append(
-            '<meta name="twitter:site" content="@%s" />' % twitter
-        )
-
-    extra_head.append('<link rel="canonical" href="%s">' % link)
-
-    if base_url:
-        schema = (
-            '<script type="application/ld+json">'
-            '{"@context":"http://schema.org","@type":"WebSite",'
-            '"name":"%s","url":"%s"}'
-            '</script>'
-        ) % (current_app.config.get('SITE_NAME'), base_url)
-        extra_head.append(schema)
-
-    if not is_robot() and use_app != 'no':
-        token = gen_salt(16)
-        session['token'] = token
-        script = '<script>location.href="/app?token=%s"</script>' % token
-        extra_head.append(script)
-
-    return content.replace(u'</head>', u''.join(extra_head) + u'</head>')
-
-
 @bp.before_request
-def hook_for_render():
-    use_app = session.get('app')
+def manifest_hook():
+    manifest_file = current_app.config.get('SITE_MANIFEST')
+    if not manifest_file or not os.path.isfile(manifest_file):
+        request.manifest = None
+        return
 
-    if not is_robot() and use_app == 'yes':
-        return render_template('front/app.html')
+    manifest_mtime = os.path.getmtime(manifest_file)
+    latest = getattr(current_app, 'manifest_mtime', 0)
+    if latest != manifest_mtime:
+        current_app.manifest_mtime = manifest_mtime
+        with open(manifest_file) as f:
+            manifest = json.load(f)
+            current_app.manifest = manifest
 
-    key = 'front:page:%s' % request.path
-    content = cache.get(key)
-    if content:
-        return render_content(content)
-
-
-@bp.route('/app')
-def run_app():
-    if is_robot():
-        abort(404)
-
-    referrer = request.referrer
-    store = session.pop('token', None)
-    token = request.args.get('token')
-    if referrer and store and token and store == token:
-        session['app'] = 'yes'
-        return redirect(referrer)
-
-    if not referrer:
-        return redirect('/')
-
-    if not store:
-        return 'Please Enable Cookie'
-
-    session['app'] = 'no'
-    return redirect(referrer)
+    request.manifest = getattr(current_app, 'manifest', None)
 
 
 @bp.route('/')
@@ -99,7 +37,7 @@ def home():
     topics, _ = get_all_topics(0)
     topic_users = User.cache.get_dict({o.user_id for o in topics})
     topic_cafes = CafeTopic.get_topics_cafes([o.id for o in topics])
-    return render(
+    return render_template(
         'front/index.html',
         topics=topics,
         topic_users=topic_users,
@@ -122,7 +60,7 @@ def view_topic(tid):
     comment_users = User.cache.get_dict({o.user_id for o in comments})
     comment_count = Comment.cache.filter_count(topic_id=tid)
 
-    return render(
+    return render_template(
         'front/topic.html',
         topic=topic,
         user=user,
@@ -138,7 +76,7 @@ def cafe_list():
     q = db.session.query(Cafe.id)
     q = q.order_by(Cafe.id.desc())
     cafes = Cafe.cache.get_many([i for i, in q.limit(100)])
-    return render(
+    return render_template(
         'front/cafe_list.html',
         cafes=cafes,
     )
@@ -153,7 +91,7 @@ def view_cafe(slug):
     q = q.order_by(CafeTopic.topic_id.desc()).limit(50)
     topics = Topic.cache.get_many([i for i, in q])
     topic_users = User.cache.get_dict({o.user_id for o in topics})
-    return render(
+    return render_template(
         'front/cafe.html',
         cafe=cafe,
         topics=topics,
@@ -167,7 +105,7 @@ def view_user(username):
     q = db.session.query(Topic.id).filter_by(user_id=user.id)
     q = q.order_by(Topic.id.desc())
     topics = Topic.cache.get_many([i for i, in q.limit(50)])
-    return render(
+    return render_template(
         'front/user.html',
         user=user,
         topics=topics,

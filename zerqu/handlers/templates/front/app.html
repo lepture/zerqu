@@ -1,21 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>{{ config.SITE_NAME }}</title>
-  <script>
-    ZERQU = window.ZERQU || {production: true};
-    ZERQU.site = {name: "{{ config.SITE_NAME }}", description: "{{ config.SITE_DESCRIPTION }}"};
-    ZERQU.site.links = {{ config.SITE_LINKS|tojson }};
-    ZERQU.site.logins = {{ config.SITE_LOGINS|tojson }};
-  </script>
-  {{ config.APP_HEADER|safe }}
-</head>
-<body>
-  <div id="app"></div>
+{% extends "front/layout.html" %}
+
+{% block body %}
   <noscript>Please enable JavaScript</noscript>
-  {{ config.APP_FOOTER|safe }}
-</body>
-</html>
+{% endblock %}
