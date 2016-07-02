@@ -34,8 +34,6 @@ class Topic(Base):
     webpage = Column(String(34))
     content = Column(UnicodeText, default=u'')
 
-    # feature content
-    info = Column(JSON, default={})
     user_id = Column(Integer, nullable=False, index=True)
     tags = Column(ARRAY(String))
 
@@ -59,7 +57,7 @@ class Topic(Base):
 
     def keys(self):
         return (
-            'id', 'title', 'info', 'label', 'editable', 'tags',
+            'id', 'title', 'label', 'editable', 'tags',
             'created_at', 'updated_at',
         )
 
