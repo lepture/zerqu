@@ -7,6 +7,8 @@ services:
       - .:/code
     ports:
       - "5000:5000"
+    environment:
+      - ZERQU_CONF=/code/local_config.py
     command: python manage.py runserver -h 0.0.0.0
     depends_on:
       - postgres

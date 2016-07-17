@@ -19,4 +19,4 @@ babel-compile:
 
 
 database:
-	@docker-compose run web bash -c "ZERQU_CONF=/code/local_config.py alembic upgrade head"
+	@docker-compose exec web alembic upgrade head
